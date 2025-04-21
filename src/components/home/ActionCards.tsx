@@ -17,11 +17,8 @@ import {
 } from "lucide-react";
 import ActionButton from "./ActionButton";
 import NewReceiptForm from "@/components/receipts/NewReceiptForm";
-import { useState } from "react";
 
 export default function ActionCards() {
-  const [isReceiptFormOpen, setIsReceiptFormOpen] = useState(false);
-
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {/* 제품 등록 카드 */}
@@ -58,7 +55,6 @@ export default function ActionCards() {
             iconColor="text-blue-500"
             label="입고하기"
             description="새로운 제품을 창고에 입고합니다."
-            onClose={() => setIsReceiptFormOpen(false)}
             drawerContent={<NewReceiptForm />}
           />
           <ActionButton
