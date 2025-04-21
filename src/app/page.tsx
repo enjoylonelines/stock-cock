@@ -1,5 +1,13 @@
-import ProductList from "@/components/ProductList";
+import StatsBox from "@/components/home/StatsBox";
+import SearchInput from "@/components/home/SearchInput";
+import ActionCards from "@/components/home/ActionCards";
 
 export default function Home() {
-  return <ProductList />;
+  return (
+    <div className="container p-4 mx-auto space-y-6">
+      <StatsBox />
+      <SearchInput />
+      <ActionCards />
+    </div>
+  );
 }

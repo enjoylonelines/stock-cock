@@ -3,8 +3,12 @@ import type { NextConfig } from "next";
 
 const withPWA = withPWAInit({
   dest: "public",
+  disable: process.env.NODE_ENV === "development",
+  register: true,
 });
 
-const nextConfig: NextConfig = withPWA({});
+const nextConfig: NextConfig = withPWA({
+  reactStrictMode: true,
+});
 
 export default nextConfig;

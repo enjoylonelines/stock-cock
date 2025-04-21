@@ -17,24 +17,27 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "재고박스",
   description: "간편한 재고 관리 시스템",
+  manifest: "/manifest.json",
 };
 
-export default function RootLayout({
+const RootLayout = ({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {
+}>) => {
   return (
     <html lang="ko">
       <head>
-        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#ffffff" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-200`}>
         <Header />
-        <main className="pt-14 pb-16 min-h-screen">{children}</main>
+        <main className="min-h-screen pb-16 pt-14">{children}</main>
         <Footer />
       </body>
     </html>
   );
-}
+};
+
+export default RootLayout;

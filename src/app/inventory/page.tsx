@@ -1,40 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import BarcodeScanner from "@/components/BarcodeScanner";
-import { STOCK } from "../../../types";
+import { Button } from "@/components/ui/button";
+import InventoryList from "@/components/inventory/InventoryList";
+import { Plus } from "lucide-react";
 
 export default function InventoryPage() {
-  const [barcode, setBarcode] = useState("");
-  const [product, setProduct] = useState<STOCK | null>(null);
-
-  const handleScan = async (code: string) => {
-    setBarcode(code);
-
-    // ERP API 호출 (재고 조회)
-    const res = await fetch("/api/get-stock", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itemCode: code }),
-    });
-
-    const data = await res.json();
-    setProduct(data);
-  };
-
   return (
-    <div>
-      <h2>바코드 스캔</h2>
-      <BarcodeScanner onScan={handleScan} />
+    <div className="container max-w-3xl p-4 space-y-4">
+      {/* 입/출고 리스트 */}
+      <InventoryList />
 
-      {barcode && <p>스캔된 바코드: {barcode}</p>}
-      {product && (
-        <div>
-          <h3>제품 정보</h3>
-          <p>이름: {product.name}</p>
-          <p>재고: {product.stock}개</p>
-        </div>
-      )}
+      {/* 플로팅 액션 버튼 */}
+      <div className="fixed bottom-20 right-4">
+        <Button size="icon" className="rounded-full shadow-lg h-14 w-14">
+          <Plus />
+        </Button>
+      </div>
     </div>
   );
 }
