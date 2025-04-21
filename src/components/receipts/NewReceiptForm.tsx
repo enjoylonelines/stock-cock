@@ -58,7 +58,7 @@ export default function NewReceiptForm() {
           <Button variant="outline" className="flex-1">
             임시 저장
           </Button>
-          <Button className="flex-1 bg-gray-900">입고 완료</Button>
+          <Button className="flex-1 text-gray-800 bg-orange-200">입고 완료</Button>
         </div>
       </div>
     </div>

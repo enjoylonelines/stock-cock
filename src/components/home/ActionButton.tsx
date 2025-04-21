@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerTrigger } from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer";
 import { LucideIcon, X } from "lucide-react";
 import { ReactNode, useEffect, useState } from "react";
 
@@ -10,11 +10,11 @@ interface ActionButtonProps {
   iconColor: string;
   label: string;
   drawerContent: ReactNode;
-  description?: string;
+  description: string;
   onClose?: () => void;
 }
 
-export default function ActionButton({ icon: Icon, iconColor, label, drawerContent, onClose }: ActionButtonProps) {
+export default function ActionButton({ icon: Icon, iconColor, label, drawerContent, description, onClose }: ActionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentTime, setCurrentTime] = useState<string>("");
 
@@ -55,7 +55,10 @@ export default function ActionButton({ icon: Icon, iconColor, label, drawerConte
           </div>
 
           <div className="flex items-center justify-between py-2 border-b-2 border-orange-400">
-            <h2 className="text-lg font-medium text-orange-400">{label}</h2>
+            <div>
+              <DrawerTitle className="text-lg font-medium text-orange-400">{label}</DrawerTitle>
+              <DrawerDescription className="text-sm text-gray-500">{description}</DrawerDescription>
+            </div>
             <div className="text-sm text-gray-500">{currentTime}</div>
           </div>
         </DrawerHeader>
