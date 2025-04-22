@@ -1,22 +1,23 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerDescription } from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerTrigger } from "@/components/ui/drawer";
 import { LucideIcon, X } from "lucide-react";
-import { ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useDrawerStore } from "@/store/drawerStore";
+import NewReceiptForm from "@/components/receipts/NewReceiptForm";
 
 interface ActionButtonProps {
   icon: LucideIcon;
   iconColor: string;
   label: string;
-  drawerContent: ReactNode;
+  formType: "receipt" | "issue" | "move" | "adjust" | "shortage" | "inventory" | "history" | "member" | "product" | "excel";
   description: string;
-  onClose?: () => void;
 }
 
-export default function ActionButton({ icon: Icon, iconColor, label, drawerContent, description, onClose }: ActionButtonProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function ActionButton({ icon: Icon, iconColor, label, formType, description }: ActionButtonProps) {
   const [currentTime, setCurrentTime] = useState<string>("");
+  const { isOpen, currentForm, openDrawer, closeDrawer } = useDrawerStore();
 
   // 현재 시간 업데이트
   useEffect(() => {
@@ -34,12 +35,12 @@ export default function ActionButton({ icon: Icon, iconColor, label, drawerConte
   }, []);
 
   const handleClose = () => {
-    onClose?.();
-    setIsOpen(false);
+    closeDrawer();
   };
 
+  const isCurrentFormOpen = isOpen && currentForm === formType;
   return (
-    <Drawer open={isOpen} onOpenChange={setIsOpen}>
+    <Drawer open={isCurrentFormOpen} onOpenChange={(open) => (open ? openDrawer(formType) : closeDrawer())}>
       <DrawerTrigger asChild>
         <Button variant="ghost" className="justify-start h-12 text-base">
           <Icon className={`w-5 h-5 mr-2 ${iconColor}`} />
@@ -62,8 +63,25 @@ export default function ActionButton({ icon: Icon, iconColor, label, drawerConte
             <div className="text-sm text-gray-500">{currentTime}</div>
           </div>
         </DrawerHeader>
-        {drawerContent}
+        <DrawerFormContent />
       </DrawerContent>
     </Drawer>
   );
+}
+
+function DrawerFormContent() {
+  const { currentForm } = useDrawerStore();
+
+  switch (currentForm) {
+    case "receipt":
+      return <NewReceiptForm />;
+    case "issue":
+      return <div>출고 폼</div>;
+    case "move":
+      return <div>이동 폼</div>;
+    case "adjust":
+      return <div>조정 폼</div>;
+    default:
+      return null;
+  }
 }
