@@ -26,6 +26,10 @@ export default function CommonDrawer() {
 
   const getFormTitle = () => {
     switch (currentForm) {
+      case "product":
+        return "제품 등록";
+      case "excel":
+        return "엑셀 파일로 등록";
       case "receipt":
         return "입고하기";
       case "issue":
@@ -34,6 +38,15 @@ export default function CommonDrawer() {
         return "이동하기";
       case "adjust":
         return "조정하기";
+      case "shortage":
+        return "재고 부족 확인";
+      case "inventory":
+        return "재고 조사";
+      case "history":
+        return "과거 수량 조회";
+      case "member":
+        return "멤버 추가";
+
       default:
         return "";
     }
@@ -49,6 +62,18 @@ export default function CommonDrawer() {
         return "제품을 다른 위치로 이동합니다.";
       case "adjust":
         return "재고 수량을 조정합니다.";
+      case "shortage":
+        return "재고가 부족한 제품 목록을 확인합니다.";
+      case "inventory":
+        return "현재 재고 상태를 조사합니다.";
+      case "history":
+        return "제품의 과거 재고 수량을 조회합니다.";
+      case "member":
+        return "새로운 팀원을 추가합니다.";
+      case "product":
+        return "새로운 제품을 등록합니다.";
+      case "excel":
+        return "엑셀 파일을 업로드하여 여러 제품을 한 번에 등록합니다.";
       default:
         return "";
     }
@@ -64,6 +89,18 @@ export default function CommonDrawer() {
         return <div>이동 폼</div>;
       case "adjust":
         return <div>조정 폼</div>;
+      case "shortage":
+        return <div>재고 부족 확인 폼</div>;
+      case "inventory":
+        return <div>재고 조사 폼</div>;
+      case "history":
+        return <div>과거 수량 조회 폼</div>;
+      case "member":
+        return <div>멤버 추가 폼</div>;
+      case "product":
+        return <div>제품 등록 폼</div>;
+      case "excel":
+        return <div>엑셀 파일 업로드 폼</div>;
       default:
         return null;
     }

@@ -1,6 +1,17 @@
 import { create } from "zustand";
 
-type FormType = "receipt" | "issue" | "move" | "adjust" | "shortage" | "inventory" | "history" | "member" | "product" | "excel" | null;
+export type FormType =
+  | "receipt"
+  | "issue"
+  | "move"
+  | "adjust"
+  | "shortage"
+  | "inventory"
+  | "history"
+  | "member"
+  | "product"
+  | "excel"
+  | null;
 type ReceiptStep = "main" | "location" | "supplier" | "products" | "memo" | null;
 
 interface DrawerState {

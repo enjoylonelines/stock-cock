@@ -1,47 +1,22 @@
 "use client";
 
-import { ChevronRight, ArrowLeft } from "lucide-react";
+import { useState } from "react";
+import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useDrawerStore } from "@/store/drawerStore";
+import DrawerView from "@/components/ui/drawer-view";
+import LocationManageView from "./LocationManageView";
 
 export default function NewReceiptForm() {
-  const { receiptStep, setReceiptStep } = useDrawerStore();
+  const [selectedLocation, setSelectedLocation] = useState<string>("");
+  const [isLocationViewVisible, setIsLocationViewVisible] = useState(false);
 
-  const renderStep = () => {
-    switch (receiptStep) {
-      case "main":
-        return <MainStep />;
-      case "location":
-        return <LocationStep />;
-      case "supplier":
-        return <SupplierStep />;
-      case "products":
-        return <ProductsStep />;
-      case "memo":
-        return <MemoStep />;
-      default:
-        return null;
-    }
+  const handleLocationSelect = (location: string) => {
+    setSelectedLocation(location);
+    setIsLocationViewVisible(false);
   };
 
   return (
-    <div className="flex flex-col h-full">
-      {receiptStep !== "main" && (
-        <Button variant="ghost" className="mb-4" onClick={() => setReceiptStep("main")}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          뒤로
-        </Button>
-      )}
-      {renderStep()}
-    </div>
-  );
-}
-
-function MainStep() {
-  const { setReceiptStep } = useDrawerStore();
-
-  return (
-    <>
+    <div className="relative flex flex-col h-full">
       {/* 입고 정보 */}
       <div className="flex-1 p-4">
         <div className="space-y-2">
@@ -49,21 +24,16 @@ function MainStep() {
             variant="ghost"
             className="flex items-center justify-between w-full py-2"
             size="none"
-            onClick={() => setReceiptStep("location")}
+            onClick={() => setIsLocationViewVisible(true)}
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">위치</h3>
-              <p className="text-sm text-gray-500">기본 위치</p>
+              <p className="text-sm text-gray-500">{selectedLocation || "선택"}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
 
-          <Button
-            variant="ghost"
-            className="flex items-center justify-between w-full py-2"
-            size="none"
-            onClick={() => setReceiptStep("supplier")}
-          >
+          <Button variant="ghost" className="flex items-center justify-between w-full py-2" size="none">
             <div className="flex justify-between w-full">
               <h3 className="font-medium">입고처</h3>
               <p className="text-sm text-gray-500">선택</p>
@@ -71,12 +41,7 @@ function MainStep() {
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
 
-          <Button
-            variant="ghost"
-            className="flex items-center justify-between w-full py-2"
-            size="none"
-            onClick={() => setReceiptStep("products")}
-          >
+          <Button variant="ghost" className="flex items-center justify-between w-full py-2" size="none">
             <div className="flex justify-between w-full">
               <h3 className="font-medium">제품</h3>
               <p className="text-sm text-gray-500">0개 품목</p>
@@ -84,12 +49,7 @@ function MainStep() {
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
 
-          <Button
-            variant="ghost"
-            className="flex items-center justify-between w-full py-2"
-            size="none"
-            onClick={() => setReceiptStep("memo")}
-          >
+          <Button variant="ghost" className="flex items-center justify-between w-full py-2" size="none">
             <div className="flex justify-between w-full">
               <h3 className="font-medium">메모</h3>
               <p className="text-sm text-gray-500">작성</p>
@@ -108,42 +68,11 @@ function MainStep() {
           <Button className="flex-1 text-gray-800 bg-orange-200">입고 완료</Button>
         </div>
       </div>
-    </>
-  );
-}
 
-function LocationStep() {
-  return (
-    <div className="p-4">
-      <h3 className="mb-4 text-lg font-semibold">위치 선택</h3>
-      {/* 위치 선택 UI */}
-    </div>
-  );
-}
-
-function SupplierStep() {
-  return (
-    <div className="p-4">
-      <h3 className="mb-4 text-lg font-semibold">입고처 선택</h3>
-      {/* 입고처 선택 UI */}
-    </div>
-  );
-}
-
-function ProductsStep() {
-  return (
-    <div className="p-4">
-      <h3 className="mb-4 text-lg font-semibold">제품 선택</h3>
-      {/* 제품 선택 UI */}
-    </div>
-  );
-}
-
-function MemoStep() {
-  return (
-    <div className="p-4">
-      <h3 className="mb-4 text-lg font-semibold">메모 작성</h3>
-      {/* 메모 작성 UI */}
+      {/* 위치 선택 뷰 */}
+      <DrawerView isVisible={isLocationViewVisible}>
+        <LocationManageView onBack={() => setIsLocationViewVisible(false)} onSelect={handleLocationSelect} />
+      </DrawerView>
     </div>
   );
 }
