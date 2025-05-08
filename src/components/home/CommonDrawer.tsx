@@ -4,8 +4,8 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } f
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDrawerStore } from "@/store/drawerStore";
-import NewReceiptForm from "@/components/receipts/NewReceiptForm";
 import { useEffect, useState } from "react";
+import ReceiptForm from "../receipts/ReceiptForm";
 
 export default function CommonDrawer() {
   const { isOpen, currentForm, closeDrawer } = useDrawerStore();
@@ -82,9 +82,9 @@ export default function CommonDrawer() {
   const renderForm = () => {
     switch (currentForm) {
       case "receipt":
-        return <NewReceiptForm />;
+        return <ReceiptForm mode="IN" />;
       case "issue":
-        return <div>출고 폼</div>;
+        return <ReceiptForm mode="OUT" />;
       case "move":
         return <div>이동 폼</div>;
       case "adjust":
