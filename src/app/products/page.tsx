@@ -7,7 +7,7 @@ import ProductList from "@/components/products/ProductList";
 
 export default function ProductsPage() {
   return (
-    <div className="container max-w-3xl p-4 space-y-4">
+    <div className="container max-w-3xl p-4 mx-auto space-y-4">
       {/* 검색 헤더 */}
       <div className="flex items-center justify-between">
         <div className="flex-1">

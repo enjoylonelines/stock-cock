@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 
 export default function SettingsPage() {
   return (
-    <div className="container max-w-3xl p-4 space-y-6">
+    <div className="container max-w-3xl p-4 mx-auto space-y-6">
       {/* 팀 정보 */}
       <Card className="p-0 bg-white">
         <CardContent className="relative h-48 p-0 overflow-hidden rounded-xl">

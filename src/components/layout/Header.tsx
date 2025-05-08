@@ -70,7 +70,7 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b">
-      <div className="container max-w-3xl">
+      <div className="container max-w-3xl mx-auto">
         <div className="flex items-center justify-between px-4 h-14">
           <div className="flex items-center gap-2">
             <h1 className={`text-lg font-bold`}>{title}</h1>
