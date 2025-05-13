@@ -5,9 +5,8 @@ export type Product = {
   buy_price: number;
   category: string;
   brand: string;
-  stock: number;
   image_url: string;
   quantity?: number;
-  created_at: string;
-  updated_at: string;
+  created_at: string; // yyyy-mm-dd hh:mm:ss
+  updated_at: string; // yyyy-mm-dd hh:mm:ss
 };

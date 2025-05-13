@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko">
       <head>
         <meta name="theme-color" content="#ffffff" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="icon" href="/icons/logo.png" />
       </head>
       <body className={`${inter.className} antialiased bg-slate-200`}>
         <Header />
