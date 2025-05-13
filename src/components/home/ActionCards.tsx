@@ -147,7 +147,6 @@ export default function ActionCards() {
                   label={button.label}
                   onClick={() => {
                     openDrawer(button.formType as FormType);
-                    console.log(button.formType);
                   }}
                 />
               ))}

@@ -4,25 +4,10 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } f
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDrawerStore } from "@/store/drawerStore";
-import { useEffect, useState } from "react";
 import ReceiptForm from "../receipts/ReceiptForm";
 
 export default function CommonDrawer() {
   const { isOpen, currentForm, closeDrawer } = useDrawerStore();
-  const [currentTime, setCurrentTime] = useState<string>("");
-
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const hours = now.getHours().toString().padStart(2, "0");
-      const minutes = now.getMinutes().toString().padStart(2, "0");
-      setCurrentTime(`${hours}:${minutes}`);
-    };
-
-    updateTime();
-    const interval = setInterval(updateTime, 60000);
-    return () => clearInterval(interval);
-  }, []);
 
   const getFormTitle = () => {
     switch (currentForm) {
@@ -116,12 +101,24 @@ export default function CommonDrawer() {
             </Button>
           </div>
 
-          <div className="flex items-center justify-between py-2 border-b-2 border-orange-400">
+          <div
+            className={`flex items-center justify-between py-2 border-b-2 ${
+              currentForm === "receipt" ? "border-blue-400" : currentForm === "issue" ? "border-red-400" : "border-orange-400"
+            }`}
+          >
             <div>
-              <DrawerTitle className="text-lg font-medium text-orange-400">{getFormTitle()}</DrawerTitle>
+              <DrawerTitle
+                className={`text-lg font-medium ${
+                  currentForm === "receipt" ? "text-blue-400" : currentForm === "issue" ? "text-red-400" : "text-orange-400"
+                }`}
+              >
+                {getFormTitle()}
+              </DrawerTitle>
               <DrawerDescription className="text-sm text-gray-500">{getFormDescription()}</DrawerDescription>
             </div>
-            <div className="text-sm text-gray-500">{currentTime}</div>
+            {/* <button onClick={onDatePickerClick} className="text-sm text-gray-500">
+              {"현재 시간"}
+            </button> */}
           </div>
         </DrawerHeader>
         <div className="flex-1 overflow-y-auto">{renderForm()}</div>

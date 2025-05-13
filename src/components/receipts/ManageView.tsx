@@ -13,7 +13,7 @@ interface Item {
 
 interface ManageViewProps {
   onBack: () => void;
-  onSelect: (name: string) => void;
+  onSelect: (item: { id: string; name: string }) => void;
   title: string;
   items: Item[];
   onAdd: (name: string) => void;
@@ -67,7 +67,7 @@ export default function ManageView({ onBack, onSelect, title, items, onAdd, onEd
               key={item.id}
               className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent hover:text-accent-foreground"
             >
-              <button className="flex-1 text-left" onClick={() => onSelect(item.name)}>
+              <button className="flex-1 text-left" onClick={() => onSelect(item)}>
                 {item.name}
               </button>
               <LocationItemMenu onEdit={() => handleEdit(item.id)} onDelete={() => onDelete(item.id)} />

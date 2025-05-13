@@ -1,6 +1,6 @@
 {
-  "name": "재고박스",
-  "short_name": "재고박스",
+  "name": "stock-cock",
+  "short_name": "stock-cock",
   "description": "간편한 재고 관리 시스템",
   "start_url": "/",
   "display": "standalone",

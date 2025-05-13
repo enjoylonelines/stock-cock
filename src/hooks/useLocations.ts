@@ -1,56 +1,72 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 interface Location {
   id: string;
   name: string;
 }
 
-const STORAGE_KEY = "locations";
-
 export function useLocations() {
   const [locations, setLocations] = useState<Location[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // 초기 데이터 로드
   useEffect(() => {
-    const storedLocations = localStorage.getItem(STORAGE_KEY);
-    if (storedLocations) {
-      setLocations(JSON.parse(storedLocations));
-    } else {
-      // 초기 데이터 설정
-      const initialLocations = [
-        { id: "1", name: "A 창고" },
-        { id: "2", name: "B 창고" },
-        { id: "3", name: "C 창고" },
-      ];
-      setLocations(initialLocations);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(initialLocations));
-    }
+    fetchLocations();
   }, []);
 
-  const addLocation = (name: string) => {
-    const newLocation = {
-      id: Date.now().toString(),
-      name,
-    };
-    const updatedLocations = [...locations, newLocation];
-    setLocations(updatedLocations);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLocations));
+  const fetchLocations = async () => {
+    try {
+      const { data, error } = await supabase.from("locations").select("*").order("name");
+
+      if (error) throw error;
+      setLocations(data || []);
+    } catch (error) {
+      console.error("Error fetching locations:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const editLocation = (id: string, name: string) => {
-    const updatedLocations = locations.map((location) => (location.id === id ? { ...location, name } : location));
-    setLocations(updatedLocations);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLocations));
+  const addLocation = async (name: string) => {
+    try {
+      const { data, error } = await supabase.from("locations").insert({ name }).select().single();
+
+      if (error) throw error;
+      setLocations((prev) => [...prev, data]);
+    } catch (error) {
+      console.error("Error adding location:", error);
+      throw error;
+    }
   };
 
-  const deleteLocation = (id: string) => {
-    const updatedLocations = locations.filter((location) => location.id !== id);
-    setLocations(updatedLocations);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLocations));
+  const editLocation = async (id: string, name: string) => {
+    try {
+      const { error } = await supabase.from("locations").update({ name }).eq("id", id);
+
+      if (error) throw error;
+      setLocations((prev) => prev.map((location) => (location.id === id ? { ...location, name } : location)));
+    } catch (error) {
+      console.error("Error editing location:", error);
+      throw error;
+    }
+  };
+
+  const deleteLocation = async (id: string) => {
+    try {
+      const { error } = await supabase.from("locations").delete().eq("id", id);
+
+      if (error) throw error;
+      setLocations((prev) => prev.filter((location) => location.id !== id));
+    } catch (error) {
+      console.error("Error deleting location:", error);
+      throw error;
+    }
   };
 
   return {
     locations,
+    isLoading,
     addLocation,
     editLocation,
     deleteLocation,

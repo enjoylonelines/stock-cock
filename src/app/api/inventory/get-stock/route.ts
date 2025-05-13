@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   );
 
   const data = await apiResponse.json();
-  console.log(data);
+
   const response = { name: "김치왕만두", stock: data.Data.TotalCnt };
 
   // 응답 데이터를 캐시에 저장

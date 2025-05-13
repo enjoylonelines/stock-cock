@@ -1,56 +1,72 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 interface Supplier {
   id: string;
   name: string;
 }
 
-const STORAGE_KEY = "suppliers";
-
 export function useSuppliers() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // 초기 데이터 로드
   useEffect(() => {
-    const storedSuppliers = localStorage.getItem(STORAGE_KEY);
-    if (storedSuppliers) {
-      setSuppliers(JSON.parse(storedSuppliers));
-    } else {
-      // 초기 데이터 설정
-      const initialSuppliers = [
-        { id: "1", name: "A 공급처" },
-        { id: "2", name: "B 공급처" },
-        { id: "3", name: "C 공급처" },
-      ];
-      setSuppliers(initialSuppliers);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(initialSuppliers));
-    }
+    fetchSuppliers();
   }, []);
 
-  const addSupplier = (name: string) => {
-    const newSupplier = {
-      id: Date.now().toString(),
-      name,
-    };
-    const updatedSuppliers = [...suppliers, newSupplier];
-    setSuppliers(updatedSuppliers);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedSuppliers));
+  const fetchSuppliers = async () => {
+    try {
+      const { data, error } = await supabase.from("suppliers").select("*").order("name");
+
+      if (error) throw error;
+      setSuppliers(data || []);
+    } catch (error) {
+      console.error("Error fetching suppliers:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const editSupplier = (id: string, name: string) => {
-    const updatedSuppliers = suppliers.map((supplier) => (supplier.id === id ? { ...supplier, name } : supplier));
-    setSuppliers(updatedSuppliers);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedSuppliers));
+  const addSupplier = async (name: string) => {
+    try {
+      const { data, error } = await supabase.from("suppliers").insert({ name }).select().single();
+
+      if (error) throw error;
+      setSuppliers((prev) => [...prev, data]);
+    } catch (error) {
+      console.error("Error adding supplier:", error);
+      throw error;
+    }
   };
 
-  const deleteSupplier = (id: string) => {
-    const updatedSuppliers = suppliers.filter((supplier) => supplier.id !== id);
-    setSuppliers(updatedSuppliers);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedSuppliers));
+  const editSupplier = async (id: string, name: string) => {
+    try {
+      const { error } = await supabase.from("suppliers").update({ name }).eq("id", id);
+
+      if (error) throw error;
+      setSuppliers((prev) => prev.map((supplier) => (supplier.id === id ? { ...supplier, name } : supplier)));
+    } catch (error) {
+      console.error("Error editing supplier:", error);
+      throw error;
+    }
+  };
+
+  const deleteSupplier = async (id: string) => {
+    try {
+      const { error } = await supabase.from("suppliers").delete().eq("id", id);
+
+      if (error) throw error;
+      setSuppliers((prev) => prev.filter((supplier) => supplier.id !== id));
+    } catch (error) {
+      console.error("Error deleting supplier:", error);
+      throw error;
+    }
   };
 
   return {
     suppliers,
+    isLoading,
     addSupplier,
     editSupplier,
     deleteSupplier,

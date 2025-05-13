@@ -1,27 +1,43 @@
-export type ReceiptMode = "IN" | "OUT";
+import { Product } from "./product";
 
-export interface ReceiptFormData {
-  location: string;
-  supplier: string;
-  products: {
-    id: string;
-    name: string;
-    quantity: number;
-    memo?: string;
-  }[];
-  memo?: string;
-}
+export type ReceiptType = "IN" | "OUT";
+export type ReceiptStatus = "DRAFT" | "COMPLETED";
 
-export interface ReceiptContextType {
-  mode: ReceiptMode;
-  setMode: (mode: ReceiptMode) => void;
-  formData: ReceiptFormData;
-  setLocation: (location: string) => void;
-  setSupplier: (supplier: string) => void;
-  addProduct: (product: ReceiptFormData["products"][0]) => void;
-  removeProduct: (productId: string) => void;
-  updateProduct: (productId: string, data: Partial<ReceiptFormData["products"][0]>) => void;
-  setMemo: (memo: string) => void;
-  reset: () => void;
-  submit: () => Promise<void>;
-}
+export type Receipt = {
+  id: string;
+  type: ReceiptType;
+  location_id: string;
+  supplier_id: string;
+  memo: string | null;
+  status: ReceiptStatus;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ReceiptItem = {
+  id: string;
+  receipt_id: string;
+  product_id: string;
+  quantity: number;
+  unit_price: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ReceiptItemWithProduct = ReceiptItem & {
+  product: Product;
+};
+
+export type CreateReceiptItem = {
+  product_id: string;
+  quantity: number;
+  unit_price: number | null;
+};
+
+export type CreateReceiptRequest = {
+  type: ReceiptType;
+  location_id: string;
+  supplier_id: string;
+  memo: string | null;
+  items: CreateReceiptItem[];
+};

@@ -12,28 +12,35 @@ import { useSuppliers } from "@/hooks/useSuppliers";
 import { useProducts } from "@/hooks/useProducts";
 import ProductListItem from "./ProductListItem";
 import { Product } from "@/types/product";
+import MemoView from "./MemoView";
+import DatePickerDialog from "./DatePickerDialog";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 
 export default function ReceiptForm({ mode }: { mode: "IN" | "OUT" }) {
-  const { formData } = useReceipt();
   const [isLocationViewVisible, setIsLocationViewVisible] = useState(false);
   const [isSupplierViewVisible, setIsSupplierViewVisible] = useState(false);
   const [isProductViewVisible, setIsProductViewVisible] = useState(false);
   const [isMemoViewVisible, setIsMemoViewVisible] = useState(false);
+  const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<string>("");
   const [selectedSupplier, setSelectedSupplier] = useState<string>("");
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [memo, setMemo] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const { locations, addLocation, editLocation, deleteLocation } = useLocations();
   const { suppliers, addSupplier, editSupplier, deleteSupplier } = useSuppliers();
   const { products } = useProducts();
 
-  const handleLocationSelect = (location: string) => {
-    setSelectedLocation(location);
+  const handleLocationSelect = (location: { id: string; name: string }) => {
+    setSelectedLocation(location.id);
     setIsLocationViewVisible(false);
   };
 
-  const handleSupplierSelect = (supplier: string) => {
-    setSelectedSupplier(supplier);
+  const handleSupplierSelect = (supplier: { id: string; name: string }) => {
+    setSelectedSupplier(supplier.id);
     setIsSupplierViewVisible(false);
   };
 
@@ -42,11 +49,79 @@ export default function ReceiptForm({ mode }: { mode: "IN" | "OUT" }) {
     setIsProductViewVisible(false);
   };
 
+  const handleMemoDone = () => {
+    setIsMemoViewVisible(false);
+  };
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedLocation || !selectedSupplier || selectedProducts.length === 0) {
+      alert("위치, 공급처, 제품을 모두 선택해주세요.");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/receipts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: mode,
+          location_id: selectedLocation,
+          supplier_id: selectedSupplier,
+          memo,
+          created_at: format(selectedDate, "yyyy-MM-dd HH:mm:ss"),
+          items: selectedProducts.map((product) => ({
+            product_id: product.id,
+            quantity: product.quantity || 1,
+            unit_price: product.sell_price || null,
+          })),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("입고 처리 중 오류가 발생했습니다.");
+      }
+
+      // 성공 시 폼 초기화
+      setSelectedLocation("");
+      setSelectedSupplier("");
+      setSelectedProducts([]);
+      setMemo("");
+      setSelectedDate(new Date());
+
+      alert(mode === "IN" ? "입고가 완료되었습니다." : "출고가 완료되었습니다.");
+    } catch (error) {
+      console.error("Error submitting receipt:", error);
+      alert("처리 중 오류가 발생했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="relative flex flex-col h-full">
       {/* 입고/출고 정보 */}
       <div className="flex-1 p-4">
         <div className="space-y-2">
+          <Button
+            onClick={() => setIsDatePickerVisible(true)}
+            variant="ghost"
+            className="flex items-center justify-between w-full py-2"
+            size="none"
+          >
+            <div className="flex justify-between w-full">
+              <h3 className="font-medium">날짜</h3>
+              <p className="text-sm text-gray-500">{format(selectedDate, "yyyy년 MM월 dd일", { locale: ko })}</p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400" />
+          </Button>
+
           <Button
             onClick={() => setIsLocationViewVisible(true)}
             variant="ghost"
@@ -55,7 +130,7 @@ export default function ReceiptForm({ mode }: { mode: "IN" | "OUT" }) {
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">위치</h3>
-              <p className="text-sm text-gray-500">{selectedLocation || "선택"}</p>
+              <p className="text-sm text-gray-500">{locations.find((loc) => loc.id === selectedLocation)?.name || "선택"}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -68,7 +143,7 @@ export default function ReceiptForm({ mode }: { mode: "IN" | "OUT" }) {
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">{mode === "IN" ? "입고처" : "출고처"}</h3>
-              <p className="text-sm text-gray-500">{selectedSupplier || "선택"}</p>
+              <p className="text-sm text-gray-500">{suppliers.find((sup) => sup.id === selectedSupplier)?.name || "선택"}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -90,15 +165,20 @@ export default function ReceiptForm({ mode }: { mode: "IN" | "OUT" }) {
           {selectedProducts.length > 0 && (
             <div className="mt-2 space-y-2">
               {selectedProducts.map((product) => (
-                <ProductListItem key={product.id} product={product} selected={false} />
+                <ProductListItem key={product.id} product={product} quantity={product.quantity} selected={false} />
               ))}
             </div>
           )}
 
-          <Button variant="ghost" className="flex items-center justify-between w-full py-2" size="none">
+          <Button
+            onClick={() => setIsMemoViewVisible(true)}
+            variant="ghost"
+            className="flex items-center justify-between w-full py-2"
+            size="none"
+          >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">메모</h3>
-              <p className="text-sm text-gray-500">{formData.memo || "작성"}</p>
+              <p className="text-sm text-gray-500">{memo || "작성"}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -111,11 +191,27 @@ export default function ReceiptForm({ mode }: { mode: "IN" | "OUT" }) {
           <Button variant="outline" className="flex-1">
             임시 저장
           </Button>
-          <Button className={`flex-1 ${mode === "IN" ? "bg-orange-200 text-gray-800" : "bg-red-500 text-white hover:bg-red-600"}`}>
-            {mode === "IN" ? "입고" : "출고"} 완료
+          <Button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className={`flex-1 ${
+              mode === "IN"
+                ? "bg-blue-300 hover:bg-blue-500 active:bg-blue-500 text-gray-800"
+                : "bg-red-300 text-white hover:bg-red-500 active:bg-red-500"
+            }`}
+          >
+            {isLoading ? "처리 중..." : mode === "IN" ? "입고" : "출고"} 완료
           </Button>
         </div>
       </div>
+
+      {/* 날짜 선택 다이얼로그 */}
+      <DatePickerDialog
+        open={isDatePickerVisible}
+        onOpenChange={setIsDatePickerVisible}
+        selectedDate={selectedDate}
+        onSelect={handleDateSelect}
+      />
 
       {/* 위치 관리 드로어 */}
       <DrawerView isVisible={isLocationViewVisible}>
@@ -146,6 +242,11 @@ export default function ReceiptForm({ mode }: { mode: "IN" | "OUT" }) {
       {/* 제품 선택 드로어 */}
       <DrawerView isVisible={isProductViewVisible}>
         <ProductSelectView products={products} onBack={() => setIsProductViewVisible(false)} onSelect={handleProductSelect} />
+      </DrawerView>
+
+      {/* 메모 입력 드로어 */}
+      <DrawerView isVisible={isMemoViewVisible}>
+        <MemoView value={memo} onChange={setMemo} onBack={() => setIsMemoViewVisible(false)} onDone={handleMemoDone} />
       </DrawerView>
     </div>
   );
