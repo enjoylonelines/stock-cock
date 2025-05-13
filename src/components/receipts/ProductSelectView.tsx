@@ -21,7 +21,6 @@ export default function ProductSelectView({ onBack, onSelect, products }: Produc
   const [currentQuantity, setCurrentQuantity] = useState(0);
 
   const filteredProducts = products.filter((product) => product.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
     const existing = selectedProducts.find((p) => p.id === product.id);

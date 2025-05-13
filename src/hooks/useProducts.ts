@@ -1,69 +1,68 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import { Product } from "@/types/product";
-
-const STORAGE_KEY = "products";
 
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // 초기 데이터 로드
   useEffect(() => {
-    const storedProducts = localStorage.getItem(STORAGE_KEY);
-    if (storedProducts) {
-      setProducts(JSON.parse(storedProducts));
-    } else {
-      // 초기 데이터 설정
-      const initialProducts = [
-        {
-          id: "1",
-          name: "고기왕만두",
-          sellPrice: 29900,
-          buyPrice: 20000,
-          category: "만두",
-          brand: "더바른한끼",
-          stock: 1000,
-          imageUrl: "/images/product-1.jpg",
-        },
-        {
-          id: "2",
-          name: "김치왕만두",
-          sellPrice: 13900,
-          buyPrice: 15900,
-          category: "만두",
-          brand: "더바른한끼",
-          stock: 500,
-          imageUrl: "/images/product-2.jpg",
-        },
-      ];
-      setProducts(initialProducts);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(initialProducts));
-    }
+    fetchProducts();
   }, []);
 
-  const addProduct = (product: Omit<Product, "id">) => {
-    const newProduct = {
-      ...product,
-      id: Date.now().toString(),
-    };
-    const updatedProducts = [...products, newProduct];
-    setProducts(updatedProducts);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProducts));
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase.from("products").select("*").order("name");
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const editProduct = (id: string, product: Partial<Product>) => {
-    const updatedProducts = products.map((p) => (p.id === id ? { ...p, ...product } : p));
-    setProducts(updatedProducts);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProducts));
+  const addProduct = async (product: Omit<Product, "id" | "created_at" | "updated_at">) => {
+    try {
+      const { data, error } = await supabase.from("products").insert(product).select().single();
+
+      if (error) throw error;
+      setProducts((prev) => [...prev, data]);
+    } catch (error) {
+      console.error("Error adding product:", error);
+      throw error;
+    }
   };
 
-  const deleteProduct = (id: string) => {
-    const updatedProducts = products.filter((product) => product.id !== id);
-    setProducts(updatedProducts);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProducts));
+  const editProduct = async (id: string, product: Partial<Product>) => {
+    try {
+      const { error } = await supabase.from("products").update(product).eq("id", id);
+
+      if (error) throw error;
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...product } : p)));
+    } catch (error) {
+      console.error("Error editing product:", error);
+      throw error;
+    }
+  };
+
+  const deleteProduct = async (id: string) => {
+    try {
+      const { error } = await supabase.from("products").delete().eq("id", id);
+
+      if (error) throw error;
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      throw error;
+    }
   };
 
   return {
     products,
+    isLoading,
     addProduct,
     editProduct,
     deleteProduct,
