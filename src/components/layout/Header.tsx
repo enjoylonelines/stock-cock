@@ -45,6 +45,11 @@ export default function Header() {
             </Button>
           ),
         };
+      case pathname.match(/^\/inventory\/[\w-]+$/) ? pathname : null:
+        return {
+          title: "상세 내역",
+          rightButton: null,
+        };
       case "/settings":
         return {
           title: "설정",

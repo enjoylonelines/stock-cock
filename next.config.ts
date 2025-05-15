@@ -9,6 +9,9 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = withPWA({
   reactStrictMode: true,
+  images: {
+    domains: ["i.pravatar.cc"],
+  },
 });
 
 export default nextConfig;

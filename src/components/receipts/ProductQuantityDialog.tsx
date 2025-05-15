@@ -55,7 +55,25 @@ export default function ProductQuantityDialog({
               <Minus className="w-4 h-4" />
             </Button>
             <div className="flex flex-col items-center">
-              <span className="text-2xl font-semibold">{formatNumber(quantity)}</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                min={0}
+                max={2147483647}
+                className="w-20 text-2xl font-semibold text-center bg-transparent border-none focus:ring-0 focus:outline-none"
+                value={quantity === 0 ? "" : quantity}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "") {
+                    setQuantity(0);
+                  } else {
+                    const num = Math.max(0, Math.min(2147483647, Number(val)));
+                    setQuantity(num);
+                  }
+                }}
+                autoFocus
+              />
               <span className="text-sm text-gray-500">→ {formatNumber(quantity)}</span>
             </div>
             <Button type="button" variant="outline" size="icon" className="w-10 h-10 rounded-full" onClick={() => handleQuantityChange(1)}>
