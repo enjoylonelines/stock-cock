@@ -15,6 +15,7 @@ import MemoView from "./MemoView";
 import DatePickerDialog from "./DatePickerDialog";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
+import { useRouter } from "next/navigation";
 
 export default function ReceiptForm({ mode }: { mode: "IN" | "OUT" }) {
   const [isLocationViewVisible, setIsLocationViewVisible] = useState(false);
@@ -32,6 +33,7 @@ export default function ReceiptForm({ mode }: { mode: "IN" | "OUT" }) {
   const { locations, addLocation, editLocation, deleteLocation } = useLocations();
   const { suppliers, addSupplier, editSupplier, deleteSupplier } = useSuppliers();
   const { products } = useProducts();
+  const router = useRouter();
 
   const handleLocationSelect = (location: { id: string; name: string }) => {
     setSelectedLocation(location.id);
@@ -94,7 +96,8 @@ export default function ReceiptForm({ mode }: { mode: "IN" | "OUT" }) {
       setMemo("");
       setSelectedDate(new Date());
 
-      alert(mode === "IN" ? "입고가 완료되었습니다." : "출고가 완료되었습니다.");
+      // /inventory로 replace
+      router.replace("/inventory");
     } catch (error) {
       console.error("Error submitting receipt:", error);
       alert("처리 중 오류가 발생했습니다.");
