@@ -5,9 +5,12 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDrawerStore } from "@/store/drawerStore";
 import ReceiptForm from "../receipts/ReceiptForm";
+import ProductCreateForm from "../products/ProductCreateForm";
+import { useRef } from "react";
 
 export default function CommonDrawer() {
   const { isOpen, currentForm, closeDrawer } = useDrawerStore();
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const getFormTitle = () => {
     switch (currentForm) {
@@ -67,9 +70,9 @@ export default function CommonDrawer() {
   const renderForm = () => {
     switch (currentForm) {
       case "receipt":
-        return <ReceiptForm mode="IN" />;
+        return <ReceiptForm mode="IN" closeDrawer={closeDrawer} />;
       case "issue":
-        return <ReceiptForm mode="OUT" />;
+        return <ReceiptForm mode="OUT" closeDrawer={closeDrawer} />;
       case "move":
         return <div>이동 폼</div>;
       case "adjust":
@@ -83,7 +86,7 @@ export default function CommonDrawer() {
       case "member":
         return <div>멤버 추가 폼</div>;
       case "product":
-        return <div>제품 등록 폼</div>;
+        return <ProductCreateForm scrollRef={scrollRef} />;
       case "excel":
         return <div>엑셀 파일 업로드 폼</div>;
       default:
@@ -93,7 +96,7 @@ export default function CommonDrawer() {
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && closeDrawer()}>
-      <DrawerContent className="h-[95vh] flex flex-col" role="dialog" aria-modal="true">
+      <DrawerContent className="h-[90vh] flex flex-col" role="dialog" aria-modal="true">
         <DrawerHeader className="flex-shrink-0 py-0">
           <div className="flex justify-end">
             <Button variant="ghost" size="icon" className="flex justify-end w-8 h-8" onClick={closeDrawer} aria-label="닫기">
@@ -116,12 +119,11 @@ export default function CommonDrawer() {
               </DrawerTitle>
               <DrawerDescription className="text-sm text-gray-500">{getFormDescription()}</DrawerDescription>
             </div>
-            {/* <button onClick={onDatePickerClick} className="text-sm text-gray-500">
-              {"현재 시간"}
-            </button> */}
           </div>
         </DrawerHeader>
-        <div className="flex-1 overflow-y-auto">{renderForm()}</div>
+        <div ref={scrollRef} className="flex-1 overflow-y-auto">
+          {renderForm()}
+        </div>
       </DrawerContent>
     </Drawer>
   );
