@@ -40,7 +40,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* 제품 설정 */}
-      <div>
+      {/* <div>
         <h2 className="mb-2 text-lg font-bold">제품 설정</h2>
         <Card className="p-2">
           <CardContent className="flex flex-col gap-2 p-0">
@@ -60,10 +60,10 @@ export default function SettingsPage() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {/* 재고 부족 알림 */}
-      <div>
+      {/* <div>
         <h2 className="mb-2 text-lg font-bold">재고 부족 알림</h2>
         <Card className="p-2">
           <CardContent className="flex flex-col gap-2 p-0">
@@ -90,7 +90,7 @@ export default function SettingsPage() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {/* 거래처 설정 */}
       <div>

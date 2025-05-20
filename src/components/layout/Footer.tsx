@@ -8,18 +8,18 @@ const Footer = () => {
   const pathname = usePathname();
 
   const menus = [
-    { name: "홈", icon: HomeIcon, href: "/" },
+    { name: "홈", icon: HomeIcon, href: "/home" },
     { name: "제품", icon: CubeIcon, href: "/products" },
     { name: "입/출고", icon: ArrowsRightLeftIcon, href: "/inventory" },
     { name: "설정", icon: Cog6ToothIcon, href: "/settings" },
   ];
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200">
+    <footer className="fixed bottom-0 left-0 right-0 z-10 pb-4 bg-white border-t border-gray-200">
       <nav className="flex items-center justify-around h-16">
         {menus.map((menu) => {
           const Icon = menu.icon;
-          const isActive = pathname === menu.href;
+          const isActive = pathname.includes(menu.href);
 
           return (
             <Link

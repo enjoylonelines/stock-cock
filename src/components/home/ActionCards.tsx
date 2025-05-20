@@ -31,13 +31,13 @@ const actionCards = [
         description: "새로운 제품을 등록합니다.",
         formType: "product",
       },
-      {
-        icon: FileSpreadsheet,
-        iconColor: "text-green-500",
-        label: "엑셀 파일로 등록하기",
-        description: "엑셀 파일을 업로드하여 여러 제품을 한 번에 등록합니다.",
-        formType: "excel",
-      },
+      // {
+      //   icon: FileSpreadsheet,
+      //   iconColor: "text-green-500",
+      //   label: "엑셀 파일로 등록하기",
+      //   description: "엑셀 파일을 업로드하여 여러 제품을 한 번에 등록합니다.",
+      //   formType: "excel",
+      // },
     ],
   },
   {
@@ -73,45 +73,45 @@ const actionCards = [
       },
     ],
   },
-  {
-    id: "low-stock-alert",
-    title: "재고 부족 알림",
-    buttons: [
-      {
-        icon: ArrowDownWideNarrow,
-        iconColor: "text-red-500",
-        label: "부족한 재고 확인하기",
-        description: "재고가 부족한 제품 목록을 확인합니다.",
-        formType: "shortage",
-      },
-    ],
-  },
-  {
-    id: "history-query",
-    title: "과거 수량 조회",
-    buttons: [
-      {
-        icon: History,
-        iconColor: "text-slate-500",
-        label: "제품 과거 수량 조회하기",
-        description: "제품의 과거 재고 수량을 조회합니다.",
-        formType: "history",
-      },
-    ],
-  },
-  {
-    id: "inventory-check",
-    title: "재고조사",
-    buttons: [
-      {
-        icon: FileDigit,
-        iconColor: "text-slate-500",
-        label: "재고 조사하기",
-        description: "현재 재고 상태를 조사합니다.",
-        formType: "inventory",
-      },
-    ],
-  },
+  // {
+  //   id: "low-stock-alert",
+  //   title: "재고 부족 알림",
+  //   buttons: [
+  //     {
+  //       icon: ArrowDownWideNarrow,
+  //       iconColor: "text-red-500",
+  //       label: "부족한 재고 확인하기",
+  //       description: "재고가 부족한 제품 목록을 확인합니다.",
+  //       formType: "shortage",
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: "history-query",
+  //   title: "과거 수량 조회",
+  //   buttons: [
+  //     {
+  //       icon: History,
+  //       iconColor: "text-slate-500",
+  //       label: "제품 과거 수량 조회하기",
+  //       description: "제품의 과거 재고 수량을 조회합니다.",
+  //       formType: "history",
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: "inventory-check",
+  //   title: "재고조사",
+  //   buttons: [
+  //     {
+  //       icon: FileDigit,
+  //       iconColor: "text-slate-500",
+  //       label: "재고 조사하기",
+  //       description: "현재 재고 상태를 조사합니다.",
+  //       formType: "inventory",
+  //     },
+  //   ],
+  // },
   {
     id: "member-management",
     title: "멤버 추가",
@@ -131,7 +131,7 @@ export default function ActionCards() {
   const { openDrawer } = useDrawerStore();
 
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full pb-16 overflow-y-auto">
       <div className="grid gap-4">
         {actionCards.map((card) => (
           <Card key={card.id} className="shadow-sm bg-slate-50">
@@ -155,10 +155,10 @@ export default function ActionCards() {
         ))}
 
         {/*추가하기 카드*/}
-        <Button className="flex justify-center shadow-sm h-14 bg-slate-50">
+        {/* <Button className="flex justify-center shadow-sm h-14 bg-slate-50">
           <Plus className="text-slate-500" />
           <p className="text-lg text-black">추가하기</p>
-        </Button>
+        </Button> */}
       </div>
     </div>
   );

@@ -18,7 +18,7 @@ export default function ProductsPage() {
       <ProductList />
 
       {/* 플로팅 액션 버튼 */}
-      <div className="fixed bottom-20 right-4">
+      <div className="fixed bottom-24 right-4">
         <Button size="icon" className="rounded-full shadow-lg h-14 w-14">
           <Plus />
         </Button>
