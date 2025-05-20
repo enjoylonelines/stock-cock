@@ -68,6 +68,18 @@ create table inventory (
   unique(product_id, location_id)
 );
 
+-- Create product_options table
+create table product_options (
+  id uuid default uuid_generate_v4() primary key,
+  product_id uuid references products(id) not null,
+  option_name text not null, -- 예: 400g, 1.4kg 등
+  weight numeric not null,   -- g 단위(1400, 400 등)
+  sku text not null unique,
+  price numeric not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- Create updated_at trigger function
 create or replace function update_updated_at_column()
 returns trigger as $$
