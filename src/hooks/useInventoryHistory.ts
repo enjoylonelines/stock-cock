@@ -50,8 +50,6 @@ export function useInventoryHistory() {
         `
         )
         .order("created_at", { ascending: false });
-      console.log("data", data);
-      console.log("error", error);
       if (error || !data) return;
       // 1. inventory에서 product별 현재고를 가져옴
       const productCurrentStock: { [productId: string]: number } = {};

@@ -10,7 +10,7 @@ import { useInventories } from "@/hooks/useInventories";
 export default function ProductList() {
   const { products } = useProducts();
   const { inventories } = useInventories();
-  console.log(inventories);
+
   const getTotalStock = (productId: string) =>
     inventories.filter((i) => i.product_id === productId).reduce((sum, i) => sum + i.quantity, 0);
 

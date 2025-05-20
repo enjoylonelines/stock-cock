@@ -17,7 +17,7 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 
-export default function ReceiptForm({ mode }: { mode: "IN" | "OUT" }) {
+export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT"; closeDrawer: () => void }) {
   const [isLocationViewVisible, setIsLocationViewVisible] = useState(false);
   const [isSupplierViewVisible, setIsSupplierViewVisible] = useState(false);
   const [isProductViewVisible, setIsProductViewVisible] = useState(false);
@@ -29,7 +29,6 @@ export default function ReceiptForm({ mode }: { mode: "IN" | "OUT" }) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [memo, setMemo] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
   const { locations, addLocation, editLocation, deleteLocation } = useLocations();
   const { suppliers, addSupplier, editSupplier, deleteSupplier } = useSuppliers();
   const { products } = useProducts();
@@ -95,6 +94,7 @@ export default function ReceiptForm({ mode }: { mode: "IN" | "OUT" }) {
       setSelectedProducts([]);
       setMemo("");
       setSelectedDate(new Date());
+      closeDrawer();
 
       // /inventory로 replace
       router.replace("/inventory");
@@ -188,7 +188,7 @@ export default function ReceiptForm({ mode }: { mode: "IN" | "OUT" }) {
       </div>
 
       {/* 하단 버튼 */}
-      <div className="p-4 border-t">
+      <div className="p-4 pb-8 border-t">
         <div className="flex gap-2">
           <Button variant="outline" className="flex-1">
             임시 저장
@@ -202,7 +202,7 @@ export default function ReceiptForm({ mode }: { mode: "IN" | "OUT" }) {
                 : "bg-red-300 text-white hover:bg-red-500 active:bg-red-500"
             }`}
           >
-            {isLoading ? "처리 중..." : mode === "IN" ? "입고" : "출고"} 완료
+            {isLoading ? "처리 중..." : mode === "IN" ? "입고완료" : "출고완료"}
           </Button>
         </div>
       </div>
