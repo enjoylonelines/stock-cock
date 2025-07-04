@@ -23,32 +23,32 @@ export default function ProductSelectView({ onBack, onSelect, products }: Produc
   const filteredProducts = products.filter((product) => product.name.toLowerCase().includes(searchTerm.toLowerCase()));
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
-    const existing = selectedProducts.find((p) => p.id === product.id);
+    const existing = selectedProducts.find((p) => p.product_id === product.product_id);
     setCurrentQuantity(existing ? existing.quantity ?? 0 : 0);
     setQuantityDialogOpen(true);
   };
 
   const handleQuantityConfirm = (product: Product, quantity: number) => {
     if (!quantity) {
-      setSelectedProducts((prev) => prev.filter((p) => p.id !== product.id));
+      setSelectedProducts((prev) => prev.filter((p) => p.product_id !== product.product_id));
       return;
     }
 
     setSelectedProducts((prev) => {
-      const existing = prev.find((p) => p.id === product.id);
+      const existing = prev.find((p) => p.product_id === product.product_id);
       if (existing) {
-        return prev.map((p) => (p.id === product.id ? { ...p, quantity } : p));
+        return prev.map((p) => (p.product_id === product.product_id ? { ...p, quantity } : p));
       }
       return [...prev, { ...product, quantity }];
     });
   };
 
-  const isSelected = (productId: string) => {
-    return selectedProducts.some((p) => p.id === productId);
+  const isSelected = (productId: string, sku: string) => {
+    return selectedProducts.some((p) => p.product_id === productId && p.sku === sku);
   };
 
   const getSelectedQuantity = (productId: string) => {
-    const selected = selectedProducts.find((p) => p.id === productId);
+    const selected = selectedProducts.find((p) => p.product_id === productId);
     return selected ? selected.quantity ?? 0 : 0;
   };
 
@@ -60,8 +60,8 @@ export default function ProductSelectView({ onBack, onSelect, products }: Produc
     <div className="flex flex-col h-full">
       {/* 헤더 */}
       <div className="flex flex-col gap-3 p-4 border-b">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="flex justify-between items-center">
+          <div className="flex gap-2 items-center">
             <Button variant="ghost" size="icon" onClick={onBack}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -72,7 +72,7 @@ export default function ProductSelectView({ onBack, onSelect, products }: Produc
           </Button>
         </div>
         <div className="relative">
-          <Search className="absolute w-4 h-4 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
+          <Search className="absolute left-3 top-1/2 w-4 h-4 text-gray-400 transform -translate-y-1/2" />
           <Input
             placeholder="제품 이름, 바코드, 속성 검색"
             value={searchTerm}
@@ -83,14 +83,14 @@ export default function ProductSelectView({ onBack, onSelect, products }: Produc
       </div>
 
       {/* 제품 목록 */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="overflow-y-auto flex-1">
         <div className="p-4 space-y-2">
           {filteredProducts.map((product) => (
             <ProductListItem
-              key={product.id}
+              key={product.product_id}
               product={product}
-              quantity={isSelected(product.id) ? getSelectedQuantity(product.id) : undefined}
-              selected={isSelected(product.id)}
+              quantity={isSelected(product.product_id, product.sku) ? getSelectedQuantity(product.product_id) : undefined}
+              selected={isSelected(product.product_id, product.sku)}
               onClick={() => handleProductClick(product)}
             />
           ))}
@@ -99,7 +99,7 @@ export default function ProductSelectView({ onBack, onSelect, products }: Produc
 
       {/* 하단 버튼 */}
       <div className="p-4 border-t">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex justify-between items-center mb-2">
           <span className="text-sm text-gray-600">총 {formatNumber(getTotalQuantity(selectedProducts))}개 선택</span>
         </div>
         <Button

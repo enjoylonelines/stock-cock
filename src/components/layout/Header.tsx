@@ -9,7 +9,7 @@ export default function Header() {
 
   const getHeaderContent = () => {
     switch (pathname) {
-      case "/":
+      case "/home":
         return {
           title: "한끼",
 

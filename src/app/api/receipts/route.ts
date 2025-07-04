@@ -1,16 +1,23 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 import { CreateReceiptRequest, CreateReceiptItem } from "@/types/receipt";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient();
+
+    // 사용자 인증 확인
+    // const {
+    //   data: { user },
+    //   error: authError,
+    // } = await supabase.auth.getUser();
+
+    // if (authError || !user) {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // }
+
     const body = (await request.json()) as CreateReceiptRequest;
-    const { type, location_id, supplier_id, memo, items } = body;
+    const { type, location_id, supplier_id, memo, items, created_at } = body;
 
     // 1. 입고 데이터 생성
     const { data: receipt, error: receiptError } = await supabase
@@ -21,6 +28,8 @@ export async function POST(request: Request) {
         supplier_id,
         memo,
         status: "COMPLETED",
+        user_id: items[0].user_id,
+        created_at,
       })
       .select()
       .single();

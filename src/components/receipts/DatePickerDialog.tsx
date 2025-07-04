@@ -21,7 +21,7 @@ export default function DatePickerDialog({ open, onOpenChange, selectedDate, onS
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-xs p-0 bg-white rounded-lg">
+      <DialogContent className="p-0 w-full max-w-xs bg-white rounded-lg">
         <DialogHeader className="px-4 py-5 text-center border-b">
           <DialogTitle>날짜 선택</DialogTitle>
         </DialogHeader>

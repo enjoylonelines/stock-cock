@@ -12,10 +12,8 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
 
   useEffect(() => {
-    const foundProduct = products.find((p) => p.id === params.id);
-    if (foundProduct) {
-      setProduct(foundProduct);
-    }
+    const productDetail = products.find((p) => p.option_id === params.id);
+    setProduct(productDetail || null);
   }, [params.id, products]);
 
   if (!product) {

@@ -1,12 +1,15 @@
-export type Product = {
-  id: string;
-  name: string;
-  sell_price: number;
+export interface Product {
+  option_id: string;
+  product_id: string;
+  sku: string;
+  weight: number;
   buy_price: number;
-  category: string;
-  brand: string;
+  sell_price: number;
+  product_name: string;
   image_url: string;
-  quantity?: number;
-  created_at: string; // yyyy-mm-dd hh:mm:ss
-  updated_at: string; // yyyy-mm-dd hh:mm:ss
-};
+  category_name: string;
+  brand_name: string;
+  created_at?: string;
+  updated_at?: string;
+  total_stock: number;
+}

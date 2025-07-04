@@ -32,6 +32,7 @@ export type CreateReceiptItem = {
   product_id: string;
   quantity: number;
   unit_price: number | null;
+  user_id: string;
 };
 
 export type CreateReceiptRequest = {
@@ -40,4 +41,5 @@ export type CreateReceiptRequest = {
   supplier_id: string;
   memo: string | null;
   items: CreateReceiptItem[];
+  created_at: string;
 };

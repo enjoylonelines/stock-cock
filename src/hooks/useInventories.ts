@@ -3,9 +3,9 @@ import { supabase } from "@/lib/supabase";
 
 export type Inventory = {
   id: string;
-  product_id: string;
+  option_id: string;
   location_id: string;
-  quantity: number;
+  total_stock: number;
   created_at: string;
   updated_at: string;
 };

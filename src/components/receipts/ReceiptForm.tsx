@@ -16,6 +16,7 @@ import DatePickerDialog from "./DatePickerDialog";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/hooks/useUser";
 
 export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT"; closeDrawer: () => void }) {
   const [isLocationViewVisible, setIsLocationViewVisible] = useState(false);
@@ -33,6 +34,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT";
   const { suppliers, addSupplier, editSupplier, deleteSupplier } = useSuppliers();
   const { products } = useProducts();
   const router = useRouter();
+  const { user } = useUser();
 
   const handleLocationSelect = (location: { id: string; name: string }) => {
     setSelectedLocation(location.id);
@@ -62,7 +64,6 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT";
       alert("위치, 공급처, 제품을 모두 선택해주세요.");
       return;
     }
-
     try {
       setIsLoading(true);
       const response = await fetch("/api/receipts", {
@@ -77,7 +78,8 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT";
           memo,
           created_at: format(selectedDate, "yyyy-MM-dd HH:mm:ss"),
           items: selectedProducts.map((product) => ({
-            product_id: product.id,
+            user_id: user?.id,
+            product_id: product.product_id,
             quantity: product.quantity || 1,
             unit_price: product.sell_price || null,
           })),
@@ -107,14 +109,14 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT";
   };
 
   return (
-    <div className="relative flex flex-col h-full">
+    <div className="flex relative flex-col h-full">
       {/* 입고/출고 정보 */}
       <div className="flex-1 p-4">
         <div className="space-y-2">
           <Button
             onClick={() => setIsDatePickerVisible(true)}
             variant="ghost"
-            className="flex items-center justify-between w-full py-2"
+            className="flex justify-between items-center py-2 w-full"
             size="none"
           >
             <div className="flex justify-between w-full">
@@ -127,7 +129,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT";
           <Button
             onClick={() => setIsLocationViewVisible(true)}
             variant="ghost"
-            className="flex items-center justify-between w-full py-2"
+            className="flex justify-between items-center py-2 w-full"
             size="none"
           >
             <div className="flex justify-between w-full">
@@ -140,7 +142,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT";
           <Button
             onClick={() => setIsSupplierViewVisible(true)}
             variant="ghost"
-            className="flex items-center justify-between w-full py-2"
+            className="flex justify-between items-center py-2 w-full"
             size="none"
           >
             <div className="flex justify-between w-full">
@@ -153,7 +155,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT";
           <Button
             onClick={() => setIsProductViewVisible(true)}
             variant="ghost"
-            className="flex items-center justify-between w-full py-2"
+            className="flex justify-between items-center py-2 w-full"
             size="none"
           >
             <div className="flex justify-between w-full">
@@ -167,7 +169,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT";
           {selectedProducts.length > 0 && (
             <div className="mt-2 space-y-2">
               {selectedProducts.map((product) => (
-                <ProductListItem key={product.id} product={product} quantity={product.quantity} selected={false} />
+                <ProductListItem key={product.product_id} product={product} quantity={product.quantity} selected={false} />
               ))}
             </div>
           )}
@@ -175,7 +177,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT";
           <Button
             onClick={() => setIsMemoViewVisible(true)}
             variant="ghost"
-            className="flex items-center justify-between w-full py-2"
+            className="flex justify-between items-center py-2 w-full"
             size="none"
           >
             <div className="flex justify-between w-full">

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 export default function InventoryList() {
   const router = useRouter();
   const { grouped } = useInventoryHistory();
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case "입고":
@@ -60,10 +61,11 @@ export default function InventoryList() {
                     {transaction.quantity > 0 ? "+" : ""}
                     {transaction.quantity.toLocaleString()}
                   </div>
-                  <Avatar className="w-6 h-6">
+                  {/* <Avatar className="w-6 h-6">
                     <AvatarImage className="rounded-[12px]" src={transaction.user.avatar_url} alt={transaction.user.name} />
                     <AvatarFallback>{transaction.user.name[0]}</AvatarFallback>
-                  </Avatar>
+                  </Avatar> */}
+                  <div className="text-sm text-gray-500">{transaction.user.name}</div>
                 </div>
               </div>
             ))}

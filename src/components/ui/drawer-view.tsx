@@ -15,7 +15,6 @@ export default function DrawerView({ children, isVisible, className, scrollRef }
 
   useEffect(() => {
     if (isVisible && ref.current) {
-      console.log(ref.current);
       ref.current.scrollTop = 0;
     }
   }, [isVisible, ref]);

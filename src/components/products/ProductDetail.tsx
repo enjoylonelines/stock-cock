@@ -19,17 +19,19 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   const { locations } = useLocations();
   const [showOnlyStocked, setShowOnlyStocked] = useState(false);
   const getTotalStock = (productId: string) =>
-    inventories.filter((i) => i.product_id === productId).reduce((sum, i) => sum + (typeof i.quantity === "number" ? i.quantity : 0), 0);
+    inventories
+      .filter((i) => i.option_id === productId)
+      .reduce((sum, i) => sum + (typeof i.total_stock === "number" ? i.total_stock : 0), 0);
   const getLocationName = (locationId: string) => locations.find((loc) => loc.id === locationId)?.name || "알 수 없음";
-  const productInventories = inventories.filter((i) => i.product_id === product.id);
+  const productInventories = inventories.filter((i) => i.option_id === product.option_id);
   const filteredInventories = showOnlyStocked
-    ? productInventories.filter((inv) => (typeof inv.quantity === "number" ? inv.quantity : 0) > 0)
+    ? productInventories.filter((inv) => (typeof inv.total_stock === "number" ? inv.total_stock : 0) > 0)
     : productInventories;
   return (
     <div className="flex flex-col h-full bg-gray-50">
       {/* 헤더 */}
-      <div className="flex items-center justify-between p-4 bg-white">
-        <div className="flex items-center gap-2">
+      <div className="flex justify-between items-center p-4 bg-white">
+        <div className="flex gap-2 items-center">
           <Link href="/products">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="w-5 h-5" />
@@ -47,29 +49,29 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         {/* 기본 정보 카드 */}
         <div className="p-4 bg-white rounded-lg">
           <div className="flex gap-4">
-            <div className="relative w-24 h-24 overflow-hidden bg-gray-100 rounded-lg shrink-0">
+            <div className="overflow-hidden relative w-24 h-24 bg-gray-100 rounded-lg shrink-0">
               {product.image_url ? (
-                <Image src={product.image_url} alt={product.name} fill className="object-cover" />
+                <Image src={product.image_url} alt={product.product_name} fill className="object-cover" />
               ) : (
                 <div className="w-full h-full bg-gray-200" />
               )}
             </div>
             <div className="flex-1">
-              <div className="flex items-center justify-between">
+              <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-lg font-semibold">{product.name}</h2>
-                  <p className="text-sm text-gray-500">SKU-{product.id.slice(0, 8).toUpperCase()}</p>
+                  <h2 className="text-lg font-semibold">{product.product_name}</h2>
+                  <p className="text-sm text-gray-500">{""}</p>
                 </div>
-                <div className="text-xl font-bold text-blue-500">{formatNumber(getTotalStock(product.id))}</div>
+                <div className="text-xl font-bold text-blue-500">{formatNumber(getTotalStock(product.option_id))}</div>
               </div>
               <div className="flex flex-wrap mt-2 text-sm text-gray-600">
                 <span>{formatNumber(product.sell_price)}원</span>
                 <span className="mx-1">·</span>
                 <span>{formatNumber(product.buy_price)}원</span>
                 <span className="mx-1">·</span>
-                <span>{product.category}</span>
+                <span>{product.category_name}</span>
                 <span className="mx-1">·</span>
-                <span>{product.brand}</span>
+                <span>{product.brand_name}</span>
               </div>
             </div>
           </div>
@@ -77,9 +79,9 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
         {/* 위치별 재고 현황 */}
         <div className="p-4 bg-white rounded-lg">
-          <h3 className="flex items-center justify-between mb-4 text-lg font-semibold">
+          <h3 className="flex justify-between items-center mb-4 text-lg font-semibold">
             <span>{productInventories.length}개 위치</span>
-            <div className="flex items-center gap-2">
+            <div className="flex gap-2 items-center">
               <span className="text-sm font-normal text-gray-500">재고 보유</span>
               <button
                 type="button"
@@ -102,12 +104,12 @@ export default function ProductDetail({ product }: ProductDetailProps) {
               <div className="text-sm text-gray-400">재고 없음</div>
             ) : (
               filteredInventories.map((inv) => (
-                <div key={inv.id} className="flex items-center justify-between w-full p-4 text-left">
-                  <div className="flex items-center gap-2">
+                <div key={inv.id} className="flex justify-between items-center p-4 w-full text-left">
+                  <div className="flex gap-2 items-center">
                     <span className="w-2 h-2 bg-gray-400 rounded-full" />
                     <span>{getLocationName(inv.location_id)}</span>
                   </div>
-                  <span className="text-blue-500">{formatNumber(inv.quantity)}</span>
+                  <span className="text-blue-500">{formatNumber(inv.total_stock)}</span>
                 </div>
               ))
             )}

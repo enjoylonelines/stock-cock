@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+//"use client";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { Metadata } from "next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={`${inter.className} antialiased bg-slate-200`}>
         <Header />
-        <main className="min-h-screen pb-16 pt-14">{children}</main>
+        <main className="pt-14 pb-16 min-h-screen">{children}</main>
         <Footer />
       </body>
     </html>

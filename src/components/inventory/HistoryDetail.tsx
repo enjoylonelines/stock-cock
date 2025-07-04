@@ -39,7 +39,7 @@ export default function HistoryDetail({ receiptId }: HistoryDetailProps) {
           supplier:suppliers (id, name),
           receipt_items (
             *,
-            product:products (id, name, image_url, sell_price, buy_price, category, brand)
+            product:products (id, name, image_url, sell_price, buy_price, category:categories (id, name), brand:brands (id, name))
           )
         `
         )
