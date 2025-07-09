@@ -4,7 +4,7 @@ import ProductDetail from "@/components/products/ProductDetail";
 import { useProducts } from "@/hooks/useProducts";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Product } from "@/types/product";
+import { Product } from "@/types/database/product";
 
 export default function ProductDetailPage() {
   const params = useParams();

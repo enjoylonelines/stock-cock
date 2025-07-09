@@ -6,24 +6,27 @@ import { Button } from "@/components/ui/button";
 import LocationFormDialog from "./LocationFormDialog";
 import LocationItemMenu from "./LocationItemMenu";
 
-interface Item {
-  id: string;
-  name: string;
-}
-
-interface ManageViewProps {
+interface ManageViewProps<T extends { id: string; name: string }> {
   onBack: () => void;
-  onSelect: (item: { id: string; name: string }) => void;
+  onSelect: (item: T) => void;
   title: string;
-  items: Item[];
+  items: T[];
   onAdd: (name: string) => void;
   onEdit: (id: string, name: string) => void;
   onDelete: (id: string) => void;
 }
 
-export default function ManageView({ onBack, onSelect, title, items, onAdd, onEdit, onDelete }: ManageViewProps) {
+const ManageView = <T extends { id: string; name: string }>({
+  onBack,
+  onSelect,
+  title,
+  items,
+  onAdd,
+  onEdit,
+  onDelete,
+}: ManageViewProps<T>) => {
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<{ id: string; name: string } | null>(null);
+  const [editingItem, setEditingItem] = useState<T | null>(null);
 
   const handleAdd = (name: string) => {
     onAdd(name);
@@ -47,8 +50,8 @@ export default function ManageView({ onBack, onSelect, title, items, onAdd, onEd
   return (
     <div className="flex flex-col h-full">
       {/* 헤더 */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center gap-2">
+      <div className="flex justify-between items-center p-4 border-b">
+        <div className="flex gap-2 items-center">
           <Button variant="ghost" size="icon" onClick={onBack}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -60,12 +63,12 @@ export default function ManageView({ onBack, onSelect, title, items, onAdd, onEd
       </div>
 
       {/* 리스트 */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="overflow-y-auto flex-1">
         <div className="p-4 space-y-2">
           {items.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent hover:text-accent-foreground"
+              className="flex justify-between items-center p-3 rounded-lg border hover:bg-accent hover:text-accent-foreground"
             >
               <button className="flex-1 text-left" onClick={() => onSelect(item)}>
                 {item.name}
@@ -87,4 +90,6 @@ export default function ManageView({ onBack, onSelect, title, items, onAdd, onEd
       />
     </div>
   );
-}
+};
+
+export default ManageView;

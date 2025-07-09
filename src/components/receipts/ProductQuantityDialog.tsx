@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus } from "lucide-react";
-import { Product } from "@/types/product";
+import { Product } from "@/types/database/product";
 import { formatNumber } from "@/lib/utils";
 
 interface ProductQuantityDialogProps {

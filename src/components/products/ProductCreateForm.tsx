@@ -4,18 +4,67 @@ import { useState, useEffect, RefObject } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import DrawerView from "@/components/ui/drawer-view";
-import { useLocations } from "@/hooks/useLocations";
+import { useLocations } from "@/hooks/useWarehouses";
 import ManageView from "../receipts/ManageView";
 import { uploadProductImage, getSignedUrl } from "@/lib/supabase/storage";
 import { supabase } from "@/lib/supabase";
 import { useCategories } from "@/hooks/useCategories";
 import { useBrands } from "@/hooks/useBrands";
 import { useRouter } from "next/navigation";
+import { Product, ProductOption } from "@/types/database";
+import { Insertable } from "@/types/util";
+import { Brand, Category, Warehouse } from "@/types/database";
 
 const WEIGHT_OPTIONS = [350, 360, 400, 1000, 1400, 2400, 4000, 4200, 4300];
 
 interface ProductCreateFormProps {
   scrollRef?: RefObject<HTMLDivElement | null>;
+}
+
+type ProductFormInput = Insertable<Product> & Insertable<ProductOption>;
+
+async function registerProduct(form: ProductFormInput) {
+  // 1. products 테이블에 insert
+  const { data: product, error: productError } = await supabase
+    .from("products")
+    .insert([
+      {
+        name: form.name,
+        category_id: form.category_id,
+        brand_id: form.brand_id,
+        image_url: form.image_url,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ])
+    .select()
+    .single();
+
+  if (productError) {
+    throw new Error("제품 등록 실패: " + productError.message);
+  }
+
+  // 2. product_options 테이블에 insert
+  const { data: option, error: optionError } = await supabase
+    .from("product_options")
+    .insert([
+      {
+        product_id: product.id,
+        weight: form.weight,
+        buy_price: form.buy_price,
+        sell_price: form.sell_price,
+        unit_label: form.unit_label,
+        sku: form.sku,
+      },
+    ])
+    .select()
+    .single();
+
+  if (optionError) {
+    throw new Error("옵션 등록 실패: " + optionError.message);
+  }
+
+  return { product, option };
 }
 
 export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps) {
@@ -135,78 +184,25 @@ export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps)
     }
 
     try {
-      // 1. 제품명으로 products 테이블 조회
-      const { data: existingProduct } = await supabase.from("products").select("*").eq("name", name).single();
-
-      let productId: string;
-
-      if (existingProduct) {
-        // 이미 제품이 있으면 그 id 사용
-        productId = existingProduct.id;
-      } else {
-        // 없으면 새로 생성
-        const { data: productData, error: productError } = await supabase
-          .from("products")
-          .insert([
-            {
-              name,
-              category: categoryId,
-              brand: brandId,
-              image_url: signedUrl,
-            },
-          ])
-          .select()
-          .single();
-        if (productError) {
-          alert("제품 저장 실패: " + productError.message);
-          return;
-        }
-        productId = productData.id;
-      }
-
-      // 2. product_options에 옵션 추가
-      const { data: optionData, error: productOptionError } = await supabase
-        .from("product_options")
-        .insert([
-          {
-            product_id: productId,
-            sell_price: Number(sellPrice),
-            buy_price: Number(buyPrice),
-            weight: weight,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            sku: sku,
-          },
-        ])
-        .select()
-        .single();
-
-      if (productOptionError) {
-        alert("제품 옵션 저장 실패: " + productOptionError.message);
-        return;
-      }
-
-      // 3. inventory에 초기 재고 저장
-      if (initQuantity && initLocation) {
-        const { error: inventoryError } = await supabase.from("inventory").insert([
-          {
-            option_id: optionData.id,
-            location_id: initLocation,
-            quantity: Number(initQuantity),
-          },
-        ]);
-        if (inventoryError) {
-          alert("재고 저장 실패: " + inventoryError.message);
-          return;
-        }
-      }
-
-      // 필요하다면 폼 초기화 또는 페이지 이동
+      await registerProduct({
+        name,
+        category_id: categoryId,
+        brand_id: brandId,
+        weight,
+        buy_price: Number(buyPrice),
+        sell_price: Number(sellPrice),
+        unit_label: "g", // 필요시 unit_label 입력값으로 변경
+        sku,
+        image_url: imagePath,
+      });
       alert("저장되었습니다!");
       router.push("/products");
-    } catch (error) {
-      console.error("저장 중 오류:", error);
-      alert("저장 중 오류가 발생했습니다.");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert("저장 중 알 수 없는 오류가 발생했습니다.");
+      }
     }
   };
 
@@ -386,7 +382,7 @@ export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps)
       </DrawerView>
 
       <DrawerView isVisible={activeDrawer === "category"} scrollRef={scrollRef}>
-        <ManageView
+        <ManageView<Category>
           title="카테고리 선택"
           items={categories}
           onBack={closeDrawer}
@@ -400,7 +396,7 @@ export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps)
         />
       </DrawerView>
       <DrawerView isVisible={activeDrawer === "brand"} scrollRef={scrollRef}>
-        <ManageView
+        <ManageView<Brand>
           title="브랜드 선택"
           items={brands}
           onBack={closeDrawer}
@@ -414,7 +410,7 @@ export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps)
         />
       </DrawerView>
       <DrawerView isVisible={activeDrawer === "initLocation"} scrollRef={scrollRef}>
-        <ManageView
+        <ManageView<Warehouse>
           title="위치 선택"
           items={locations}
           onBack={closeDrawer}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Product } from "@/types/product";
+import { Product } from "@/types/database/product";
 
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);

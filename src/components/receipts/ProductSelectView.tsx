@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatNumber } from "@/lib/utils";
 import ProductQuantityDialog from "./ProductQuantityDialog";
-import { Product } from "@/types/product";
+import { Product } from "@/types/database/product";
 import ProductListItem from "./ProductListItem";
 
 interface ProductSelectViewProps {

@@ -32,7 +32,7 @@ export type Product = {
 // Product Option (SKU)
 export type ProductOption = {
   id: string;
-  product_id: string;
+  product_id?: string;
   sku: string;
   weight: number;
   unit_label: string;

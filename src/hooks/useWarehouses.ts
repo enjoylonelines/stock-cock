@@ -1,13 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-
-interface Location {
-  id: string;
-  name: string;
-}
+import { Warehouse } from "@/types/database";
 
 export function useLocations() {
-  const [locations, setLocations] = useState<Location[]>([]);
+  const [locations, setLocations] = useState<Warehouse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // 초기 데이터 로드
@@ -17,7 +13,7 @@ export function useLocations() {
 
   const fetchLocations = async () => {
     try {
-      const { data, error } = await supabase.from("locations").select("*").order("name");
+      const { data, error } = await supabase.from("warehouses").select("*").order("name");
 
       if (error) throw error;
       setLocations(data || []);
@@ -30,7 +26,7 @@ export function useLocations() {
 
   const addLocation = async (name: string) => {
     try {
-      const { data, error } = await supabase.from("locations").insert({ name }).select().single();
+      const { data, error } = await supabase.from("warehouses").insert({ name }).select().single();
 
       if (error) throw error;
       setLocations((prev) => [...prev, data]);
@@ -42,7 +38,7 @@ export function useLocations() {
 
   const editLocation = async (id: string, name: string) => {
     try {
-      const { error } = await supabase.from("locations").update({ name }).eq("id", id);
+      const { error } = await supabase.from("warehouses").update({ name }).eq("id", id);
 
       if (error) throw error;
       setLocations((prev) => prev.map((location) => (location.id === id ? { ...location, name } : location)));
@@ -54,7 +50,7 @@ export function useLocations() {
 
   const deleteLocation = async (id: string) => {
     try {
-      const { error } = await supabase.from("locations").delete().eq("id", id);
+      const { error } = await supabase.from("warehouses").delete().eq("id", id);
 
       if (error) throw error;
       setLocations((prev) => prev.filter((location) => location.id !== id));

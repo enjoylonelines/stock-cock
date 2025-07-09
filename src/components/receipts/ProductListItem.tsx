@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { Product } from "@/types/product";
+import { Product } from "@/types/database/product";
 import { formatNumber } from "@/lib/utils";
 
 interface ProductListItemProps {

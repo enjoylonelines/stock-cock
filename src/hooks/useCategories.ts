@@ -1,10 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-
-interface Category {
-  id: string;
-  name: string;
-}
+import { Category } from "@/types/database";
 
 export function useCategories() {
   const [categories, setCategories] = useState<Category[]>([]);

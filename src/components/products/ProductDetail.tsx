@@ -4,10 +4,10 @@ import { ArrowLeft, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { formatNumber } from "@/lib/utils";
-import { Product } from "@/types/product";
+import { Product } from "@/types/database/product";
 import Link from "next/link";
 import { useInventories } from "@/hooks/useInventories";
-import { useLocations } from "@/hooks/useLocations";
+import { useLocations } from "@/hooks/useWarehouses";
 import { useState } from "react";
 
 interface ProductDetailProps {
