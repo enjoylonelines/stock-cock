@@ -1,86 +1,136 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
-import { CreateReceiptRequest, CreateReceiptItem } from "@/types/receipt";
+
+type ReceiptItemInput = {
+  quantity: number;
+  unit_price: number;
+  user_id: string;
+  option_id: string;
+  expiration_date: string | null;
+};
+
+type ReceiptInput = {
+  type: "IN" | "OUT";
+  warehouse_id: string;
+  supplier_id?: string;
+  memo?: string;
+  created_at?: string;
+  items: ReceiptItemInput[];
+};
 
 export async function POST(request: Request) {
+  const supabase = await createClient();
+
   try {
-    const supabase = await createClient();
+    const body: ReceiptInput = await request.json();
+    const { type, warehouse_id, supplier_id, memo, created_at, items } = body;
 
-    // 사용자 인증 확인
-    // const {
-    //   data: { user },
-    //   error: authError,
-    // } = await supabase.auth.getUser();
+    console.log("[REQUEST BODY]", body);
 
-    // if (authError || !user) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
+    // const user_id = items[0]?.user_id;
+    // if (!user_id || !items.length) throw new Error("Invalid request body: Missing user_id or items");
 
-    const body = (await request.json()) as CreateReceiptRequest;
-    const { type, location_id, supplier_id, memo, items, created_at } = body;
-
-    // 1. 입고 데이터 생성
-    const { data: receipt, error: receiptError } = await supabase
-      .from("receipts")
-      .insert({
-        type,
-        location_id,
-        supplier_id,
-        memo,
-        status: "COMPLETED",
-        user_id: items[0].user_id,
-        created_at,
-      })
+    // [1] 트랜잭션 기록
+    const { data: transaction, error: txError } = await supabase
+      .from("transactions")
+      .insert([
+        {
+          type: type.toLowerCase() as "in" | "out",
+          // user_id,
+          to_warehouse_id: warehouse_id,
+          supplier_id,
+          memo,
+          created_at,
+        },
+      ])
       .select()
       .single();
 
-    if (receiptError) throw receiptError;
+    if (txError) {
+      console.error("[TX ERROR]", txError);
+      throw txError;
+    }
 
-    // 2. 입고 상세 항목 생성
-    const receiptItems = items.map((item: CreateReceiptItem) => ({
-      receipt_id: receipt.id,
-      product_id: item.product_id,
-      quantity: item.quantity,
-      unit_price: item.unit_price,
-    }));
-
-    const { error: itemsError } = await supabase.from("receipt_items").insert(receiptItems);
-
-    if (itemsError) throw itemsError;
-
-    // 3. 재고 업데이트
     for (const item of items) {
-      const { data: inventory, error: inventoryError } = await supabase
-        .from("inventory")
-        .select("*")
-        .eq("product_id", item.product_id)
-        .eq("location_id", location_id)
+      console.log("[ITEM PROCESSING]", item);
+
+      // [2] 배치 insert (유통기한 기반)
+      const { data: batch, error: batchError } = await supabase
+        .from("inventory_batches")
+        .insert([
+          {
+            product_option_id: item.option_id,
+            warehouse_id,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            expiration_date: item.expiration_date || null,
+          },
+        ])
+        .select()
         .single();
 
-      if (inventoryError && inventoryError.code !== "PGRST116") throw inventoryError;
+      if (batchError) {
+        console.error("[BATCH ERROR]", batchError);
+        throw batchError;
+      }
+
+      // [3] inventory upsert
+      const { data: inventory, error: invError } = await supabase
+        .from("inventory")
+        .select("*")
+        .eq("product_option_id", item.option_id)
+        .eq("warehouse_id", warehouse_id)
+        .maybeSingle();
+
+      if (invError) {
+        console.error("[INVENTORY SELECT ERROR]", invError);
+        throw invError;
+      }
+
+      const newQty = (inventory?.quantity ?? 0) + item.quantity;
 
       if (inventory) {
-        // 기존 재고가 있는 경우 업데이트
-        const newQuantity = type === "IN" ? inventory.quantity + item.quantity : inventory.quantity - item.quantity;
+        const { error: updateError } = await supabase.from("inventory").update({ quantity: newQty }).eq("id", inventory.id);
 
-        const { error: updateError } = await supabase.from("inventory").update({ quantity: newQuantity }).eq("id", inventory.id);
-
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error("[INVENTORY UPDATE ERROR]", updateError);
+          throw updateError;
+        }
       } else {
-        // 새로운 재고 생성
-        const { error: insertError } = await supabase.from("inventory").insert({
-          product_id: item.product_id,
-          location_id,
-          quantity: type === "IN" ? item.quantity : -item.quantity,
-        });
+        const { error: insertError } = await supabase.from("inventory").insert([
+          {
+            product_option_id: item.option_id,
+            warehouse_id,
+            quantity: item.quantity,
+          },
+        ]);
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error("[INVENTORY INSERT ERROR]", insertError);
+          throw insertError;
+        }
+      }
+
+      // [4] transaction_items 기록
+      const { error: itemError } = await supabase.from("transaction_items").insert([
+        {
+          transaction_id: transaction.id,
+          product_option_id: item.option_id,
+          batch_id: batch.id,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+        },
+      ]);
+
+      if (itemError) {
+        console.error("[ITEM INSERT ERROR]", itemError);
+        throw itemError;
       }
     }
 
-    return NextResponse.json({ success: true, data: receipt });
+    return NextResponse.json({ success: true, transaction_id: transaction.id });
   } catch (error) {
-    console.error("Error creating receipt:", error);
-    return NextResponse.json({ error: "Failed to create receipt" }, { status: 500 });
+    console.error("[UNHANDLED ERROR]", error);
+    return NextResponse.json({ error: "입고 처리 실패", detail: String(error) }, { status: 500 });
   }
 }

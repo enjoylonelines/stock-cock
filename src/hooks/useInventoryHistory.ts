@@ -1,24 +1,15 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { InventoryHistoryItem } from "@/types/inventory-history";
 import { useInventories } from "./useInventories";
+import { TransactionHistoryView } from "@/types/database";
 
-export interface InventoryTransaction {
-  id: string;
-  type: "입고" | "출고" | "조정";
+export interface InventoryTransaction extends TransactionHistoryView {
+  date: string;
+  product_id: string;
   product_name: string;
-  quantity: number;
-  location?: string;
-  note?: string;
-  image_url?: string;
   total_stock: number;
-  user: {
-    id: string;
-    name: string;
-    avatar_url?: string;
-  };
-  date: string; // yyyy년 MM월 dd일
-  receipt_id: string;
+  type_kr: "입고" | "출고" | "이동" | "조정";
+  image_url: string; //avatar
 }
 
 export interface GroupedTransactions {
@@ -33,24 +24,7 @@ export function useInventoryHistory() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data, error } = await supabase
-          .from("receipt_items")
-          .select(
-            `
-            id,
-            quantity,
-            receipt:receipts (
-              id,
-              type,
-              created_at,
-              memo,
-              location:locations (name),
-              user:users (id, name, avatar_url)
-            ),
-            product:products (id, name, image_url)
-          `
-          )
-          .order("created_at", { ascending: false });
+        const { data, error } = await supabase.from("transaction_history_view").select("*").order("created_at", { ascending: false });
 
         if (error) {
           console.error("Query error:", error);
@@ -59,54 +33,58 @@ export function useInventoryHistory() {
 
         if (!data) return;
 
-        // 1. inventory에서 product별 현재고를 가져옴
-        const productCurrentStock: { [productId: string]: number } = {};
+        // 현재고: product_option_id 기준
+        const currentStock: Record<string, number> = {};
         inventories.forEach((inv) => {
-          if (!productCurrentStock[inv.product_id]) productCurrentStock[inv.product_id] = 0;
-          productCurrentStock[inv.product_id] += inv.quantity;
+          if (!currentStock[inv.product_option_id]) currentStock[inv.product_option_id] = 0;
+          currentStock[inv.product_option_id] += inv.quantity;
         });
 
-        // 2. 로그를 최신순으로 정렬
-        const logs = (data as unknown as InventoryHistoryItem[]).map((item) => {
-          const typeKor = item.receipt.type === "IN" ? "입고" : item.receipt.type === "OUT" ? "출고" : "조정";
-          const date = new Date(item.receipt.created_at);
-          const dateStr = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
-          const productId = item.product.id;
-          const productName = item.product.name;
-          const quantity = item.quantity * (item.receipt.type === "OUT" ? -1 : 1);
-          console.log(item.receipt.user);
+        const logs = data.map((tx) => {
+          const product_id = tx.product_option_id;
+          const dateObj = new Date(tx.created_at);
+          const dateStr = `${dateObj.getFullYear()}년 ${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일`;
+
+          let type_kr: InventoryTransaction["type_kr"];
+          switch (tx.type) {
+            case "in":
+              type_kr = "입고";
+              break;
+            case "out":
+              type_kr = "출고";
+              break;
+            case "move":
+              type_kr = "이동";
+              break;
+            case "adjust":
+              type_kr = "조정";
+              break;
+            default:
+              type_kr = "입고";
+          }
+
+          const signedQuantity = tx.type === "out" ? -tx.quantity : tx.quantity;
+
           return {
-            id: item.id,
-            receipt_id: item.receipt.id,
-            type: typeKor,
-            product_id: productId,
-            product_name: productName,
-            quantity,
-            location: item.receipt.location?.name,
-            note: item.receipt.memo,
-            image_url: item.product.image_url,
-            user: {
-              id: item.receipt.user?.id ?? "",
-              name: item.receipt.user?.name || "-",
-              avatar_url: item.receipt.user?.avatar_url,
-            },
+            ...tx,
+            product_id,
+            product_name: tx.product_name,
             date: dateStr,
-            created_at: item.receipt.created_at,
+            type_kr,
+            quantity: signedQuantity,
           };
         });
 
-        // 3. 누적 재고를 최신순에서 과거순으로 역계산
-        const sortedLogs = logs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        const productStockMap = { ...productCurrentStock };
-        const txs = sortedLogs.map((log) => {
-          const stock = productStockMap[log.product_id] ?? 0;
+        // 최신순 → 누적 재고 계산
+        const sorted = logs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        const stockMap = { ...currentStock };
+        const txs = sorted.map((log) => {
+          const stock = stockMap[log.product_id] ?? 0;
           const result = {
             ...log,
             total_stock: stock,
-            type: log.type as "입고" | "출고" | "조정",
           };
-          // 다음 로그를 위해 수량을 빼줌 (입고/출고 방향 주의)
-          productStockMap[log.product_id] -= log.quantity;
+          stockMap[log.product_id] -= log.quantity;
           return result;
         });
 
@@ -116,11 +94,13 @@ export function useInventoryHistory() {
           if (!groupedObj[tx.date]) groupedObj[tx.date] = [];
           groupedObj[tx.date].push(tx);
         });
+
         setGrouped(Object.entries(groupedObj).map(([date, transactions]) => ({ date, transactions })));
-      } catch (error) {
-        console.error("Unexpected error:", error);
+      } catch (err) {
+        console.error("Unexpected error:", err);
       }
     };
+
     fetchData();
   }, [inventories]);
 

@@ -26,20 +26,20 @@ export default function InventoryList() {
   };
 
   return (
-    <div className="space-y-6 overflow-auto custom-scrollbar">
+    <div className="overflow-auto space-y-6 custom-scrollbar">
       {grouped.map((group) => (
         <div key={group.date} className="space-y-2">
           <h2 className="text-sm font-medium text-gray-500">{group.date}</h2>
           <div className="space-y-2">
             {group.transactions.map((transaction) => (
               <div
-                key={transaction.id}
-                className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-sm"
-                onClick={() => router.push(`/inventory/${transaction.receipt_id}`)}
+                key={transaction.transaction_id + transaction.product_name}
+                className="flex gap-4 items-center p-4 bg-white rounded-lg shadow-sm"
+                onClick={() => router.push(`/inventory/${transaction.transaction_id}`)}
               >
-                <div className="flex-shrink-0">{getTypeIcon(transaction.type)}</div>
+                <div className="flex-shrink-0">{getTypeIcon(transaction.type_kr)}</div>
                 <div className="flex-shrink-0">
-                  <div className="relative w-12 h-12 overflow-hidden rounded-md bg-slate-100">
+                  <div className="overflow-hidden relative w-12 h-12 rounded-md bg-slate-100">
                     {transaction.image_url ? (
                       <Image src={transaction.image_url} alt={transaction.product_name} fill className="object-cover" />
                     ) : (
@@ -48,15 +48,15 @@ export default function InventoryList() {
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{transaction.type}</span>
+                  <div className="flex gap-2 items-center">
+                    <span className="font-medium">{transaction.type_kr}</span>
                     <span className="text-sm text-gray-500">{transaction.product_name}</span>
                   </div>
-                  {transaction.location && <div className="text-sm text-gray-500">{transaction.location}</div>}
-                  {transaction.note && <div className="text-sm text-gray-500">{transaction.note}</div>}
+                  {transaction.from_warehouse_name && <div className="text-sm text-gray-500">{transaction.from_warehouse_name}</div>}
+                  {transaction.memo && <div className="text-sm text-gray-500">{transaction.memo}</div>}
                   <div className="mt-1 text-sm text-gray-500">총 재고: {transaction.total_stock.toLocaleString()}</div>
                 </div>
-                <div className="flex flex-col items-end gap-2">
+                <div className="flex flex-col gap-2 items-end">
                   <div className={`text-right ${getQuantityColor(transaction.quantity)}`}>
                     {transaction.quantity > 0 ? "+" : ""}
                     {transaction.quantity.toLocaleString()}
@@ -65,7 +65,7 @@ export default function InventoryList() {
                     <AvatarImage className="rounded-[12px]" src={transaction.user.avatar_url} alt={transaction.user.name} />
                     <AvatarFallback>{transaction.user.name[0]}</AvatarFallback>
                   </Avatar> */}
-                  <div className="text-sm text-gray-500">{transaction.user.name}</div>
+                  <div className="text-sm text-gray-500">{transaction.user_name}</div>
                 </div>
               </div>
             ))}

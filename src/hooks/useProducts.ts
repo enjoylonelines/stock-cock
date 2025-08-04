@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Product } from "@/types/database/product";
+import { ProductOptionView } from "@/types/product_option_view";
 
 export function useProducts() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductOptionView[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -12,7 +12,7 @@ export function useProducts() {
 
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase.from("v_product_sku_inventory").select("*").order("product_name");
+      const { data, error } = await supabase.from("product_option_inventory_view").select("*").order("product_name");
 
       if (error) throw error;
       setProducts(data || []);

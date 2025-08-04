@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signUp } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { signup } from "@/actions/signup";
 
 export default function SignUpForm() {
   const [email, setEmail] = useState("");
@@ -57,7 +58,7 @@ export default function SignUpForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500"
+          className="block px-3 py-2 mt-1 w-full rounded-md border border-gray-300 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500"
           placeholder="example@email.com"
         />
       </div>
@@ -72,7 +73,7 @@ export default function SignUpForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500"
+          className="block px-3 py-2 mt-1 w-full rounded-md border border-gray-300 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500"
           placeholder="6자 이상"
         />
       </div>
@@ -87,14 +88,14 @@ export default function SignUpForm() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           required
-          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500"
+          className="block px-3 py-2 mt-1 w-full rounded-md border border-gray-300 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500"
           placeholder="비밀번호를 다시 입력하세요"
         />
       </div>
 
       {error && <div className="text-sm text-red-600">{error}</div>}
 
-      <Button type="submit" className="w-full text-white bg-orange-500 hover:bg-orange-600" disabled={isLoading}>
+      <Button formAction={signup} type="submit" className="w-full text-white bg-orange-500 hover:bg-orange-600" disabled={isLoading}>
         {isLoading ? "처리 중..." : "회원가입"}
       </Button>
     </form>

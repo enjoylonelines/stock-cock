@@ -4,31 +4,31 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatNumber } from "@/lib/utils";
 import ProductQuantityDialog from "./ProductQuantityDialog";
-import { Product } from "@/types/database/product";
 import ProductListItem from "./ProductListItem";
+import { ProductOptionView } from "@/types/product_option_view";
 
 interface ProductSelectViewProps {
   onBack: () => void;
-  onSelect: (products: Product[]) => void;
-  products: Product[];
+  onSelect: (products: ProductOptionView[]) => void;
+  products: ProductOptionView[];
 }
 
 export default function ProductSelectView({ onBack, onSelect, products }: ProductSelectViewProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<ProductOptionView[]>([]);
   const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ProductOptionView | null>(null);
   const [currentQuantity, setCurrentQuantity] = useState(0);
 
-  const filteredProducts = products.filter((product) => product.name.toLowerCase().includes(searchTerm.toLowerCase()));
-  const handleProductClick = (product: Product) => {
+  const filteredProducts = products.filter((product) => product.product_name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const handleProductClick = (product: ProductOptionView) => {
     setSelectedProduct(product);
-    const existing = selectedProducts.find((p) => p.product_id === product.product_id);
+    const existing = selectedProducts.find((p) => p.option_id === product.option_id);
     setCurrentQuantity(existing ? existing.quantity ?? 0 : 0);
     setQuantityDialogOpen(true);
   };
 
-  const handleQuantityConfirm = (product: Product, quantity: number) => {
+  const handleQuantityConfirm = (product: ProductOptionView, quantity: number) => {
     if (!quantity) {
       setSelectedProducts((prev) => prev.filter((p) => p.product_id !== product.product_id));
       return;
@@ -52,7 +52,7 @@ export default function ProductSelectView({ onBack, onSelect, products }: Produc
     return selected ? selected.quantity ?? 0 : 0;
   };
 
-  const getTotalQuantity = (products: Product[]) => {
+  const getTotalQuantity = (products: ProductOptionView[]) => {
     return products.reduce((acc, curr) => acc + (curr.quantity ?? 0), 0);
   };
 

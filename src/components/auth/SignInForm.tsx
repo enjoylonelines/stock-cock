@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "@/lib/supabase/auth";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { login } from "@/app/auth/actions";
 
 // 이메일 유효성 검사 함수
 const validateEmail = (email: string): boolean => {
@@ -55,7 +56,7 @@ export default function SignInForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500"
+          className="block px-3 py-2 mt-1 w-full rounded-md border border-gray-300 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500"
           placeholder="example@email.com"
         />
       </div>
@@ -70,14 +71,14 @@ export default function SignInForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500"
+          className="block px-3 py-2 mt-1 w-full rounded-md border border-gray-300 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500"
           placeholder="비밀번호를 입력하세요"
         />
       </div>
 
       {error && <div className="text-sm text-red-600">{error}</div>}
 
-      <Button type="submit" className="w-full text-white bg-orange-500 hover:bg-orange-600" disabled={isLoading}>
+      <Button formAction={login} type="submit" className="w-full text-white bg-orange-500 hover:bg-orange-600" disabled={isLoading}>
         {isLoading ? "로그인 중..." : "로그인"}
       </Button>
     </form>

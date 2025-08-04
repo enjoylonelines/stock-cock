@@ -34,7 +34,7 @@ export default function ProductList() {
                     <span>{product.brand_name}</span>
                   </div>
                 </div>
-                <div className="text-2xl font-semibold text-blue-600">{formatNumber(product.total_stock)}</div>
+                <div className="text-2xl font-semibold text-blue-600">{formatNumber(product.quantity)}</div>
               </div>
             </CardContent>
           </Card>

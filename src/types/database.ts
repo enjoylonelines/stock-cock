@@ -115,3 +115,22 @@ export type Adjustment = {
   user_id: string;
   created_at: string;
 };
+
+export type TransactionHistoryView = {
+  transaction_id: string;
+  type: "in" | "out" | "move" | "adjust";
+  created_at: string;
+  memo?: string;
+  user_name?: string;
+  supplier_name?: string;
+  from_warehouse_name?: string;
+  to_warehouse_name?: string;
+  product_option_id: string;
+  product_name: string;
+  weight: number;
+  unit_label: string;
+  quantity: number;
+  unit_price: number;
+  user_image_url: string;
+  product_image_url: string;
+};

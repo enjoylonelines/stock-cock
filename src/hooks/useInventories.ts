@@ -1,14 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-
-export type Inventory = {
-  id: string;
-  option_id: string;
-  location_id: string;
-  total_stock: number;
-  created_at: string;
-  updated_at: string;
-};
+import { Inventory } from "@/types/database";
 
 export function useInventories() {
   const [inventories, setInventories] = useState<Inventory[]>([]);
