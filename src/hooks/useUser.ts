@@ -3,9 +3,8 @@ import { supabase } from "@/lib/supabase";
 
 interface UserInfo {
   id: string;
-  email: string;
-  role?: string;
   name?: string;
+  image_url: string;
 }
 
 export function useUser() {
@@ -17,17 +16,15 @@ export function useUser() {
       setIsLoading(true);
       try {
         // auth.users에서 현재 로그인한 사용자 정보 가져오기
-        const {
-          data: { user: authUser },
-        } = await supabase.auth.getUser();
+        const { data: session, error: sessionError } = await supabase.auth.getSession();
 
-        if (!authUser) {
+        if (!session) {
           setUser(null);
           return;
         }
-
+        console.log(session);
         // public.users에서 추가 정보 가져오기
-        const { data, error } = await supabase.from("users").select("*").eq("id", authUser.id).single();
+        const { data, error } = await supabase.from("profiles").select("*").eq("id", session.id).single();
 
         if (error) {
           console.error("사용자 정보를 가져오는데 실패했습니다:", error);
@@ -35,9 +32,8 @@ export function useUser() {
         } else {
           setUser({
             id: data.id,
-            email: data.email,
-            role: data.role,
             name: data.name,
+            image_url: data.image_url,
           });
         }
       } catch (error) {
@@ -49,21 +45,6 @@ export function useUser() {
     };
 
     fetchUser();
-
-    // auth 상태 변경 감지
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT") {
-        setUser(null);
-      } else if (session?.user) {
-        fetchUser();
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, []);
 
   return { user, isLoading };

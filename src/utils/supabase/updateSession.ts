@@ -1,4 +1,3 @@
-// utils/supabase/middleware.ts
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -30,15 +29,15 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && !request.nextUrl.pathname.startsWith("/login") && !request.nextUrl.pathname.startsWith("/auth")) {
+  if (!user && !request.nextUrl.pathname.startsWith("/auth")) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/auth/signin";
     return NextResponse.redirect(url);
   }
 
   // 중요: supabaseResponse 객체를 반드시 그대로 반환해야 합니다.
-  // NextResponse.next()로 새로운 response 객체를 생성하는 경우 다음 사항을 반드시 지켜주세요:
+  // NextResponse.next()로 새로운 response 객체를 생성하는 경우 다음 사항을 반드시 지켜주세요:s
   // 1. 다음과 같이 request를 전달하세요:
   // const myNewResponse = NextResponse.next({ request })
 
