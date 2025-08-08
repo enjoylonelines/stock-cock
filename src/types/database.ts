@@ -134,3 +134,14 @@ export type TransactionHistoryView = {
   user_image_url: string;
   product_image_url: string;
 };
+
+export interface UserInfo {
+  id: string;
+  name?: string;
+  image_url: string;
+}
+
+export interface TeamInfo {
+  id: string;
+  name: string;
+}

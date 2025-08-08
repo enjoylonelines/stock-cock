@@ -1,5 +1,5 @@
 export type ProductOptionView = {
-  option_id: string;
+  product_option_id: string;
   sku: string;
   weight: number;
   unit_label: string;

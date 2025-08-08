@@ -6,17 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { logout } from "@/app/auth/actions";
-
-interface UserInfo {
-  id: string;
-  name?: string;
-  image_url: string;
-}
-
-interface TeamInfo {
-  id: string;
-  name: string;
-}
+import { TeamInfo, UserInfo } from "@/types/database";
 
 export default function SettingsPage({ user, _team }: { user: UserInfo; _team?: TeamInfo }) {
   // 임시 데이터 (실제로는 API에서 가져와야 함)

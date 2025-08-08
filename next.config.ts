@@ -12,9 +12,6 @@ const nextConfig: NextConfig = withPWA({
   images: {
     domains: ["i.pravatar.cc"],
   },
-  experimental: {
-    serverActions: true,
-  },
 });
 
 export default nextConfig;

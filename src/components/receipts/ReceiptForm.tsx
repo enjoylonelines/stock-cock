@@ -15,8 +15,8 @@ import DatePickerDialog from "./DatePickerDialog";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useRouter } from "next/navigation";
-import { useUser } from "@/hooks/useUser";
 import { ProductOptionView } from "@/types/product_option_view";
+import { useUser } from "@/contexts/UserContext";
 
 export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT"; closeDrawer: () => void }) {
   const [isLocationViewVisible, setIsLocationViewVisible] = useState(false);
@@ -34,7 +34,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT";
   const { suppliers, addSupplier, editSupplier, deleteSupplier } = useSuppliers();
   const { products } = useProducts();
   const router = useRouter();
-  const { user } = useUser();
+  const user = useUser();
 
   const handleLocationSelect = (location: { id: string; name: string }) => {
     setSelectedLocation(location.id);
@@ -76,10 +76,10 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT";
           warehouse_id: selectedLocation,
           supplier_id: selectedSupplier,
           memo,
+          user_id: user?.id,
           created_at: format(selectedDate, "yyyy-MM-dd HH:mm:ss"),
           items: selectedProducts.map((product) => ({
-            user_id: user?.id,
-            option_id: product.option_id,
+            option_id: product.product_option_id,
             quantity: product.quantity || 1,
             unit_price: product.sell_price || null,
           })),
@@ -169,7 +169,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT";
           {selectedProducts.length > 0 && (
             <div className="mt-2 space-y-2">
               {selectedProducts.map((product) => (
-                <ProductListItem key={product.option_id} product={product} quantity={product.quantity} selected={false} />
+                <ProductListItem key={product.product_option_id} product={product} quantity={product.quantity} selected={false} />
               ))}
             </div>
           )}

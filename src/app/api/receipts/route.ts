@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 type ReceiptItemInput = {
   quantity: number;
   unit_price: number;
-  user_id: string;
   option_id: string;
   expiration_date: string | null;
 };
@@ -16,6 +15,7 @@ type ReceiptInput = {
   memo?: string;
   created_at?: string;
   items: ReceiptItemInput[];
+  user_id: string;
 };
 
 export async function POST(request: Request) {
@@ -23,12 +23,11 @@ export async function POST(request: Request) {
 
   try {
     const body: ReceiptInput = await request.json();
-    const { type, warehouse_id, supplier_id, memo, created_at, items } = body;
+    const { type, warehouse_id, supplier_id, memo, created_at, items, user_id } = body;
 
     console.log("[REQUEST BODY]", body);
 
-    // const user_id = items[0]?.user_id;
-    // if (!user_id || !items.length) throw new Error("Invalid request body: Missing user_id or items");
+    if (!items.length) throw new Error("Invalid request body: Missing items");
 
     // [1] 트랜잭션 기록
     const { data: transaction, error: txError } = await supabase
@@ -36,11 +35,11 @@ export async function POST(request: Request) {
       .insert([
         {
           type: type.toLowerCase() as "in" | "out",
-          // user_id,
           to_warehouse_id: warehouse_id,
           supplier_id,
           memo,
           created_at,
+          user_id,
         },
       ])
       .select()
@@ -53,7 +52,7 @@ export async function POST(request: Request) {
 
     for (const item of items) {
       console.log("[ITEM PROCESSING]", item);
-
+      console.log(item.option_id);
       // [2] 배치 insert (유통기한 기반)
       const { data: batch, error: batchError } = await supabase
         .from("inventory_batches")
