@@ -1,14 +1,14 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus } from "lucide-react";
-import { Product } from "@/types/database/product";
 import { formatNumber } from "@/lib/utils";
+import { ProductOptionView } from "@/types/product_option_view";
 
 interface ProductQuantityDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  product: Product | null;
-  onConfirm: (product: Product, quantity: number) => void;
+  product: ProductOptionView | null;
+  onConfirm: (product: ProductOptionView, quantity: number) => void;
   quantity: number;
   setQuantity: (quantity: number) => void;
 }
@@ -37,13 +37,13 @@ export default function ProductQuantityDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-xs p-0 bg-white rounded-lg">
+      <DialogContent className="p-0 w-full max-w-xs bg-white rounded-lg">
         <DialogHeader className="px-4 py-5 text-center border-b">
           <DialogTitle>입고 수량을 입력하세요.</DialogTitle>
-          <p className="text-sm text-gray-500">{product.name}</p>
+          <p className="text-sm text-gray-500">{product.product_name}</p>
         </DialogHeader>
         <div className="p-4">
-          <div className="flex items-center justify-between gap-4 p-4 mb-4 rounded-lg bg-gray-50">
+          <div className="flex gap-4 justify-between items-center p-4 mb-4 bg-gray-50 rounded-lg">
             <Button
               type="button"
               variant="outline"

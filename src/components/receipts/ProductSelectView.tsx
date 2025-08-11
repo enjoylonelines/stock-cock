@@ -23,32 +23,32 @@ export default function ProductSelectView({ onBack, onSelect, products }: Produc
   const filteredProducts = products.filter((product) => product.product_name.toLowerCase().includes(searchTerm.toLowerCase()));
   const handleProductClick = (product: ProductOptionView) => {
     setSelectedProduct(product);
-    const existing = selectedProducts.find((p) => p.option_id === product.option_id);
+    const existing = selectedProducts.find((p) => p.product_option_id === product.product_option_id);
     setCurrentQuantity(existing ? existing.quantity ?? 0 : 0);
     setQuantityDialogOpen(true);
   };
 
   const handleQuantityConfirm = (product: ProductOptionView, quantity: number) => {
     if (!quantity) {
-      setSelectedProducts((prev) => prev.filter((p) => p.product_id !== product.product_id));
+      setSelectedProducts((prev) => prev.filter((p) => p.product_option_id !== product.product_option_id));
       return;
     }
 
     setSelectedProducts((prev) => {
-      const existing = prev.find((p) => p.product_id === product.product_id);
+      const existing = prev.find((p) => p.product_option_id === product.product_option_id);
       if (existing) {
-        return prev.map((p) => (p.product_id === product.product_id ? { ...p, quantity } : p));
+        return prev.map((p) => (p.product_option_id === product.product_option_id ? { ...p, quantity } : p));
       }
       return [...prev, { ...product, quantity }];
     });
   };
 
-  const isSelected = (productId: string, sku: string) => {
-    return selectedProducts.some((p) => p.product_id === productId && p.sku === sku);
+  const isSelected = (productOptionId: string) => {
+    return selectedProducts.some((p) => p.product_option_id === productOptionId);
   };
 
-  const getSelectedQuantity = (productId: string) => {
-    const selected = selectedProducts.find((p) => p.product_id === productId);
+  const getSelectedQuantity = (productOptionId: string) => {
+    const selected = selectedProducts.find((p) => p.product_option_id === productOptionId);
     return selected ? selected.quantity ?? 0 : 0;
   };
 
@@ -87,10 +87,10 @@ export default function ProductSelectView({ onBack, onSelect, products }: Produc
         <div className="p-4 space-y-2">
           {filteredProducts.map((product) => (
             <ProductListItem
-              key={product.product_id}
+              key={product.product_option_id}
               product={product}
-              quantity={isSelected(product.product_id, product.sku) ? getSelectedQuantity(product.product_id) : undefined}
-              selected={isSelected(product.product_id, product.sku)}
+              quantity={isSelected(product.product_option_id) ? getSelectedQuantity(product.product_option_id) : undefined}
+              selected={isSelected(product.product_option_id)}
               onClick={() => handleProductClick(product)}
             />
           ))}
