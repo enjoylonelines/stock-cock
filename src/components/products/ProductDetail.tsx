@@ -4,14 +4,14 @@ import { ArrowLeft, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { formatNumber } from "@/lib/utils";
-import { Product } from "@/types/database/product";
 import Link from "next/link";
 import { useInventories } from "@/hooks/useInventories";
 import { useLocations } from "@/hooks/useWarehouses";
 import { useState } from "react";
+import { ProductOptionView } from "@/types/product_option_view";
 
 interface ProductDetailProps {
-  product: Product;
+  product: ProductOptionView;
 }
 
 export default function ProductDetail({ product }: ProductDetailProps) {
@@ -20,12 +20,12 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   const [showOnlyStocked, setShowOnlyStocked] = useState(false);
   const getTotalStock = (productId: string) =>
     inventories
-      .filter((i) => i.option_id === productId)
-      .reduce((sum, i) => sum + (typeof i.total_stock === "number" ? i.total_stock : 0), 0);
+      .filter((i) => i.product_option_id === productId)
+      .reduce((sum, i) => sum + (typeof i.quantity === "number" ? i.quantity : 0), 0);
   const getLocationName = (locationId: string) => locations.find((loc) => loc.id === locationId)?.name || "알 수 없음";
-  const productInventories = inventories.filter((i) => i.option_id === product.option_id);
+  const productInventories = inventories.filter((i) => i.product_option_id === product.product_option_id);
   const filteredInventories = showOnlyStocked
-    ? productInventories.filter((inv) => (typeof inv.total_stock === "number" ? inv.total_stock : 0) > 0)
+    ? productInventories.filter((inv) => (typeof inv.quantity === "number" ? inv.quantity : 0) > 0)
     : productInventories;
   return (
     <div className="flex flex-col h-full bg-gray-50">
@@ -62,7 +62,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                   <h2 className="text-lg font-semibold">{product.product_name}</h2>
                   <p className="text-sm text-gray-500">{""}</p>
                 </div>
-                <div className="text-xl font-bold text-blue-500">{formatNumber(getTotalStock(product.option_id))}</div>
+                <div className="text-xl font-bold text-blue-500">{formatNumber(getTotalStock(product.product_option_id))}</div>
               </div>
               <div className="flex flex-wrap mt-2 text-sm text-gray-600">
                 <span>{formatNumber(product.sell_price)}원</span>
@@ -107,9 +107,9 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                 <div key={inv.id} className="flex justify-between items-center p-4 w-full text-left">
                   <div className="flex gap-2 items-center">
                     <span className="w-2 h-2 bg-gray-400 rounded-full" />
-                    <span>{getLocationName(inv.location_id)}</span>
+                    <span>{getLocationName(inv.warehouse_id)}</span>
                   </div>
-                  <span className="text-blue-500">{formatNumber(inv.total_stock)}</span>
+                  <span className="text-blue-500">{formatNumber(inv.quantity)}</span>
                 </div>
               ))
             )}

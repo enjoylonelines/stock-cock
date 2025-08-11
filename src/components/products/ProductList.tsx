@@ -11,7 +11,7 @@ export default function ProductList() {
   return (
     <div className="flex flex-col gap-2">
       {products.map((product) => (
-        <Link key={product.option_id} href={`/products/${product.option_id}`}>
+        <Link key={product.product_option_id} href={`/products/${product.product_option_id}`}>
           <Card className="px-4 py-2 transition-colors bg-slate-50 hover:bg-slate-100">
             <CardContent className="p-0">
               <div className="flex gap-4 items-center">
@@ -23,7 +23,9 @@ export default function ProductList() {
                   )}
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-medium">{product.product_name}</h3>
+                  <h3 className="font-medium">
+                    {product.product_name} {product.weight}g
+                  </h3>
                   <div className="flex flex-wrap mt-1 text-xs text-gray-600">
                     <span>{formatNumber(product.sell_price)}원</span>
                     <span className="mx-1">·</span>
