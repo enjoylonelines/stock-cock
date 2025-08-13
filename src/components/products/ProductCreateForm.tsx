@@ -6,22 +6,25 @@ import { ArrowLeft, ChevronRight } from "lucide-react";
 import DrawerView from "@/components/ui/drawer-view";
 import { useLocations } from "@/hooks/useWarehouses";
 import ManageView from "../receipts/ManageView";
-import { uploadProductImage, getSignedUrl } from "@/lib/supabase/storage";
-import { supabase } from "@/lib/supabase";
 import { useCategories } from "@/hooks/useCategories";
 import { useBrands } from "@/hooks/useBrands";
 import { useRouter } from "next/navigation";
-import { Product, ProductOption } from "@/types/database";
+import { Inventory, Product, ProductOption } from "@/types/database";
 import { Insertable } from "@/types/util";
 import { Brand, Category, Warehouse } from "@/types/database";
+import Image from "next/image";
+import { useUser } from "@/contexts/UserContext";
+import { supabase } from "@/lib/supabase";
+import { generateSKU, generateUniqueFileName } from "@/lib/utils";
 
 const WEIGHT_OPTIONS = [350, 360, 400, 1000, 1400, 2400, 4000, 4200, 4300];
 
 interface ProductCreateFormProps {
   scrollRef?: RefObject<HTMLDivElement | null>;
+  closeDrawer: () => void;
 }
 
-type ProductFormInput = Insertable<Product> & Insertable<ProductOption>;
+type ProductFormInput = Insertable<Product> & Insertable<ProductOption> & { warehouse_id: string; quantity: number };
 
 async function registerProduct(form: ProductFormInput) {
   // 1. products 테이블에 insert
@@ -60,14 +63,30 @@ async function registerProduct(form: ProductFormInput) {
     .select()
     .single();
 
+  const { data: inventory, error: inventoryError } = await supabase
+    .from("inventory")
+    .insert([
+      {
+        product_option_id: option.id,
+        warehouse_id: form.warehouse_id,
+        quantity: form.quantity,
+        updated_at: new Date().toISOString(),
+      },
+    ])
+    .select()
+    .single();
+
   if (optionError) {
     throw new Error("옵션 등록 실패: " + optionError.message);
   }
+  if (inventoryError) {
+    throw new Error("인벤토리 등록 실패: " + inventoryError.message);
+  }
 
-  return { product, option };
+  return { product, option, inventory };
 }
 
-export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps) {
+export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDrawer }: ProductCreateFormProps) {
   // 상태
   const [image, setImage] = useState<File | null>(null);
   const [name, setName] = useState("");
@@ -83,12 +102,12 @@ export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps)
   const [activeDrawer, setActiveDrawer] = useState<null | string>(null);
   const [sku, setSKU] = useState("");
   const [imagePath, setImagePath] = useState<string>("");
-  const [signedUrl, setSignedUrl] = useState<string>("");
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { locations, addLocation, editLocation, deleteLocation } = useLocations();
   const { categories, addCategory, editCategory, deleteCategory } = useCategories();
   const router = useRouter();
+  const user = useUser();
 
   // 옵션 중량 변경 시 SKU 자동 생성
   useEffect(() => {
@@ -97,84 +116,25 @@ export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps)
     }
   }, [name, weight]);
 
-  // 인증 상태 확인
-  useEffect(() => {
-    const checkAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
-    };
-
-    checkAuth();
-
-    // 인증 상태 변경 구독
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // 서명된 URL 갱신 함수
-  const refreshSignedUrl = async (path: string) => {
-    if (!isAuthenticated) return;
-
-    try {
-      const url = await getSignedUrl(path);
-      setSignedUrl(url);
-    } catch (error) {
-      console.error("서명된 URL 생성 실패:", error);
-      if (error instanceof Error && error.message === "인증이 필요합니다.") {
-        alert("로그인이 필요합니다.");
-      }
-    }
-  };
-
   // 이미지 업로드 핸들러
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!isAuthenticated) {
+    if (!user) {
       alert("이미지를 업로드하려면 로그인이 필요합니다.");
       return;
     }
 
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setImage(file);
+    const file = e.target.files;
+    if (!file || !file[0]) return;
 
-      try {
-        setIsUploading(true);
-        const path = await uploadProductImage(file);
-        setImagePath(path);
-        await refreshSignedUrl(path);
-      } catch (error) {
-        console.error("이미지 업로드 실패:", error);
-        if (error instanceof Error && error.message === "인증이 필요합니다.") {
-          alert("로그인이 필요합니다.");
-        } else {
-          alert("이미지 업로드에 실패했습니다.");
-        }
-      } finally {
-        setIsUploading(false);
-      }
-    }
+    // 고유한 파일명 생성
+    const newFileName = generateUniqueFileName(file[0].name);
+
+    // 로컬 미리보기 URL 생성
+    const localUrl = URL.createObjectURL(file[0]);
+    setLocalPreviewUrl(localUrl);
+    setImage(file[0]);
+    setImagePath(newFileName);
   };
-
-  // 서명된 URL 주기적 갱신
-  useEffect(() => {
-    if (imagePath) {
-      // 1시간마다 URL 갱신
-      const interval = setInterval(() => {
-        refreshSignedUrl(imagePath);
-      }, 55 * 60 * 1000); // 55분마다 갱신 (1시간 유효기간 대비 여유있게)
-
-      return () => clearInterval(interval);
-    }
-  }, [imagePath]);
 
   // 저장 핸들러
   const handleSave = async () => {
@@ -184,6 +144,30 @@ export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps)
     }
 
     try {
+      setIsUploading(true);
+
+      // 이미지가 있으면 Supabase Storage에 업로드
+      let finalImageUrl = "";
+      if (image && imagePath) {
+        const { data, error } = await supabase.storage.from("image").upload(imagePath, image, {
+          headers: {
+            "x-upsert": "true",
+          },
+        });
+
+        if (error) {
+          console.error("이미지 업로드 실패:", error);
+          alert("이미지 업로드에 실패했습니다.");
+          return;
+        }
+
+        // Public URL 가져오기
+        const { data: urlData } = supabase.storage.from("image").getPublicUrl(data.path);
+
+        finalImageUrl = urlData.publicUrl;
+      }
+
+      // 제품 등록
       await registerProduct({
         name,
         category_id: categoryId,
@@ -191,11 +175,14 @@ export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps)
         weight,
         buy_price: Number(buyPrice),
         sell_price: Number(sellPrice),
-        unit_label: "g", // 필요시 unit_label 입력값으로 변경
+        unit_label: "g",
         sku,
-        image_url: imagePath,
+        image_url: finalImageUrl,
+        quantity: +initQuantity || 0,
+        warehouse_id: initLocation, // initLocation은 위치 ID를 의미
       });
-      alert("저장되었습니다!");
+
+      closeMainDrawer();
       router.push("/products");
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -203,6 +190,8 @@ export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps)
       } else {
         alert("저장 중 알 수 없는 오류가 발생했습니다.");
       }
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -214,11 +203,11 @@ export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps)
       {/* 제품 이미지 */}
       <div className="flex flex-col items-center pt-6 pb-2">
         <label className="flex overflow-hidden relative justify-center items-center w-24 h-24 bg-gray-100 rounded-md cursor-pointer">
-          {image ? (
-            <img src={signedUrl || URL.createObjectURL(image)} alt="제품 이미지" className="object-cover w-full h-full" />
+          {localPreviewUrl ? (
+            <Image src={localPreviewUrl} alt="제품 이미지" width={96} height={96} className="object-cover w-full h-full" />
           ) : (
             <span className="text-sm text-center text-gray-400">
-              {isAuthenticated ? (
+              {user ? (
                 <>
                   사진
                   <br />
@@ -238,7 +227,7 @@ export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps)
             accept="image/*"
             className="absolute inset-0 opacity-0 cursor-pointer"
             onChange={handleImageChange}
-            disabled={isUploading || !isAuthenticated}
+            disabled={isUploading || !user}
           />
         </label>
         {isUploading && <span className="mt-2 text-sm text-gray-500">업로드 중...</span>}
@@ -356,8 +345,12 @@ export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps)
       </div>
       {/* 하단 버튼 */}
       <div className="p-4 pb-8 border-t">
-        <Button className="w-full h-12 text-lg font-semibold text-white bg-orange-500 hover:bg-orange-600" onClick={handleSave}>
-          저장
+        <Button
+          className="w-full h-12 text-lg font-semibold text-white bg-orange-500 hover:bg-orange-600"
+          onClick={handleSave}
+          disabled={isUploading}
+        >
+          {isUploading ? "저장 중..." : "저장"}
         </Button>
       </div>
 
@@ -371,7 +364,7 @@ export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps)
           onClose={closeDrawer}
         />
       </DrawerView>
-      <DrawerView isVisible={activeDrawer === "barcode"} scrollRef={scrollRef}>
+      {/* <DrawerView isVisible={activeDrawer === "barcode"} scrollRef={scrollRef}>
         <CommonInputView
           title="바코드 입력"
           value={barcode}
@@ -379,7 +372,7 @@ export default function ProductCreateForm({ scrollRef }: ProductCreateFormProps)
           placeholder="바코드 입력"
           onClose={closeDrawer}
         />
-      </DrawerView>
+      </DrawerView> */}
 
       <DrawerView isVisible={activeDrawer === "category"} scrollRef={scrollRef}>
         <ManageView<Category>
@@ -489,59 +482,3 @@ const CommonInputView = ({
     </div>
   );
 };
-
-// SKU 생성 함수
-function getInitials(str: string) {
-  const CHO = [
-    "G",
-    "GG",
-    "N",
-    "D",
-    "DD",
-    "R",
-    "M",
-    "B",
-    "BB",
-    "S",
-    "SS",
-    "NG",
-    "J",
-    "JJ",
-    "CH",
-    "K",
-    "T",
-    "P",
-    "H",
-    "W",
-    "WW",
-    "A",
-    "E",
-    "I",
-    "O",
-    "U",
-    "Y",
-    "K",
-    "M",
-    "P",
-    "S",
-    "T",
-    "W",
-    "Y",
-  ];
-  let result = "";
-  for (const char of str) {
-    const code = char.charCodeAt(0) - 44032;
-    if (code >= 0 && code <= 11171) {
-      result += CHO[Math.floor(code / 588)];
-    } else if (/[a-zA-Z0-9]/.test(char)) {
-      result += char.toUpperCase();
-    }
-    // 기타 문자는 무시
-  }
-  return result;
-}
-
-function generateSKU(productName: string, weight: number) {
-  const initials = getInitials(productName);
-  return `${initials}-${weight}`;
-}

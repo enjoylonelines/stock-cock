@@ -10,7 +10,7 @@ const withPWA = withPWAInit({
 const nextConfig: NextConfig = withPWA({
   reactStrictMode: true,
   images: {
-    domains: ["i.pravatar.cc"],
+    domains: ["i.pravatar.cc", "kqkvgqbdgkgbhjcuwxei.supabase.co"],
   },
 });
 

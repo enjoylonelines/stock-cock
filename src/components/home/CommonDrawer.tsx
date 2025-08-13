@@ -86,7 +86,7 @@ export default function CommonDrawer() {
       case "member":
         return <div>멤버 추가 폼</div>;
       case "product":
-        return <ProductCreateForm scrollRef={scrollRef} />;
+        return <ProductCreateForm scrollRef={scrollRef} closeDrawer={closeDrawer} />;
       case "excel":
         return <div>엑셀 파일 업로드 폼</div>;
       default:
@@ -121,7 +121,7 @@ export default function CommonDrawer() {
             </div>
           </div>
         </DrawerHeader>
-        <div ref={scrollRef} className="flex-1 overflow-y-auto">
+        <div ref={scrollRef} className="overflow-y-auto flex-1">
           {renderForm()}
         </div>
       </DrawerContent>
