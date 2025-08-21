@@ -70,9 +70,9 @@ export default function CommonDrawer() {
   const renderForm = () => {
     switch (currentForm) {
       case "receipt":
-        return <ReceiptForm mode="IN" closeDrawer={closeDrawer} />;
+        return <ReceiptForm mode="in" closeDrawer={closeDrawer} />;
       case "issue":
-        return <ReceiptForm mode="OUT" closeDrawer={closeDrawer} />;
+        return <ReceiptForm mode="out" closeDrawer={closeDrawer} />;
       case "move":
         return <div>이동 폼</div>;
       case "adjust":

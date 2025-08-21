@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 import { ProductOptionView } from "@/types/product_option_view";
 import { useUser } from "@/contexts/UserContext";
 
-export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT"; closeDrawer: () => void }) {
+export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out"; closeDrawer: () => void }) {
   const [isLocationViewVisible, setIsLocationViewVisible] = useState(false);
   const [isSupplierViewVisible, setIsSupplierViewVisible] = useState(false);
   const [isProductViewVisible, setIsProductViewVisible] = useState(false);
@@ -146,7 +146,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT";
             size="none"
           >
             <div className="flex justify-between w-full">
-              <h3 className="font-medium">{mode === "IN" ? "입고처" : "출고처"}</h3>
+              <h3 className="font-medium">{mode === "in" ? "입고처" : "출고처"}</h3>
               <p className="text-sm text-gray-500">{suppliers.find((sup) => sup.id === selectedSupplier)?.name || "선택"}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -199,12 +199,12 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT";
             onClick={handleSubmit}
             disabled={isLoading}
             className={`flex-1 ${
-              mode === "IN"
+              mode === "in"
                 ? "bg-blue-300 hover:bg-blue-500 active:bg-blue-500 text-gray-800"
                 : "bg-red-300 text-white hover:bg-red-500 active:bg-red-500"
             }`}
           >
-            {isLoading ? "처리 중..." : mode === "IN" ? "입고완료" : "출고완료"}
+            {isLoading ? "처리 중..." : mode === "in" ? "입고완료" : "출고완료"}
           </Button>
         </div>
       </div>
@@ -235,7 +235,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "IN" | "OUT";
         <ManageView
           onBack={() => setIsSupplierViewVisible(false)}
           onSelect={handleSupplierSelect}
-          title={mode === "IN" ? "입고처 선택" : "출고처 선택"}
+          title={mode === "in" ? "입고처 선택" : "출고처 선택"}
           items={suppliers}
           onAdd={addSupplier}
           onEdit={editSupplier}

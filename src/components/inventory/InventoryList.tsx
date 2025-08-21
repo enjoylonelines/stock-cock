@@ -1,3 +1,4 @@
+"use client";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import Image from "next/image";
 import { ArrowDownToLine, ArrowUpDown, ArrowUpToLine } from "lucide-react";

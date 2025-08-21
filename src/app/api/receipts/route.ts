@@ -9,7 +9,7 @@ type ReceiptItemInput = {
 };
 
 type ReceiptInput = {
-  type: "IN" | "OUT";
+  type: "in" | "out" | "move" | "adjust";
   warehouse_id: string;
   supplier_id?: string;
   memo?: string;
@@ -86,7 +86,12 @@ export async function POST(request: Request) {
         throw invError;
       }
 
-      const newQty = (inventory?.quantity ?? 0) + item.quantity;
+      let signedQty = item.quantity;
+      if (type === "out") signedQty = -item.quantity;
+      if (type === "move") signedQty = -item.quantity; // from 창고 기준
+      if (type === "adjust") signedQty = item.quantity; // 조정은 그대로 반영 (규칙 필요)
+
+      const newQty = (inventory?.quantity ?? 0) + signedQty;
 
       if (inventory) {
         const { error: updateError } = await supabase.from("inventory").update({ quantity: newQty }).eq("id", inventory.id);

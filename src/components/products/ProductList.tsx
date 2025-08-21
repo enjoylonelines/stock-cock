@@ -1,13 +1,14 @@
-"use client";
-
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { formatNumber } from "@/lib/utils";
-import { useProducts } from "@/hooks/useProducts";
 import Link from "next/link";
+import { ProductOptionView } from "@/types/product_option_view";
 
-export default function ProductList() {
-  const { products } = useProducts();
+type ProductListProps = {
+  products: ProductOptionView[];
+};
+
+export default function ProductList({ products }: ProductListProps) {
   return (
     <div className="flex flex-col gap-2">
       {products.map((product) => (

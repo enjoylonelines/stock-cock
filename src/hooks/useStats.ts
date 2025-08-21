@@ -8,7 +8,7 @@ interface Stats {
 }
 
 export function useStats() {
-  const [summary, setSummary] = useState({ in: 0, out: 0 });
+  const [summary, setSummary] = useState({ total: 0, in: 0, out: 0 });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -37,7 +37,19 @@ export function useStats() {
         if (tx.type === "out") outTotal += qtySum;
       }
 
-      setSummary({ in: inTotal, out: outTotal });
+      const { data: totalStock, error: inventoryError } = await supabase.from("inventory").select("quantity");
+
+      if (inventoryError) {
+        setError(inventoryError.message);
+        return;
+      }
+
+      let sum = 0;
+      for (const el of totalStock) {
+        sum += el.quantity;
+      }
+
+      setSummary({ total: sum, in: inTotal, out: outTotal });
       setIsLoading(false);
     };
 

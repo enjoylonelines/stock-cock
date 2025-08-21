@@ -19,7 +19,6 @@ export default function StatsBox() {
       </Card>
     );
   }
-  const totalStock = summary.in - summary.out;
   return (
     <Card className="bg-orange-200">
       <CardHeader>
@@ -32,7 +31,7 @@ export default function StatsBox() {
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">총 재고</p>
-            <p className="text-2xl font-bold">{isLoading ? "-" : totalStock.toLocaleString()}</p>
+            <p className="text-2xl font-bold">{isLoading ? "-" : summary.total.toLocaleString()}</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">입고</p>

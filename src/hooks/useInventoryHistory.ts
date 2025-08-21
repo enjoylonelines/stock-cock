@@ -16,31 +16,30 @@ export interface GroupedTransactions {
   date: string;
   transactions: InventoryTransaction[];
 }
-
 export function useInventoryHistory() {
   const [grouped, setGrouped] = useState<GroupedTransactions[]>([]);
   const { inventories } = useInventories();
-
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data, error } = await supabase.from("transaction_history_view").select("*").order("created_at", { ascending: false });
+        const { data, error } = await supabase.from("transaction_history_view").select("*").order("created_at", { ascending: false }); // 최신순으로 불러오기
 
         if (error) {
           console.error("Query error:", error);
           return;
         }
-
         if (!data) return;
 
-        // 현재고: product_option_id 기준
-        const currentStock: Record<string, number> = {};
-        inventories.forEach((inv) => {
-          if (!currentStock[inv.product_option_id]) currentStock[inv.product_option_id] = 0;
-          currentStock[inv.product_option_id] += inv.quantity;
-        });
+        const mergedInventories: Record<string, number> = inventories.reduce((acc, inv) => {
+          if (!acc[inv.product_option_id]) acc[inv.product_option_id] = 0;
+          acc[inv.product_option_id] += inv.quantity;
+          return acc;
+        }, {} as Record<string, number>);
 
-        const logs = data.map((tx) => {
+        // [1] inventories 기준으로 현재고 세팅
+        const stockMap: Record<string, number> = { ...mergedInventories };
+
+        const logs: InventoryTransaction[] = data.map((tx) => {
           const product_id = tx.product_option_id;
           const dateObj = new Date(tx.created_at);
           const dateStr = `${dateObj.getFullYear()}년 ${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일`;
@@ -65,6 +64,12 @@ export function useInventoryHistory() {
 
           const signedQuantity = tx.type === "out" ? -tx.quantity : tx.quantity;
 
+          // [2] 현재 수량 기록 (거래가 적용되기 전 시점)
+          const total_stock = stockMap[product_id] ?? 0;
+
+          // [3] stockMap을 과거 방향으로 되돌림
+          stockMap[product_id] = total_stock - signedQuantity;
+
           return {
             ...tx,
             product_id,
@@ -72,30 +77,23 @@ export function useInventoryHistory() {
             date: dateStr,
             type_kr,
             quantity: signedQuantity,
+            total_stock, // 이 시점에서의 수량
           };
         });
 
-        // 최신순 → 누적 재고 계산
-        const sorted = logs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-        const stockMap = { ...currentStock };
-        const txs = sorted.map((log) => {
-          const stock = stockMap[log.product_id] ?? 0;
-          const result = {
-            ...log,
-            total_stock: stock,
-          };
-          stockMap[log.product_id] -= log.quantity;
-          return result;
-        });
-
-        // 날짜별 그룹화
+        // 최신순 → 날짜별 그룹화
         const groupedObj: { [date: string]: InventoryTransaction[] } = {};
-        txs.forEach((tx) => {
+        logs.forEach((tx) => {
           if (!groupedObj[tx.date]) groupedObj[tx.date] = [];
           groupedObj[tx.date].push(tx);
         });
 
-        setGrouped(Object.entries(groupedObj).map(([date, transactions]) => ({ date, transactions })));
+        const grouped = Object.entries(groupedObj).map(([date, transactions]) => ({
+          date,
+          transactions,
+        }));
+
+        setGrouped(grouped);
       } catch (err) {
         console.error("Unexpected error:", err);
       }
@@ -103,6 +101,5 @@ export function useInventoryHistory() {
 
     fetchData();
   }, [inventories]);
-
   return { grouped };
 }
