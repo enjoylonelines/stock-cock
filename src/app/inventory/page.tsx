@@ -1,10 +1,12 @@
+"use client";
 import InventoryList from "@/components/inventory/InventoryList";
+import { useInventoryHistory } from "@/hooks/useInventoryHistory";
 
 export default function InventoryPage() {
+  const { grouped } = useInventoryHistory();
   return (
     <div className="container p-4 mx-auto space-y-4 max-w-3xl">
-      {/* 입/출고 리스트 */}
-      <InventoryList />
+      <InventoryList grouped={grouped} />
     </div>
   );
 }

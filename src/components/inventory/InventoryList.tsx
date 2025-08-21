@@ -2,12 +2,11 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import Image from "next/image";
 import { ArrowDownToLine, ArrowUpDown, ArrowUpToLine } from "lucide-react";
-import { useInventoryHistory } from "@/hooks/useInventoryHistory";
+import { GroupedTransactions } from "@/hooks/useInventoryHistory";
 import { useRouter } from "next/navigation";
 
-export default function InventoryList() {
+export default function InventoryList({ grouped }: { grouped: GroupedTransactions[] }) {
   const router = useRouter();
-  const { grouped } = useInventoryHistory();
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -53,8 +52,7 @@ export default function InventoryList() {
                     <span className="font-medium">{transaction.type_kr}</span>
                     <span className="text-sm text-gray-500">{transaction.product_name}</span>
                   </div>
-                  {transaction.from_warehouse_name && <div className="text-sm text-gray-500">{transaction.from_warehouse_name}</div>}
-                  {transaction.memo && <div className="text-sm text-gray-500">{transaction.memo}</div>}
+                  {transaction.to_warehouse_name && <span className="text-sm text-gray-500">{transaction.to_warehouse_name}</span>}{" "}
                   <div className="mt-1 text-sm text-gray-500">총 재고: {transaction.total_stock.toLocaleString()}</div>
                 </div>
                 <div className="flex flex-col gap-2 items-end">

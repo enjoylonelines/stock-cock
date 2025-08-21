@@ -9,6 +9,8 @@ import { useInventories } from "@/hooks/useInventories";
 import { useLocations } from "@/hooks/useWarehouses";
 import { useState } from "react";
 import { ProductOptionView } from "@/types/product_option_view";
+import { useInventoryHistory } from "@/hooks/useInventoryHistory";
+import InventoryList from "@/components/inventory/InventoryList";
 
 interface ProductDetailProps {
   product: ProductOptionView;
@@ -17,16 +19,29 @@ interface ProductDetailProps {
 export default function ProductDetail({ product }: ProductDetailProps) {
   const { inventories } = useInventories();
   const { locations } = useLocations();
+  const { grouped } = useInventoryHistory();
   const [showOnlyStocked, setShowOnlyStocked] = useState(false);
+
   const getTotalStock = (productId: string) =>
     inventories
       .filter((i) => i.product_option_id === productId)
       .reduce((sum, i) => sum + (typeof i.quantity === "number" ? i.quantity : 0), 0);
+
   const getLocationName = (locationId: string) => locations.find((loc) => loc.id === locationId)?.name || "알 수 없음";
+
   const productInventories = inventories.filter((i) => i.product_option_id === product.product_option_id);
   const filteredInventories = showOnlyStocked
     ? productInventories.filter((inv) => (typeof inv.quantity === "number" ? inv.quantity : 0) > 0)
     : productInventories;
+
+  // 특정 제품의 재고 변동 내역만 필터링
+  const productHistory = grouped
+    .map((group) => ({
+      ...group,
+      transactions: group.transactions.filter((tx) => tx.product_option_id === product.product_option_id),
+    }))
+    .filter((group) => group.transactions.length > 0);
+
   return (
     <div className="flex flex-col h-full bg-gray-50">
       {/* 헤더 */}
@@ -119,9 +134,15 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         {/* 재고 변동 내역 */}
         <div className="p-4 bg-white rounded-lg">
           <h3 className="mb-4 text-lg font-semibold">재고 변동 내역</h3>
-          <div className="text-center">
-            <p className="text-sm text-gray-500">아직 재고 변동 내역이 없습니다.</p>
-          </div>
+          {productHistory.length === 0 ? (
+            <div className="text-center">
+              <p className="text-sm text-gray-500">아직 재고 변동 내역이 없습니다.</p>
+            </div>
+          ) : (
+            <div className="overflow-y-auto max-h-96">
+              <InventoryList grouped={productHistory} />
+            </div>
+          )}
         </div>
       </div>
     </div>
