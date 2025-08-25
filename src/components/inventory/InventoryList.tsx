@@ -4,9 +4,79 @@ import Image from "next/image";
 import { ArrowDownToLine, ArrowUpDown, ArrowUpToLine } from "lucide-react";
 import { GroupedTransactions } from "@/hooks/useInventoryHistory";
 import { useRouter } from "next/navigation";
+import { useFilterDrawerStore } from "@/store/filterDrawer";
+import { useMemo } from "react";
+import { useLocations } from "@/hooks/useWarehouses";
+import { useSuppliers } from "@/hooks/useSuppliers";
+import { endOfDay, startOfDay } from "date-fns";
 
 export default function InventoryList({ grouped }: { grouped: GroupedTransactions[] }) {
   const router = useRouter();
+  const { filters } = useFilterDrawerStore();
+  const { locations } = useLocations();
+  const { suppliers } = useSuppliers();
+
+  const selectedLocationName = useMemo(() => {
+    if (!filters.location) return null;
+    const loc = locations.find((l) => l.id === filters.location);
+    return loc?.name ?? null;
+  }, [filters.location, locations]);
+
+  const selectedSupplierName = useMemo(() => {
+    if (!filters.supplier) return null;
+    const sup = suppliers.find((s) => s.id === filters.supplier);
+    return sup?.name ?? null;
+  }, [filters.supplier, suppliers]);
+
+  const start = useMemo(() => (filters.startDate ? startOfDay(filters.startDate) : null), [filters.startDate]);
+  const end = useMemo(() => (filters.endDate ? endOfDay(filters.endDate) : null), [filters.endDate]);
+
+  const filteredGrouped = useMemo(() => {
+    // 기본: 전체 보기 (필터 없음)
+    const hasAnyFilter =
+      (filters.transactionType && filters.transactionType !== "전체") ||
+      !!filters.product ||
+      !!filters.location ||
+      !!filters.supplier ||
+      !!filters.member ||
+      !!start ||
+      !!end;
+
+    if (!hasAnyFilter) return grouped;
+
+    return grouped
+      .map((group) => {
+        const transactions = group.transactions.filter((tx) => {
+          // 거래 종류
+          if (filters.transactionType && filters.transactionType !== "전체" && tx.type_kr !== filters.transactionType) {
+            return false;
+          }
+
+          // 날짜 범위
+          const createdAt = new Date(tx.created_at);
+          if (start && createdAt < start) return false;
+          if (end && createdAt > end) return false;
+
+          // 위치 (이름 매칭)
+          if (selectedLocationName) {
+            const matchLocation = tx.from_warehouse_name === selectedLocationName || tx.to_warehouse_name === selectedLocationName;
+            if (!matchLocation) return false;
+          }
+
+          // 제품 (product_option_id 매칭)
+          if (filters.product && tx.product_option_id !== filters.product) return false;
+
+          // 거래처 (이름 매칭)
+          if (selectedSupplierName && tx.supplier_name !== selectedSupplierName) return false;
+
+          // 멤버: 현재 트랜잭션에 user_id가 없어 이름 매칭 불가. 스킵.
+          return true;
+        });
+
+        return { ...group, transactions };
+      })
+      .filter((g) => g.transactions.length > 0);
+  }, [grouped, filters, start, end, selectedLocationName, selectedSupplierName]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -27,7 +97,7 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
 
   return (
     <div className="overflow-auto space-y-6 custom-scrollbar">
-      {grouped.map((group) => (
+      {filteredGrouped.map((group) => (
         <div key={group.date} className="space-y-2">
           <h2 className="text-sm font-medium text-gray-500">{group.date}</h2>
           <div className="space-y-2">

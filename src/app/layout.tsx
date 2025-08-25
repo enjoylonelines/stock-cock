@@ -23,7 +23,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user?.id).single();
 
   return (
-    <html lang="ko">
+    <html lang="ko" className="custom-scrollbar">
       <head>
         <meta name="theme-color" content="#ffffff" />
         <link rel="icon" href="/icons/logo.png" />
