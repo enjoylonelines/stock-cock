@@ -35,9 +35,7 @@ export default function ProductSelectView({
   // 제품별 현재 재고 계산
   const getCurrentStock = (productOptionId: string) => {
     if (!selectedLocationId) return 0;
-    return inventories.find(
-      (inv) => inv.product_option_id === productOptionId && inv.warehouse_id === selectedLocationId
-    )?.quantity ?? 0;
+    return inventories.find((inv) => inv.product_option_id === productOptionId && inv.warehouse_id === selectedLocationId)?.quantity ?? 0;
   };
   const handleProductClick = (product: ProductOptionView) => {
     setSelectedProduct(product);
