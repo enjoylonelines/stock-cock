@@ -10,7 +10,7 @@ import { useRef } from "react";
 import MoveForm from "../receipts/MoveForm";
 import AdjustForm from "../receipts/AdjustForm";
 
-export default function CommonDrawer() {
+export default function CommonDrawer({ children }: { children?: React.ReactNode }) {
   const { isOpen, currentForm, closeDrawer } = useDrawerStore();
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -124,7 +124,7 @@ export default function CommonDrawer() {
           </div>
         </DrawerHeader>
         <div ref={scrollRef} className="overflow-y-auto flex-1">
-          {renderForm()}
+          {children ? children : renderForm()}
         </div>
       </DrawerContent>
     </Drawer>

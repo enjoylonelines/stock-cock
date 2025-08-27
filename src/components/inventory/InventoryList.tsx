@@ -138,7 +138,7 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
                     <AvatarImage className="rounded-[12px]" src={transaction.user.avatar_url} alt={transaction.user.name} />
                     <AvatarFallback>{transaction.user.name[0]}</AvatarFallback>
                   </Avatar> */}
-                  <div className="text-sm text-gray-500">{transaction.user_name}</div>
+                  <div className="text-sm text-gray-500">{transaction.user_name ? transaction.user_name : "이름없음"}</div>
                 </div>
               </div>
             ))}

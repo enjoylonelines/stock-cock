@@ -27,5 +27,24 @@ export default async function Settings() {
 
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
 
-  return <SettingsPage user={profile} />;
+  // 품목(products) 개수 조회
+  const { count: productsCount } = await supabase.from("products").select("*", { count: "exact", head: true });
+
+  // 멤버(profiles) 개수 조회
+  const { count: membersCount } = await supabase.from("profiles").select("*", { count: "exact", head: true });
+
+  // 입고처(warehouses) 개수 조회
+  const { count: warehousesCount } = await supabase.from("warehouses").select("*", { count: "exact", head: true });
+
+  // 출고처(suppliers) 개수 조회
+  const { count: suppliersCount } = await supabase.from("suppliers").select("*", { count: "exact", head: true });
+
+  const info = {
+    productCount: productsCount || 0,
+    memberCount: membersCount || 0,
+    locationCount: warehousesCount || 0,
+    supplierCount: suppliersCount || 0,
+  };
+
+  return <SettingsPage user={profile} info={info} />;
 }

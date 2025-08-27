@@ -7,16 +7,25 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { logout } from "@/app/auth/actions";
 import { TeamInfo, UserInfo } from "@/types/database";
+import { useState } from "react";
+import SettingsDrawer from "./SettingsDrawer";
+import ManageView from "@/components/receipts/ManageView";
+import { useLocations } from "@/hooks/useWarehouses";
+import { useSuppliers } from "@/hooks/useSuppliers";
 
-export default function SettingsPage({ user, _team }: { user: UserInfo; _team?: TeamInfo }) {
-  // 임시 데이터 (실제로는 API에서 가져와야 함)
-  const info = {
-    productCount: 12,
-    locationCount: 3,
-    memberCount: 5,
-    supplierCount: 8,
-    customerCount: 15,
-  };
+interface InfoData {
+  productCount: number;
+  memberCount: number;
+  locationCount: number;
+  supplierCount: number;
+}
+
+export default function SettingsPage({ user, _team, info }: { user: UserInfo; _team?: TeamInfo; info: InfoData }) {
+  const [isWarehousesDrawerOpen, setIsWarehousesDrawerOpen] = useState(false);
+  const [isSuppliersDrawerOpen, setIsSuppliersDrawerOpen] = useState(false);
+
+  const { locations, addLocation, editLocation, deleteLocation } = useLocations();
+  const { suppliers, addSupplier, editSupplier, deleteSupplier } = useSuppliers();
 
   return (
     <div className="container p-4 mx-auto space-y-6 max-w-3xl">
@@ -28,7 +37,7 @@ export default function SettingsPage({ user, _team }: { user: UserInfo; _team?: 
           <div className="absolute right-0 bottom-0 left-0 p-4 text-white">
             <h2 className="mb-1 text-2xl font-bold">한끼</h2>
             <p className="text-sm opacity-90">
-              품목 {info.productCount} · 위치 {info.locationCount} · 멤버 {info.memberCount}
+              품목 {info.productCount} · 멤버 {info.memberCount}
             </p>
           </div>
           {/* 사용자 정보 */}
@@ -109,17 +118,25 @@ export default function SettingsPage({ user, _team }: { user: UserInfo; _team?: 
         <h2 className="mb-2 text-lg font-bold">거래처 설정</h2>
         <Card className="p-2">
           <CardContent className="p-0">
-            <Button variant="ghost" className="flex justify-between items-center px-2 py-3 w-full text-left">
+            <Button
+              variant="ghost"
+              className="flex justify-between items-center px-2 py-3 w-full text-left"
+              onClick={() => setIsWarehousesDrawerOpen(true)}
+            >
               <h3 className="text-base font-medium">입고처 설정</h3>
               <div className="flex gap-2 items-center">
-                <p className="text-sm text-gray-500">{info.supplierCount}개 입고처</p>
+                <p className="text-sm text-gray-500">{info.locationCount}개 입고처</p>
                 <ChevronRight className="w-5 h-5 text-gray-400" />
               </div>
             </Button>
-            <Button variant="ghost" className="flex justify-between items-center px-2 py-3 w-full text-left">
+            <Button
+              variant="ghost"
+              className="flex justify-between items-center px-2 py-3 w-full text-left"
+              onClick={() => setIsSuppliersDrawerOpen(true)}
+            >
               <h3 className="text-base font-medium">출고처 설정</h3>
               <div className="flex gap-2 items-center">
-                <p className="text-sm text-gray-500">{info.customerCount}개 출고처</p>
+                <p className="text-sm text-gray-500">{info.supplierCount}개 출고처</p>
                 <ChevronRight className="w-5 h-5 text-gray-400" />
               </div>
             </Button>
@@ -145,6 +162,32 @@ export default function SettingsPage({ user, _team }: { user: UserInfo; _team?: 
           </CardContent>
         </Card>
       </form>
+
+      {/* 입고처 관리 드로어 */}
+      <SettingsDrawer isOpen={isWarehousesDrawerOpen} onClose={() => setIsWarehousesDrawerOpen(false)} title="입고처 관리">
+        <ManageView
+          onBack={() => setIsWarehousesDrawerOpen(false)}
+          onSelect={() => {}} // 선택 기능은 필요 없음
+          title="입고처 관리"
+          items={locations}
+          onAdd={addLocation}
+          onEdit={editLocation}
+          onDelete={deleteLocation}
+        />
+      </SettingsDrawer>
+
+      {/* 출고처 관리 드로어 */}
+      <SettingsDrawer isOpen={isSuppliersDrawerOpen} onClose={() => setIsSuppliersDrawerOpen(false)} title="출고처 관리">
+        <ManageView
+          onBack={() => setIsSuppliersDrawerOpen(false)}
+          onSelect={() => {}} // 선택 기능은 필요 없음
+          title="출고처 관리"
+          items={suppliers}
+          onAdd={addSupplier}
+          onEdit={editSupplier}
+          onDelete={deleteSupplier}
+        />
+      </SettingsDrawer>
 
       {/* 지원 */}
       {/* <div>
