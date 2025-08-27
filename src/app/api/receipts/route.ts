@@ -9,7 +9,7 @@ type ReceiptItemInput = {
 };
 
 type ReceiptInput = {
-  type: "in" | "out" | "move" | "adjust";
+  type: "in" | "out";
   warehouse_id: string;
   supplier_id?: string;
   memo?: string;
@@ -53,6 +53,7 @@ export async function POST(request: Request) {
     for (const item of items) {
       console.log("[ITEM PROCESSING]", item);
       console.log(item.option_id);
+
       // [2] 배치 insert (유통기한 기반)
       const { data: batch, error: batchError } = await supabase
         .from("inventory_batches")
@@ -88,8 +89,6 @@ export async function POST(request: Request) {
 
       let signedQty = item.quantity;
       if (type === "out") signedQty = -item.quantity;
-      if (type === "move") signedQty = -item.quantity; // from 창고 기준
-      if (type === "adjust") signedQty = item.quantity; // 조정은 그대로 반영 (규칙 필요)
 
       const newQty = (inventory?.quantity ?? 0) + signedQty;
 
@@ -135,6 +134,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, transaction_id: transaction.id });
   } catch (error) {
     console.error("[UNHANDLED ERROR]", error);
-    return NextResponse.json({ error: "입고 처리 실패", detail: String(error) }, { status: 500 });
+    return NextResponse.json({ error: "입고/출고 처리 실패", detail: String(error) }, { status: 500 });
   }
 }

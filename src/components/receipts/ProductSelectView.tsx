@@ -6,21 +6,39 @@ import { formatNumber } from "@/lib/utils";
 import ProductQuantityDialog from "./ProductQuantityDialog";
 import ProductListItem from "./ProductListItem";
 import { ProductOptionView } from "@/types/product_option_view";
+import { useInventories } from "@/hooks/useInventories";
 
 interface ProductSelectViewProps {
   onBack: () => void;
   onSelect: (products: ProductOptionView[]) => void;
   products: ProductOptionView[];
+  allowNegative?: boolean; // 조정 모드에서 음수 허용
+  selectedLocationId?: string; // 조정 모드에서 현재 재고 확인용
 }
 
-export default function ProductSelectView({ onBack, onSelect, products }: ProductSelectViewProps) {
+export default function ProductSelectView({
+  onBack,
+  onSelect,
+  products,
+  allowNegative = false,
+  selectedLocationId,
+}: ProductSelectViewProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProducts, setSelectedProducts] = useState<ProductOptionView[]>([]);
   const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductOptionView | null>(null);
   const [currentQuantity, setCurrentQuantity] = useState(0);
+  const { inventories } = useInventories();
 
   const filteredProducts = products.filter((product) => product.product_name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  // 제품별 현재 재고 계산
+  const getCurrentStock = (productOptionId: string) => {
+    if (!selectedLocationId) return 0;
+    return inventories.find(
+      (inv) => inv.product_option_id === productOptionId && inv.warehouse_id === selectedLocationId
+    )?.quantity ?? 0;
+  };
   const handleProductClick = (product: ProductOptionView) => {
     setSelectedProduct(product);
     const existing = selectedProducts.find((p) => p.product_option_id === product.product_option_id);
@@ -92,6 +110,7 @@ export default function ProductSelectView({ onBack, onSelect, products }: Produc
               quantity={isSelected(product.product_option_id) ? getSelectedQuantity(product.product_option_id) : undefined}
               selected={isSelected(product.product_option_id)}
               onClick={() => handleProductClick(product)}
+              currentStock={allowNegative && selectedLocationId ? getCurrentStock(product.product_option_id) : undefined}
             />
           ))}
         </div>
@@ -119,6 +138,8 @@ export default function ProductSelectView({ onBack, onSelect, products }: Produc
         onOpenChange={setQuantityDialogOpen}
         product={selectedProduct}
         onConfirm={handleQuantityConfirm}
+        allowNegative={allowNegative}
+        selectedLocationId={selectedLocationId}
       />
     </div>
   );

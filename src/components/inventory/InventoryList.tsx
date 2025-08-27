@@ -1,7 +1,7 @@
 "use client";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import Image from "next/image";
-import { ArrowDownToLine, ArrowUpDown, ArrowUpToLine } from "lucide-react";
+import { ArrowDownToLine, ArrowLeftRight, ArrowUpDown, ArrowUpToLine } from "lucide-react";
 import { GroupedTransactions } from "@/hooks/useInventoryHistory";
 import { useRouter } from "next/navigation";
 import { useFilterDrawerStore } from "@/store/filterDrawer";
@@ -84,6 +84,8 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
         return <ArrowDownToLine className="w-4 h-4 text-blue-500" />;
       case "출고":
         return <ArrowUpToLine className="w-4 h-4 text-red-500" />;
+      case "이동":
+        return <ArrowLeftRight className="w-4 h-4 text-yellow-500" />;
       default:
         return <ArrowUpDown className="w-4 h-4 text-green-500" />;
     }
@@ -123,7 +125,9 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
                     <span className="text-sm text-gray-500">{transaction.product_name}</span>
                   </div>
                   {transaction.to_warehouse_name && <span className="text-sm text-gray-500">{transaction.to_warehouse_name}</span>}{" "}
-                  <div className="mt-1 text-sm text-gray-500">총 재고: {transaction.total_stock.toLocaleString()}</div>
+                  {transaction.type_kr !== "이동" && (
+                    <div className="mt-1 text-sm text-gray-500">총 재고: {transaction.total_stock.toLocaleString()}</div>
+                  )}
                 </div>
                 <div className="flex flex-col gap-2 items-end">
                   <div className={`text-right ${getQuantityColor(transaction.quantity)}`}>

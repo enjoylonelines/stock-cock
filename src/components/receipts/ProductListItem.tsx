@@ -8,9 +8,10 @@ interface ProductListItemProps {
   quantity?: number;
   selected?: boolean;
   onClick?: () => void;
+  currentStock?: number; // 조정 모드에서 현재 재고 표시용
 }
 
-export default function ProductListItem({ product, quantity, selected, onClick }: ProductListItemProps) {
+export default function ProductListItem({ product, quantity, selected, onClick, currentStock }: ProductListItemProps) {
   return (
     <button
       type="button"
@@ -29,7 +30,16 @@ export default function ProductListItem({ product, quantity, selected, onClick }
           <h3 className="font-medium truncate">{product.product_name}</h3>
           <div className="text-center shrink-0">
             {quantity !== undefined ? (
-              <p className={`text-sm font-medium ${selected ? "text-orange-500" : "text-blue-500"}`}>{formatNumber(quantity)}개</p>
+              <p
+                className={`text-sm font-medium ${
+                  selected ? (quantity < 0 ? "text-red-500" : "text-orange-500") : quantity < 0 ? "text-red-500" : "text-blue-500"
+                }`}
+              >
+                {quantity < 0 ? "-" : ""}
+                {formatNumber(Math.abs(quantity))}개
+              </p>
+            ) : currentStock !== undefined ? (
+              <p className="text-sm text-gray-600">현재: {formatNumber(currentStock)}개</p>
             ) : (
               <p className="text-sm text-gray-600">{formatNumber(product.quantity ?? 0)}개</p>
             )}

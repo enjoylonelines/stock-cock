@@ -7,6 +7,8 @@ import { useDrawerStore } from "@/store/drawerStore";
 import ReceiptForm from "../receipts/ReceiptForm";
 import ProductCreateForm from "../products/ProductCreateForm";
 import { useRef } from "react";
+import MoveForm from "../receipts/MoveForm";
+import AdjustForm from "../receipts/AdjustForm";
 
 export default function CommonDrawer() {
   const { isOpen, currentForm, closeDrawer } = useDrawerStore();
@@ -74,9 +76,9 @@ export default function CommonDrawer() {
       case "issue":
         return <ReceiptForm mode="out" closeDrawer={closeDrawer} />;
       case "move":
-        return <div>이동 폼</div>;
+        return <MoveForm closeDrawer={closeDrawer} />;
       case "adjust":
-        return <div>조정 폼</div>;
+        return <AdjustForm closeDrawer={closeDrawer} />;
       case "shortage":
         return <div>재고 부족 확인 폼</div>;
       case "inventory":
