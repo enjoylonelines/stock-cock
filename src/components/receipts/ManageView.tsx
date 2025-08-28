@@ -11,9 +11,9 @@ interface ManageViewProps<T extends { id: string; name: string }> {
   onSelect: (item: T) => void;
   title: string;
   items: T[];
-  onAdd: (name: string) => void;
-  onEdit: (id: string, name: string) => void;
-  onDelete: (id: string) => void;
+  onAdd?: (name: string) => void;
+  onEdit?: (id: string, name: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 const ManageView = <T extends { id: string; name: string }>({
@@ -29,6 +29,7 @@ const ManageView = <T extends { id: string; name: string }>({
   const [editingItem, setEditingItem] = useState<T | null>(null);
 
   const handleAdd = (name: string) => {
+    if (!onAdd) return;
     onAdd(name);
     setIsFormOpen(false);
   };
@@ -41,7 +42,7 @@ const ManageView = <T extends { id: string; name: string }>({
   };
 
   const handleUpdate = (name: string) => {
-    if (editingItem) {
+    if (editingItem && onEdit) {
       onEdit(editingItem.id, name);
       setEditingItem(null);
     }
@@ -73,7 +74,13 @@ const ManageView = <T extends { id: string; name: string }>({
               <button className="flex-1 text-left" onClick={() => onSelect(item)}>
                 {item.name}
               </button>
-              <LocationItemMenu onEdit={() => handleEdit(item.id)} onDelete={() => onDelete(item.id)} />
+              <LocationItemMenu
+                onEdit={() => handleEdit(item.id)}
+                onDelete={() => {
+                  if (!onDelete) return;
+                  onDelete(item.id);
+                }}
+              />
             </div>
           ))}
         </div>

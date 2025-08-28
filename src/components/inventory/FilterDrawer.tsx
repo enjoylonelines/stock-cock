@@ -10,6 +10,7 @@ import ManageView from "../receipts/ManageView";
 import { useLocations } from "@/hooks/useWarehouses";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useProducts } from "@/hooks/useProducts";
+import { useProfiles } from "@/hooks/useProfiles";
 import DatePickerDialog from "../receipts/DatePickerDialog";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -40,6 +41,7 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
   const { locations, addLocation, editLocation, deleteLocation } = useLocations();
   const { suppliers, addSupplier, editSupplier, deleteSupplier } = useSuppliers();
   const { products } = useProducts();
+  const { profiles, addProfile, editProfile, deleteProfile } = useProfiles();
 
   const transactionTypes: TransactionType[] = ["전체", "입고", "출고", "조정", "이동"];
 
@@ -48,8 +50,8 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
     setIsLocationViewVisible(false);
   };
 
-  const handleProductSelect = (product: { product_option_id: string; product_name: string }) => {
-    setSelectedProduct(product.product_option_id);
+  const handleProductSelect = (item: { id: string; name: string }) => {
+    setSelectedProduct(item.id);
     setIsProductViewVisible(false);
   };
 
@@ -219,7 +221,9 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
               size="none"
               onClick={() => setIsMemberViewVisible(true)}
             >
-              <span className="text-gray-500">{selectedMember ? "선택된 멤버" : "전체"}</span>
+              <span className="text-gray-500">
+                {selectedMember ? profiles.find((profile) => profile.id === selectedMember)?.name : "전체"}
+              </span>
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </Button>
           </div>
@@ -255,38 +259,12 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
 
         {/* 제품 선택 드로어 */}
         <DrawerView isVisible={isProductViewVisible}>
-          <div className="flex flex-col h-full bg-white">
-            <div className="flex items-center px-4 py-3 border-b">
-              <Button variant="ghost" size="icon" onClick={closeDrawer}>
-                <X className="w-5 h-5" />
-              </Button>
-              <h2 className="ml-2 text-lg font-semibold">제품 선택</h2>
-            </div>
-            <div className="overflow-y-auto flex-1 p-4">
-              <div className="space-y-2">
-                <Button
-                  variant="ghost"
-                  className="justify-start w-full"
-                  onClick={() => {
-                    setSelectedProduct("");
-                    closeDrawer();
-                  }}
-                >
-                  전체
-                </Button>
-                {products.map((product) => (
-                  <Button
-                    key={product.product_option_id}
-                    variant="ghost"
-                    className="justify-start w-full"
-                    onClick={() => handleProductSelect(product)}
-                  >
-                    {product.product_name} {product.weight}g
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
+          <ManageView
+            onBack={closeDrawer}
+            onSelect={handleProductSelect}
+            title="제품 선택"
+            items={products.map((product) => ({ id: product.product_option_id, name: product.product_name }))}
+          />
         </DrawerView>
 
         {/* 거래처 선택 드로어 */}
@@ -304,32 +282,15 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
 
         {/* 멤버 선택 드로어 */}
         <DrawerView isVisible={isMemberViewVisible}>
-          <div className="flex flex-col h-full bg-white">
-            <div className="flex items-center px-4 py-3 border-b">
-              <Button variant="ghost" size="icon" onClick={closeDrawer}>
-                <X className="w-5 h-5" />
-              </Button>
-              <h2 className="ml-2 text-lg font-semibold">멤버 선택</h2>
-            </div>
-            <div className="overflow-y-auto flex-1 p-4">
-              <div className="space-y-2">
-                <Button
-                  variant="ghost"
-                  className="justify-start w-full"
-                  onClick={() => {
-                    setSelectedMember("");
-                    closeDrawer();
-                  }}
-                >
-                  전체
-                </Button>
-                {/* 멤버 목록은 실제 데이터에 따라 구현 */}
-                <Button variant="ghost" className="justify-start w-full" onClick={() => handleMemberSelect({ id: "1", name: "사용자 1" })}>
-                  사용자 1
-                </Button>
-              </div>
-            </div>
-          </div>
+          <ManageView
+            onBack={closeDrawer}
+            onSelect={handleMemberSelect}
+            title="멤버 선택"
+            items={profiles}
+            onAdd={addProfile}
+            onEdit={editProfile}
+            onDelete={deleteProfile}
+          />
         </DrawerView>
       </DrawerContent>
     </Drawer>

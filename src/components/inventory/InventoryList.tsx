@@ -8,6 +8,8 @@ import { useFilterDrawerStore } from "@/store/filterDrawer";
 import { useMemo } from "react";
 import { useLocations } from "@/hooks/useWarehouses";
 import { useSuppliers } from "@/hooks/useSuppliers";
+import { useProducts } from "@/hooks/useProducts";
+import { useProfiles } from "@/hooks/useProfiles";
 import { endOfDay, startOfDay } from "date-fns";
 
 export default function InventoryList({ grouped }: { grouped: GroupedTransactions[] }) {
@@ -15,6 +17,8 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
   const { filters } = useFilterDrawerStore();
   const { locations } = useLocations();
   const { suppliers } = useSuppliers();
+  const { products } = useProducts();
+  const { profiles } = useProfiles();
 
   const selectedLocationName = useMemo(() => {
     if (!filters.location) return null;
@@ -27,6 +31,18 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
     const sup = suppliers.find((s) => s.id === filters.supplier);
     return sup?.name ?? null;
   }, [filters.supplier, suppliers]);
+
+  const selectedProductName = useMemo(() => {
+    if (!filters.product) return null;
+    const prod = products.find((p) => p.product_option_id === filters.product);
+    return prod?.product_name ?? null;
+  }, [filters.product, products]);
+
+  const selectedMemberName = useMemo(() => {
+    if (!filters.member) return null;
+    const member = profiles.find((p) => p.id === filters.member);
+    return member?.name ?? null;
+  }, [filters.member, profiles]);
 
   const start = useMemo(() => (filters.startDate ? startOfDay(filters.startDate) : null), [filters.startDate]);
   const end = useMemo(() => (filters.endDate ? endOfDay(filters.endDate) : null), [filters.endDate]);
@@ -63,20 +79,22 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
             if (!matchLocation) return false;
           }
 
-          // 제품 (product_option_id 매칭)
-          if (filters.product && tx.product_option_id !== filters.product) return false;
+          // 제품 (이름 매칭)
+          if (selectedProductName && tx.product_name !== selectedProductName) return false;
 
           // 거래처 (이름 매칭)
           if (selectedSupplierName && tx.supplier_name !== selectedSupplierName) return false;
 
-          // 멤버: 현재 트랜잭션에 user_id가 없어 이름 매칭 불가. 스킵.
+          // 멤버 (이름 매칭)
+          if (selectedMemberName && tx.user_name !== selectedMemberName) return false;
+
           return true;
         });
 
         return { ...group, transactions };
       })
       .filter((g) => g.transactions.length > 0);
-  }, [grouped, filters, start, end, selectedLocationName, selectedSupplierName]);
+  }, [grouped, filters, start, end, selectedLocationName, selectedSupplierName, selectedProductName, selectedMemberName]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
