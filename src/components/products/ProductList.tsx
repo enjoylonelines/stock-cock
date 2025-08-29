@@ -3,15 +3,66 @@ import Image from "next/image";
 import { formatNumber } from "@/lib/utils";
 import Link from "next/link";
 import { ProductOptionView } from "@/types/product_option_view";
+import { useMemo } from "react";
+import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
+import { useProductSortStore } from "@/store/productSortStore";
 
 type ProductListProps = {
   products: ProductOptionView[];
 };
 
 export default function ProductList({ products }: ProductListProps) {
+  const { filters } = useProductFilterDrawerStore();
+  const { sortOption } = useProductSortStore();
+
+  const filteredAndSortedProducts = useMemo(() => {
+    let filtered = products;
+
+    // 검색어 필터
+    if (filters.searchQuery) {
+      const query = filters.searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (product) =>
+          product.product_name.toLowerCase().includes(query) ||
+          product.category_name?.toLowerCase().includes(query) ||
+          product.brand_name?.toLowerCase().includes(query)
+      );
+    }
+
+    // 재고 상태 필터
+    if (filters.inStock !== undefined) {
+      filtered = filtered.filter((product) => {
+        if (filters.inStock === true) {
+          return product.quantity > 0;
+        } else if (filters.inStock === false) {
+          return product.quantity <= 0;
+        }
+        return true;
+      });
+    }
+
+    // 정렬
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortOption) {
+        case "name-asc":
+          return a.product_name.localeCompare(b.product_name, "ko");
+        case "name-desc":
+          return b.product_name.localeCompare(a.product_name, "ko");
+        case "quantity-desc":
+          return b.quantity - a.quantity;
+        case "quantity-asc":
+          return a.quantity - b.quantity;
+        default:
+          return a.product_name.localeCompare(b.product_name, "ko");
+      }
+    });
+
+    return sorted;
+  }, [products, filters, sortOption]);
+
   return (
     <div className="flex flex-col gap-2">
-      {products.map((product) => (
+      {filteredAndSortedProducts.map((product) => (
         <Link key={product.product_option_id} href={`/products/${product.product_option_id}`}>
           <Card className="px-4 py-2 transition-colors bg-slate-50 hover:bg-slate-100">
             <CardContent className="p-0">

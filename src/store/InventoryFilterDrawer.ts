@@ -31,7 +31,7 @@ interface FilterDrawerStore {
   setFilters: (next: Partial<FilterState> | ((prev: FilterState) => Partial<FilterState>)) => void;
 }
 
-export const useFilterDrawerStore = create<FilterDrawerStore>((set, get) => ({
+export const useInventoryFilterDrawerStore = create<FilterDrawerStore>((set, get) => ({
   isOpen: false,
   filters: defaultFilterState,
   open: (initial) => set({ isOpen: true, filters: { ...defaultFilterState, ...initial } }),

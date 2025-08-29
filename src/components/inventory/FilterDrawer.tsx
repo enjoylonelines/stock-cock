@@ -14,7 +14,7 @@ import { useProfiles } from "@/hooks/useProfiles";
 import DatePickerDialog from "../receipts/DatePickerDialog";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { FilterState, TransactionType } from "@/store/filterDrawer";
+import { FilterState, TransactionType } from "@/store/InventoryFilterDrawer";
 
 interface FilterDrawerProps {
   isOpen: boolean;

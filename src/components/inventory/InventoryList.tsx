@@ -4,17 +4,17 @@ import Image from "next/image";
 import { ArrowDownToLine, ArrowLeftRight, ArrowUpDown, ArrowUpToLine } from "lucide-react";
 import { GroupedTransactions } from "@/hooks/useInventoryHistory";
 import { useRouter } from "next/navigation";
-import { useFilterDrawerStore } from "@/store/filterDrawer";
 import { useMemo } from "react";
 import { useLocations } from "@/hooks/useWarehouses";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useProducts } from "@/hooks/useProducts";
 import { useProfiles } from "@/hooks/useProfiles";
 import { endOfDay, startOfDay } from "date-fns";
+import { useInventoryFilterDrawerStore } from "@/store/InventoryFilterDrawer";
 
 export default function InventoryList({ grouped }: { grouped: GroupedTransactions[] }) {
   const router = useRouter();
-  const { filters } = useFilterDrawerStore();
+  const { filters } = useInventoryFilterDrawerStore();
   const { locations } = useLocations();
   const { suppliers } = useSuppliers();
   const { products } = useProducts();

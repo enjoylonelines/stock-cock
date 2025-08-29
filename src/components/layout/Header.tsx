@@ -4,18 +4,41 @@ import { usePathname, useRouter } from "next/navigation";
 import { ArrowDownUp, Settings, Filter, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FilterDrawer from "../inventory/FilterDrawer";
-import { useFilterDrawerStore } from "@/store/filterDrawer";
+import ProductFilterDrawer from "../products/ProductFilterDrawer";
+import ProductSortDialog from "../products/ProductSortDialog";
+import { useInventoryFilterDrawerStore } from "@/store/InventoryFilterDrawer";
+import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
+import { useState } from "react";
 
 export default function Header() {
-  const { isOpen, close, open, setFilters } = useFilterDrawerStore();
+  const { isOpen, close, open, setFilters } = useInventoryFilterDrawerStore();
+  const {
+    isOpen: isProductFilterOpen,
+    close: closeProductFilter,
+    open: openProductFilter,
+    setFilters: setProductFilters,
+  } = useProductFilterDrawerStore();
+  const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
   const pathname = usePathname();
 
-  const handleButtonClick = () => {
+  const handleInventoryFilterClick = () => {
     if (isOpen) {
       close();
     } else {
       open();
     }
+  };
+
+  const handleProductFilterClick = () => {
+    if (isProductFilterOpen) {
+      closeProductFilter();
+    } else {
+      openProductFilter();
+    }
+  };
+
+  const handleSortClick = () => {
+    setIsSortDialogOpen(true);
   };
   const getHeaderContent = () => {
     switch (pathname) {
@@ -36,10 +59,10 @@ export default function Header() {
 
           rightButton: (
             <div className="flex gap-2">
-              <Button variant="ghost" size="icon" className="w-10 h-10">
+              <Button variant="ghost" size="icon" className="w-10 h-10" onClick={handleProductFilterClick}>
                 <Filter className="w-5 h-5" />
               </Button>
-              <Button variant="ghost" size="icon" className="w-10 h-10">
+              <Button variant="ghost" size="icon" className="w-10 h-10" onClick={handleSortClick}>
                 <ArrowDownUp className="w-5 h-5" />
               </Button>
             </div>
@@ -50,7 +73,7 @@ export default function Header() {
           title: "입고/출고",
 
           rightButton: (
-            <Button variant="ghost" size="icon" className="w-10 h-10" onClick={() => handleButtonClick()}>
+            <Button variant="ghost" size="icon" className="w-10 h-10" onClick={handleInventoryFilterClick}>
               <Filter className="w-5 h-5" />
             </Button>
           ),
@@ -93,7 +116,19 @@ export default function Header() {
           {rightButton}
         </div>
       </div>
-      <FilterDrawer isOpen={isOpen} onClose={close} onApplyFilter={setFilters} />
+      <FilterDrawer
+        isOpen={isOpen}
+        onClose={close}
+        onApplyFilter={setFilters}
+        initialFilters={useInventoryFilterDrawerStore.getState().filters}
+      />
+      <ProductFilterDrawer
+        isOpen={isProductFilterOpen}
+        onClose={closeProductFilter}
+        onApplyFilter={setProductFilters}
+        initialFilters={useProductFilterDrawerStore.getState().filters}
+      />
+      <ProductSortDialog isOpen={isSortDialogOpen} onClose={() => setIsSortDialogOpen(false)} />
     </header>
   );
 }
