@@ -35,7 +35,8 @@ export async function POST(request: Request) {
       .insert([
         {
           type: type.toLowerCase() as "in" | "out",
-          to_warehouse_id: warehouse_id,
+          to_warehouse_id: type === "in" ? warehouse_id : null,
+          from_warehouse_id: type === "out" ? warehouse_id : null,
           supplier_id,
           memo,
           created_at,

@@ -6,8 +6,12 @@ import { Button } from "@/components/ui/button";
 import FilterDrawer from "../inventory/FilterDrawer";
 import ProductFilterDrawer from "../products/ProductFilterDrawer";
 import ProductSortDialog from "../products/ProductSortDialog";
+import ActivityLogDrawer from "../home/ActivityLogDrawer";
 import { useInventoryFilterDrawerStore } from "@/store/InventoryFilterDrawer";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
+import { useActivityLogStore } from "@/store/activityLogStore";
+import { useBroadcastReadStatus } from "@/hooks/useBroadcastReadStatus";
+import { useInventoryHistory } from "@/hooks/useInventoryHistory";
 import { useState } from "react";
 
 export default function Header() {
@@ -18,6 +22,12 @@ export default function Header() {
     open: openProductFilter,
     setFilters: setProductFilters,
   } = useProductFilterDrawerStore();
+  const { open: openActivityLog } = useActivityLogStore();
+  const { getUnreadCount } = useBroadcastReadStatus();
+  const { transactions } = useInventoryHistory();
+
+  // 읽지 않은 알람 개수 계산
+  const unreadCount = getUnreadCount(transactions);
   const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
   const pathname = usePathname();
 
@@ -40,6 +50,10 @@ export default function Header() {
   const handleSortClick = () => {
     setIsSortDialogOpen(true);
   };
+
+  const handleBellClick = () => {
+    openActivityLog();
+  };
   const getHeaderContent = () => {
     switch (pathname) {
       case "/home":
@@ -47,9 +61,9 @@ export default function Header() {
           title: "한끼",
 
           rightButton: (
-            <Button variant="ghost" className="relative p-0 w-10 h-10">
+            <Button variant="ghost" className="relative p-0 w-10 h-10" onClick={handleBellClick}>
               <Bell className="p-0 w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+              {unreadCount > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />}
             </Button>
           ),
         };
@@ -129,6 +143,7 @@ export default function Header() {
         initialFilters={useProductFilterDrawerStore.getState().filters}
       />
       <ProductSortDialog isOpen={isSortDialogOpen} onClose={() => setIsSortDialogOpen(false)} />
+      <ActivityLogDrawer />
     </header>
   );
 }
