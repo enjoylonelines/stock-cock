@@ -12,6 +12,7 @@ import SettingsDrawer from "./SettingsDrawer";
 import ManageView from "@/components/receipts/ManageView";
 import { useLocations } from "@/hooks/useWarehouses";
 import { useSuppliers } from "@/hooks/useSuppliers";
+import PushNotificationSettings from "./PushNotificationSettings";
 
 interface InfoData {
   productCount: number;
@@ -112,6 +113,16 @@ export default function SettingsPage({ user, _team, info }: { user: UserInfo; _t
           </CardContent>
         </Card>
       </div> */}
+
+      {/* 알림 설정 */}
+      <div>
+        <h2 className="mb-2 text-lg font-bold">알림 설정</h2>
+        <Card className="p-2">
+          <CardContent className="p-0">
+            <PushNotificationSettings />
+          </CardContent>
+        </Card>
+      </div>
 
       {/* 거래처 설정 */}
       <div>

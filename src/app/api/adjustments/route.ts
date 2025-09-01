@@ -145,6 +145,32 @@ export async function POST(request: Request) {
       }
     }
 
+    // 푸시 알림 전송
+    try {
+      const notificationTitle = "재고 조정 완료";
+      const notificationBody = `${items.length}개 제품의 재고가 조정되었습니다`;
+
+      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/push/send`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: notificationTitle,
+          body: notificationBody,
+          icon: "/icons/icon-192x192.png",
+          tag: `adjust-${transaction.id}`,
+          data: {
+            type: "adjustment",
+            transactionId: transaction.id,
+          },
+        }),
+      });
+    } catch (notificationError) {
+      console.error("푸시 알림 전송 실패:", notificationError);
+      // 푸시 알림 실패는 전체 프로세스를 중단시키지 않음
+    }
+
     return NextResponse.json({ success: true, transaction_id: transaction.id });
   } catch (error) {
     console.error("[ADJUSTMENT UNHANDLED ERROR]", error);

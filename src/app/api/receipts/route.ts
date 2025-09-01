@@ -132,6 +132,33 @@ export async function POST(request: Request) {
       }
     }
 
+    // 푸시 알림 전송
+    try {
+      const notificationTitle = type === "in" ? "입고 완료" : "출고 완료";
+      const notificationBody = `${items.length}개 제품이 ${type === "in" ? "입고" : "출고"}되었습니다`;
+
+      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/push/send`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: notificationTitle,
+          body: notificationBody,
+          icon: "/icons/icon-192x192.png",
+          tag: `receipt-${transaction.id}`,
+          data: {
+            type: "receipt",
+            transactionId: transaction.id,
+            receiptType: type,
+          },
+        }),
+      });
+    } catch (notificationError) {
+      console.error("푸시 알림 전송 실패:", notificationError);
+      // 푸시 알림 실패는 전체 프로세스를 중단시키지 않음
+    }
+
     return NextResponse.json({ success: true, transaction_id: transaction.id });
   } catch (error) {
     console.error("[UNHANDLED ERROR]", error);
