@@ -7,7 +7,7 @@ CREATE TABLE push_subscriptions (
   auth_key TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(user_id)
+  UNIQUE(user_id, endpoint)
 );
 
 -- 인덱스 생성

@@ -87,7 +87,8 @@ export function usePushNotifications() {
           created_at: new Date().toISOString(),
         },
         {
-          onConflict: "user_id",
+          // 사용자-엔드포인트 복합키 기준으로 병합
+          onConflict: "user_id,endpoint",
         }
       );
 
@@ -156,9 +157,9 @@ export function usePushNotifications() {
       await subscription.unsubscribe();
       setSubscription(null);
 
-      // 서버에서 구독 정보 삭제
-      if (user?.id) {
-        const { error } = await supabase.from("push_subscriptions").delete().eq("user_id", user.id);
+      // 서버에서 현재 엔드포인트만 삭제 (다른 기기 구독 보존)
+      if (subscription.endpoint) {
+        const { error } = await supabase.from("push_subscriptions").delete().eq("endpoint", subscription.endpoint);
         if (error) {
           console.error("구독 정보 삭제 오류:", error);
         }

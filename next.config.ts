@@ -3,12 +3,15 @@ import type { NextConfig } from "next";
 
 const withPWA = withPWAInit({
   dest: "public",
-  disable: true, // 일시적으로 PWA 비활성화
-  register: false,
+  disable: false,
+  register: true,
+
+  sw: "/sw.js",
 });
 
 const nextConfig: NextConfig = withPWA({
   reactStrictMode: true,
+
   images: {
     domains: ["i.pravatar.cc", "kqkvgqbdgkgbhjcuwxei.supabase.co"],
   },
