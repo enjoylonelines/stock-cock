@@ -51,14 +51,10 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
   const typeInfo = typeMap[data[0].type];
 
   return (
-    <div className="p-4 mx-auto max-w-md bg-white rounded-xl shadow">
+    <div className="p-4 w-full bg-white">
       {/* 헤더: 뒤로가기 + 제목 + 타입 뱃지 */}
-      <div className="flex justify-between items-center mb-4">
-        <button onClick={() => router.back()} className="p-2 -ml-2 text-gray-500 hover:text-gray-900">
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <h1 className="flex-1 text-lg font-bold text-center">상세 내역</h1>
-        <span className={`ml-2 px-3 py-1 rounded-full border text-sm font-semibold ${typeInfo.color} ${typeInfo.bg} ${typeInfo.border}`}>
+      <div className="flex justify-start items-center mb-4">
+        <span className={`px-3 py-1 rounded-full border text-sm font-semibold ${typeInfo.color} ${typeInfo.bg} ${typeInfo.border}`}>
           {typeInfo.label}
         </span>
       </div>

@@ -1,10 +1,7 @@
 "use client";
 
-import { ArrowLeft, MoreVertical } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { formatNumber } from "@/lib/utils";
-import Link from "next/link";
 import { useInventories } from "@/hooks/useInventories";
 import { useLocations } from "@/hooks/useWarehouses";
 import { useState } from "react";
@@ -44,21 +41,6 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
-      {/* 헤더 */}
-      <div className="flex justify-between items-center p-4 bg-white">
-        <div className="flex gap-2 items-center">
-          <Link href="/products">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <h1 className="text-lg font-semibold">상품 상세</h1>
-        </div>
-        <Button variant="ghost" size="icon">
-          <MoreVertical className="w-5 h-5" />
-        </Button>
-      </div>
-
       {/* 상품 정보 */}
       <div className="flex-1 p-4 space-y-4">
         {/* 기본 정보 카드 */}

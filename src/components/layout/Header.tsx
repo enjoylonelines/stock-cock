@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowDownUp, Settings, Filter, Bell } from "lucide-react";
+import { ArrowDownUp, Settings, Filter, Bell, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FilterDrawer from "../inventory/FilterDrawer";
 import ProductFilterDrawer from "../products/ProductFilterDrawer";
@@ -13,6 +13,7 @@ import { useActivityLogStore } from "@/store/activityLogStore";
 import { useBroadcastReadStatus } from "@/hooks/useBroadcastReadStatus";
 import { useInventoryHistory } from "@/hooks/useInventoryHistory";
 import { useState } from "react";
+import Link from "next/link";
 
 export default function Header() {
   const { isOpen, close, open, setFilters } = useInventoryFilterDrawerStore();
@@ -59,7 +60,7 @@ export default function Header() {
       case "/home":
         return {
           title: "한끼",
-
+          leftButton: null,
           rightButton: (
             <Button variant="ghost" className="relative p-0 w-10 h-10" onClick={handleBellClick}>
               <Bell className="p-0 w-5 h-5" />
@@ -70,7 +71,7 @@ export default function Header() {
       case "/products":
         return {
           title: "제품",
-
+          leftButton: null,
           rightButton: (
             <div className="flex gap-2">
               <Button variant="ghost" size="icon" className="w-10 h-10" onClick={handleProductFilterClick}>
@@ -85,7 +86,7 @@ export default function Header() {
       case "/inventory":
         return {
           title: "입고/출고",
-
+          leftButton: null,
           rightButton: (
             <Button variant="ghost" size="icon" className="w-10 h-10" onClick={handleInventoryFilterClick}>
               <Filter className="w-5 h-5" />
@@ -95,12 +96,31 @@ export default function Header() {
       case pathname.match(/^\/inventory\/[\w-]+$/) ? pathname : null:
         return {
           title: "상세 내역",
+          leftButton: (
+            <Link href="/inventory">
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+          ),
+          rightButton: null,
+        };
+      case pathname.match(/^\/products\/[\w-]+$/) ? pathname : null:
+        return {
+          title: "상품 상세",
+          leftButton: (
+            <Link href="/products">
+              <Button variant="ghost" size="icon">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+          ),
           rightButton: null,
         };
       case "/settings":
         return {
           title: "설정",
-
+          leftButton: null,
           rightButton: (
             <Button variant="ghost" size="icon" className="w-10 h-10">
               <Settings className="w-5 h-5" />
@@ -110,13 +130,13 @@ export default function Header() {
       default:
         return {
           title: "",
-
+          leftButton: null,
           rightButton: null,
         };
     }
   };
 
-  const { title, rightButton } = getHeaderContent();
+  const { title, leftButton, rightButton } = getHeaderContent();
 
   if (!title) return null;
 
@@ -125,6 +145,7 @@ export default function Header() {
       <div className="container mx-auto max-w-3xl">
         <div className="flex justify-between items-center px-4 h-14">
           <div className="flex gap-2 items-center">
+            {leftButton}
             <h1 className={`text-lg font-bold`}>{title}</h1>
           </div>
           {rightButton}
