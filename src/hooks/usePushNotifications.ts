@@ -32,6 +32,7 @@ export function usePushNotifications() {
 
       // 서버에 구독 정보 저장
       if (existingSubscription) {
+        console.log(existingSubscription);
         await saveSubscriptionToServer(existingSubscription);
       }
     } catch (error) {
@@ -43,17 +44,46 @@ export function usePushNotifications() {
     getSubscription();
   }, [getSubscription]);
 
+  // ArrayBuffer -> base64url 문자열로 변환
+  const arrayBufferToBase64Url = (buffer: ArrayBuffer | null): string | null => {
+    if (!buffer) return null;
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i += 1) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    // base64
+    const base64 = typeof window !== "undefined" ? btoa(binary) : Buffer.from(binary, "binary").toString("base64");
+    // base64url 로 변환(+/ -> -_, 제거=)
+    return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  };
+
+  // base64url 문자열 -> Uint8Array (VAPID 공개키용)
+  const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const rawData = typeof window !== "undefined" ? atob(base64) : Buffer.from(base64, "base64").toString("binary");
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; i += 1) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
+
   // 서버에 구독 정보 저장
   const saveSubscriptionToServer = async (subscription: PushSubscription) => {
     if (!user?.id) return;
 
     try {
+      const p256dh = arrayBufferToBase64Url(subscription.getKey("p256dh"));
+      const auth = arrayBufferToBase64Url(subscription.getKey("auth"));
+      console.log(p256dh, auth);
       const { error } = await supabase.from("push_subscriptions").upsert(
         {
           user_id: user.id,
           endpoint: subscription.endpoint,
-          p256dh_key: subscription.getKey("p256dh"),
-          auth_key: subscription.getKey("auth"),
+          p256dh_key: p256dh ?? undefined,
+          auth_key: auth ?? undefined,
           created_at: new Date().toISOString(),
         },
         {
@@ -99,9 +129,11 @@ export function usePushNotifications() {
       }
 
       const registration = await navigator.serviceWorker.ready;
+      const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      const applicationServerKey = vapidPublicKey ? urlBase64ToUint8Array(vapidPublicKey) : undefined;
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+        applicationServerKey,
       });
 
       setSubscription(subscription);

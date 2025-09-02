@@ -17,8 +17,20 @@ CREATE INDEX idx_push_subscriptions_endpoint ON push_subscriptions(endpoint);
 -- RLS 정책 설정
 ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 
--- 사용자는 자신의 푸시 구독만 관리할 수 있음
-CREATE POLICY "사용자는 자신의 푸시 구독만 관리할 수 있음" ON push_subscriptions
-  FOR ALL USING (auth.uid() = user_id);
+-- 사용자는 자신의 푸시 구독만 조회할 수 있음
+CREATE POLICY "사용자는 자신의 푸시 구독만 조회할 수 있음" ON push_subscriptions
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- 사용자는 자신의 푸시 구독만 생성할 수 있음
+CREATE POLICY "사용자는 자신의 푸시 구독만 생성할 수 있음" ON push_subscriptions
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- 사용자는 자신의 푸시 구독만 수정할 수 있음
+CREATE POLICY "사용자는 자신의 푸시 구독만 수정할 수 있음" ON push_subscriptions
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- 사용자는 자신의 푸시 구독만 삭제할 수 있음
+CREATE POLICY "사용자는 자신의 푸시 구독만 삭제할 수 있음" ON push_subscriptions
+  FOR DELETE USING (auth.uid() = user_id);
 
 -- updated_at은 수동으로 관리 (트리거 없음)
