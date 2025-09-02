@@ -25,13 +25,7 @@ export function usePushNotifications() {
     try {
       const registration = await navigator.serviceWorker.ready;
 
-      // 푸시 핸들러 스크립트 등록
-      try {
-        // @ts-expect-error - 동적 import이므로 타입 체크 무시
-        await import("/push-handler.js");
-      } catch (error) {
-        console.log("푸시 핸들러 로드 실패 (이미 로드됨):", error);
-      }
+      // Service Worker가 이미 등록되어 있음 (next.config.ts에서 자동 등록)
 
       const existingSubscription = await registration.pushManager.getSubscription();
       setSubscription(existingSubscription);

@@ -3,8 +3,8 @@ import type { NextConfig } from "next";
 
 const withPWA = withPWAInit({
   dest: "public",
-  disable: process.env.NODE_ENV === "development",
-  register: true,
+  disable: true, // 일시적으로 PWA 비활성화
+  register: false,
 });
 
 const nextConfig: NextConfig = withPWA({
