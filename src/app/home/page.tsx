@@ -5,7 +5,7 @@ import CommonDrawer from "@/components/home/CommonDrawer";
 
 export default async function Home() {
   return (
-    <div className="container p-4 mx-auto space-y-6">
+    <div className="container p-4 mx-auto space-y-6 max-w-3xl">
       <StatsBox />
       {/* <SearchInput /> */}
       <ActionCards />
