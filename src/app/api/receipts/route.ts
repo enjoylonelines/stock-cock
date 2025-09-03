@@ -145,7 +145,7 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           title: notificationTitle,
           body: notificationBody,
-          icon: "/icons/icon-192x192.png",
+          icon: "/icons/logo-192x192.png",
           tag: `receipt-${transaction.id}`,
           data: {
             type: "receipt",

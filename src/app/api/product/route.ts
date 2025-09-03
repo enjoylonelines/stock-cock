@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         title: notificationTitle,
         body: notificationBody,
-        icon: "/icons/icon-192x192.png",
+        icon: "/icons/logo-192x192.png",
         tag: `product-${productData.id}`,
         data: {
           type: "product",

@@ -113,7 +113,7 @@ export default function PushNotificationSettings() {
                         body: JSON.stringify({
                           title: "🧪 테스트 알림",
                           body: "개발 서버에서 푸시 알림 테스트입니다!",
-                          //icon: "/icons/icon-192x192.png",
+                          //icon: "/icons/logo-192x192.png",
                         }),
                       });
                       const result = await response.json();

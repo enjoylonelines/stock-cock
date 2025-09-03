@@ -27,7 +27,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head>
         <meta name="theme-color" content="#ffffff" />
         <link rel="icon" href="/icons/logo.png" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" href="/icons/logo-192x192.png" />
       </head>
 
       <UserProvider user={profile}>
