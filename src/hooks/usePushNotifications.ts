@@ -102,7 +102,7 @@ export function usePushNotifications() {
     try {
       const p256dh = arrayBufferToBase64Url(subscription.getKey("p256dh"));
       const auth = arrayBufferToBase64Url(subscription.getKey("auth"));
-      console.log(p256dh, auth);
+
       const { error } = await supabase.from("push_subscriptions").upsert(
         {
           user_id: user.id,
@@ -112,8 +112,8 @@ export function usePushNotifications() {
           created_at: new Date().toISOString(),
         },
         {
-          // 사용자-엔드포인트 복합키 기준으로 병합
-          onConflict: "user_id,endpoint",
+          // 임시로 onConflict 제거 (데이터베이스 제약조건 생성 후 다시 추가)
+          // onConflict: "user_id,endpoint",
         }
       );
 
@@ -139,9 +139,9 @@ export function usePushNotifications() {
     }
   };
 
-  // 푸시 구독 생성
+  // 푸시 구독 생성 (Service Worker 방식)
   const subscribe = async (): Promise<boolean> => {
-    console.log("=== 푸시 구독 시작 ===");
+    console.log("=== 푸시 구독 시작 (Service Worker 방식) ===");
     console.log("isSupported:", isSupported);
     console.log("user?.id:", user?.id);
     console.log("permission:", permission);
@@ -194,7 +194,7 @@ export function usePushNotifications() {
       setSubscription(subscription);
       console.log("💾 서버에 구독 정보 저장...");
       await saveSubscriptionToServer(subscription);
-      console.log("✅ 구독 완료!");
+      console.log("✅ Service Worker 방식으로 구독 완료!");
       return true;
     } catch (error) {
       console.error("❌ 구독 생성 오류:", error);
