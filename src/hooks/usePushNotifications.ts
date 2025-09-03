@@ -131,6 +131,7 @@ export function usePushNotifications() {
 
       const registration = await navigator.serviceWorker.ready;
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      console.log(vapidPublicKey);
       const applicationServerKey = vapidPublicKey ? urlBase64ToUint8Array(vapidPublicKey) : undefined;
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
