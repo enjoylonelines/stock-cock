@@ -7,7 +7,7 @@ const withPWA = withPWAInit({
   dest: "public",
   disable: isDev,
   register: !isDev,
-  sw: "/sw.js",
+  sw: "/sw-custom.js",
 });
 
 const nextConfig: NextConfig = withPWA({
