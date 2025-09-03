@@ -100,7 +100,7 @@ export default function PushNotificationSettings() {
             <p className="text-sm text-green-700">푸시 알림이 활성화되었습니다. 입출고 및 제품 등록 시 알림을 받을 수 있습니다.</p>
 
             {/* 테스트용 버튼 (개발 환경에서만 표시) */}
-            {process.env.NODE_ENV === "development" && (
+            {
               <div className="mt-3">
                 <Button
                   size="sm"
@@ -127,7 +127,7 @@ export default function PushNotificationSettings() {
                   🧪 테스트 알림 보내기
                 </Button>
               </div>
-            )}
+            }
           </div>
         )}
       </div>
