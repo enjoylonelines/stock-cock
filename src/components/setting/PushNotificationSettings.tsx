@@ -98,6 +98,36 @@ export default function PushNotificationSettings() {
         {isEnabled && (
           <div className="p-3 mt-3 bg-green-50 rounded-md border border-green-200">
             <p className="text-sm text-green-700">푸시 알림이 활성화되었습니다. 입출고 및 제품 등록 시 알림을 받을 수 있습니다.</p>
+
+            {/* 테스트용 버튼 (개발 환경에서만 표시) */}
+            {process.env.NODE_ENV === "development" && (
+              <div className="mt-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={async () => {
+                    try {
+                      const response = await fetch("/api/push/send", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          title: "🧪 테스트 알림",
+                          body: "개발 서버에서 푸시 알림 테스트입니다!",
+                          //icon: "/icons/icon-192x192.png",
+                        }),
+                      });
+                      const result = await response.json();
+                      console.log("푸시 테스트 결과:", result);
+                    } catch (error) {
+                      console.error("테스트 알림 전송 실패:", error);
+                      alert("테스트 알림 전송 실패");
+                    }
+                  }}
+                >
+                  🧪 테스트 알림 보내기
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>
