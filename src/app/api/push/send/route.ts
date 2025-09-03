@@ -2,12 +2,12 @@ import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 import webpush from "web-push";
 
+const subject = "https://stock-cock.vercel.app";
+const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+const privateVapidKey = process.env.VAPID_PRIVATE_KEY;
+
 // VAPID 키 설정
-webpush.setVapidDetails(
-  "mailto:hobeom5022@naver.com", // 실제 이메일로 변경
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-  process.env.VAPID_PRIVATE_KEY!
-);
+webpush.setVapidDetails(subject, publicVapidKey!, privateVapidKey!);
 
 export async function POST(request: Request) {
   const supabase = await createClient();
