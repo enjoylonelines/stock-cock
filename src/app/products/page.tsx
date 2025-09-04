@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
 import ProductList from "@/components/products/ProductList";
+import ProductListSkeleton from "@/components/products/ProductListSkeleton";
 import { useProducts } from "@/hooks/useProducts";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
 import { useState } from "react";
 
 export default function ProductsPage() {
-  const { products } = useProducts();
+  const { products, isLoading } = useProducts();
   const { filters, setFilters } = useProductFilterDrawerStore();
   const [searchInput, setSearchInput] = useState(filters.searchQuery || "");
 
@@ -33,7 +34,7 @@ export default function ProductsPage() {
       </div>
 
       {/* 제품 리스트 */}
-      <ProductList products={products} />
+      {isLoading ? <ProductListSkeleton /> : <ProductList products={products} />}
 
       {/* 플로팅 액션 버튼 */}
       {/* <div className="fixed right-4 bottom-24">
