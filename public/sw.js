@@ -1,4 +1,4 @@
-importScripts("/sw-custom.js");
+importScripts("./sw-custom.js");
 // If the loader is already loaded, just stop.
 if (!self.define) {
   let registry = {};
