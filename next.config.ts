@@ -8,6 +8,7 @@ const withPWA = withPWAInit({
   disable: isDev,
   register: !isDev,
   sw: "/sw.js",
+  customWorkerSrc: "/sw-custom.js",
 });
 
 const nextConfig: NextConfig = withPWA({
