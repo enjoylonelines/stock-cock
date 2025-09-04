@@ -98,7 +98,6 @@ export function useInventoryHistory() {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
       try {
         const { data, error } = await supabase.from("transaction_history_view").select("*").order("created_at", { ascending: false }); // 최신순으로 불러오기
 
