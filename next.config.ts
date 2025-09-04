@@ -8,7 +8,8 @@ const withPWA = withPWAInit({
   disable: isDev,
   register: !isDev,
   sw: "/sw.js",
-  customWorkerSrc: "/sw-custom.js",
+  // 커스텀 워커는 기본값 디렉터리인 "worker/index.{js,ts}"를 사용
+  customWorkerSrc: "worker",
 });
 
 const nextConfig: NextConfig = withPWA({
