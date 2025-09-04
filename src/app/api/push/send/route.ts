@@ -61,9 +61,9 @@ export async function POST(request: Request) {
         const payload = JSON.stringify({
           title,
           body: message,
-          icon: icon || "/icons/logo-192x192.png",
-          badge: badge || "/icons/icon-48x48.png",
-          tag: tag || "stock-cock-notification",
+          // icon: icon || "/icons/logo-192x192.png",
+          // badge: badge || "/icons/icon-48x48.png",
+          // tag: tag || "stock-cock-notification",
           data: data || {},
           actions: [
             {
