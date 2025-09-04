@@ -1,3 +1,4 @@
+importScripts("./sw-custom.js");
 /**
  * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,7 +67,7 @@ if (!self.define) {
 define(["./workbox-7144475a"], function (workbox) {
   "use strict";
 
-  importScripts("/sw-custom.js");
+  importScripts();
   self.skipWaiting();
   workbox.clientsClaim();
   workbox.registerRoute(
