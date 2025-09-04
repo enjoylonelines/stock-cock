@@ -99,7 +99,7 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || "알림", {
       body: data.body,
-      icon: data.icon || "/icons/logo-192x192.png",
+      // icon: data.icon || "/icons/logo-192x192.png",
     })
   );
 });
