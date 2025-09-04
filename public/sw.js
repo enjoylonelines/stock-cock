@@ -66,7 +66,7 @@ if (!self.define) {
 define(["./workbox-7144475a"], function (workbox) {
   "use strict";
 
-  importScripts("./sw-custom.js");
+  importScripts("/sw-custom.js");
   self.skipWaiting();
   workbox.clientsClaim();
   workbox.registerRoute(
