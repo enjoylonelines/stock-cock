@@ -29,7 +29,7 @@ sw.addEventListener("push", (event: PushEvent) => {
       requireInteraction: false,
       silent: false,
     };
-
+    console.log(options);
     event.waitUntil(sw.registration.showNotification(title, options));
   } catch (err) {
     const text = event?.data ? event.data.text() : "새 알림이 있습니다";
