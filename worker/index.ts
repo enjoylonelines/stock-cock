@@ -16,22 +16,29 @@ sw.addEventListener("activate", (event: ExtendableEvent) => {
 
 // 푸시 이벤트 처리
 sw.addEventListener("push", (event: PushEvent) => {
-  console.log("custom worker 작동");
+  console.log("🔥 PUSH 이벤트 수신됨!", event);
+  console.log("🔥 이벤트 데이터:", event.data);
+
   try {
     const data = event?.data ? event.data.json() : {};
+    console.log("🔥 파싱된 데이터:", data);
+
     const title = data.title || "알림";
     const options: NotificationOptions = {
       body: data.body || "새 알림이 있습니다",
-      // icon: data.icon || "/icons/icon-192x192.png",
-      // badge: data.badge || "/icons/icon-48x48.png",
-      // tag: data.tag || "stock-cock-notification",
+      icon: data.icon || "/icons/icon-192x192.png",
+      badge: data.badge || "/icons/icon-48x48.png",
+      tag: data.tag || "stock-cock-notification",
       data: data.data || {},
       requireInteraction: false,
       silent: false,
     };
-    console.log(options);
+
+    console.log("🔥 알림 표시 시도:", title, options);
     event.waitUntil(sw.registration.showNotification(title, options));
+    console.log("🔥 알림 표시 완료");
   } catch (err) {
+    console.error("🔥 푸시 이벤트 처리 오류:", err);
     const text = event?.data ? event.data.text() : "새 알림이 있습니다";
     event.waitUntil(sw.registration.showNotification("알림", { body: text }));
   }

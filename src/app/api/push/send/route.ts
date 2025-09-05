@@ -61,20 +61,10 @@ export async function POST(request: Request) {
         const payload = JSON.stringify({
           title,
           body: message,
-          icon: icon || "/icons/logo-192x192.png",
+          icon: icon || "/icons/icon-192x192.png",
           badge: badge || "/icons/icon-48x48.png",
           tag: tag || "stock-cock-notification",
           data: data || {},
-          actions: [
-            {
-              action: "view",
-              title: "확인",
-            },
-            {
-              action: "close",
-              title: "닫기",
-            },
-          ],
         });
 
         await webpush.sendNotification(pushSubscription, payload);
