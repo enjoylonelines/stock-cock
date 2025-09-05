@@ -1,6 +1,20 @@
 /// <reference lib="webworker" />
 export {};
 
+// 푸시 알림 데이터 타입 정의
+interface PushEventType {
+  title?: string;
+  body?: string;
+  icon?: string;
+  badge?: string;
+  tag?: string;
+
+  actions?: Array<{
+    action: string;
+    title: string;
+  }>;
+}
+
 const sw = self as unknown as ServiceWorkerGlobalScope;
 // 버전 토큰(캐시 무효화용)
 // 변경 시 Service Worker가 새로 활성화됩니다.
@@ -20,8 +34,34 @@ sw.addEventListener("push", (event: PushEvent) => {
   console.log("🔥 이벤트 데이터:", event.data);
 
   try {
-    const data = event?.data ? event.data.json() : {};
-    console.log("🔥 파싱된 데이터:", data);
+    let data: PushEventType = {};
+
+    // 데이터가 있는지 확인하고 적절한 방법으로 파싱
+    if (event.data) {
+      try {
+        // JSON으로 파싱 시도
+        data = event.data.json();
+        console.log("🔥 JSON 파싱 성공:", data);
+      } catch (jsonError) {
+        // JSON 파싱 실패 시 텍스트로 파싱
+        const text = event.data.text();
+        console.log("🔥 JSON 파싱 실패, 텍스트로 파싱:", text);
+
+        // 텍스트가 있으면 기본 알림으로 표시
+        if (text) {
+          event.waitUntil(
+            sw.registration.showNotification("알림", {
+              body: text,
+              icon: "/icons/icon-192x192.png",
+              badge: "/icons/icon-48x48.png",
+            })
+          );
+          return;
+        }
+      }
+    }
+
+    console.log("🔥 최종 파싱된 데이터:", data);
 
     const title = data.title || "알림";
     const options: NotificationOptions = {
@@ -29,7 +69,7 @@ sw.addEventListener("push", (event: PushEvent) => {
       icon: data.icon || "/icons/icon-192x192.png",
       badge: data.badge || "/icons/icon-48x48.png",
       tag: data.tag || "stock-cock-notification",
-      data: data.data || {},
+
       requireInteraction: false,
       silent: false,
     };
@@ -39,8 +79,14 @@ sw.addEventListener("push", (event: PushEvent) => {
     console.log("🔥 알림 표시 완료");
   } catch (err) {
     console.error("🔥 푸시 이벤트 처리 오류:", err);
-    const text = event?.data ? event.data.text() : "새 알림이 있습니다";
-    event.waitUntil(sw.registration.showNotification("알림", { body: text }));
+    // 최후의 수단으로 기본 알림 표시
+    event.waitUntil(
+      sw.registration.showNotification("알림", {
+        body: "새 알림이 있습니다",
+        icon: "/icons/icon-192x192.png",
+        badge: "/icons/icon-48x48.png",
+      })
+    );
   }
 });
 
