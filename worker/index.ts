@@ -16,6 +16,7 @@ sw.addEventListener("activate", (event: ExtendableEvent) => {
 
 // 푸시 이벤트 처리
 sw.addEventListener("push", (event: PushEvent) => {
+  console.log("custom worker 작동");
   try {
     const data = event?.data ? event.data.json() : {};
     const title = data.title || "알림";
