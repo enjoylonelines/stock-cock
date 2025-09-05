@@ -22,9 +22,9 @@ sw.addEventListener("push", (event: PushEvent) => {
     const title = data.title || "알림";
     const options: NotificationOptions = {
       body: data.body || "새 알림이 있습니다",
-      icon: data.icon || "/icons/icon-192x192.png",
-      badge: data.badge || "/icons/icon-48x48.png",
-      tag: data.tag || "stock-cock-notification",
+      // icon: data.icon || "/icons/icon-192x192.png",
+      // badge: data.badge || "/icons/icon-48x48.png",
+      // tag: data.tag || "stock-cock-notification",
       data: data.data || {},
       requireInteraction: false,
       silent: false,
