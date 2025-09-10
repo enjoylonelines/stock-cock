@@ -119,6 +119,30 @@ export async function POST(request: Request) {
     try {
       const notificationTitle = "재고 이동 완료";
       const notificationBody = `${items.length}개 제품이 이동되었습니다`;
+      // 아이콘: 제품 이미지 시도 후 실패 시 기본값 사용
+      let iconUrl = "/icons/logo-192x192.png";
+      try {
+        const firstOptionId = items[0]?.option_id;
+        if (firstOptionId) {
+          const { data: optionRow, error: optionErr } = await supabase
+            .from("product_options")
+            .select("product_id")
+            .eq("id", firstOptionId)
+            .maybeSingle();
+
+          if (!optionErr && optionRow?.product_id) {
+            const { data: productRow, error: productErr } = await supabase
+              .from("products")
+              .select("image_url")
+              .eq("id", optionRow.product_id)
+              .maybeSingle();
+
+            if (!productErr && productRow?.image_url) {
+              iconUrl = productRow.image_url;
+            }
+          }
+        }
+      } catch (_) {}
 
       await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/push/send`, {
         method: "POST",
@@ -128,7 +152,7 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           title: notificationTitle,
           body: notificationBody,
-          icon: "/icons/logo-192x192.png",
+          icon: iconUrl,
           tag: `move-${transaction.id}`,
           data: {
             type: "move",

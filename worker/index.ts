@@ -32,12 +32,15 @@ sw.addEventListener("activate", (event: ExtendableEvent) => {
 sw.addEventListener("push", (event: PushEvent) => {
   console.log("🔥 PUSH 이벤트 수신됨!", event);
   console.log("🔥 이벤트 데이터:", event.data);
+  console.log("🔥 이벤트 데이터 타입:", typeof event.data);
+  console.log("🔥 이벤트 데이터 null 체크:", event.data === null);
 
   try {
     let data: PushEventType = {};
 
     // 데이터가 있는지 확인하고 적절한 방법으로 파싱
     if (event.data) {
+      console.log("🔥 이벤트 데이터 존재 - 파싱 시도");
       try {
         // JSON으로 파싱 시도
         data = event.data.json();
@@ -59,6 +62,17 @@ sw.addEventListener("push", (event: PushEvent) => {
           return;
         }
       }
+    } else {
+      console.log("🔥 이벤트 데이터가 null 또는 undefined - 기본 알림 표시");
+      // 데이터가 없으면 기본 알림 표시
+      event.waitUntil(
+        sw.registration.showNotification("알림", {
+          body: "새 알림이 있습니다",
+          icon: "/icons/icon-192x192.png",
+          badge: "/icons/icon-48x48.png",
+        })
+      );
+      return;
     }
 
     console.log("🔥 최종 파싱된 데이터:", data);

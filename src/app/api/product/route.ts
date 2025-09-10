@@ -30,6 +30,14 @@ export async function POST(req: NextRequest) {
   try {
     const notificationTitle = "새 제품 등록";
     const notificationBody = `${product.name} 제품이 등록되었습니다 (${options.length}개 옵션)`;
+    // 아이콘: 제품 이미지 시도 후 실패 시 기본값 사용
+    let iconUrl = "/icons/logo-192x192.png";
+    try {
+      // 제품 생성 시점에 product.image_url이 있을 수 있음
+      if (productData?.image_url) {
+        iconUrl = productData.image_url;
+      }
+    } catch (_) {}
 
     await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/push/send`, {
       method: "POST",
@@ -39,7 +47,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         title: notificationTitle,
         body: notificationBody,
-        icon: "/icons/logo-192x192.png",
+        icon: iconUrl,
         tag: `product-${productData.id}`,
         data: {
           type: "product",
