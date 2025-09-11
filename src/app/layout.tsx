@@ -5,6 +5,7 @@ import Footer from "@/components/layout/Footer";
 import { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
 import { UserProvider } from "@/contexts/UserContext";
+import PushPermissionPrompt from "@/components/setting/PushPermissionPrompt";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -35,6 +36,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Header />
           <main className="pt-14 pb-16 min-h-screen">{children}</main>
           <Footer />
+          {/* 초기 접속 시 푸시 권한 요청 팝업 */}
+          <PushPermissionPrompt />
         </body>
       </UserProvider>
     </html>
