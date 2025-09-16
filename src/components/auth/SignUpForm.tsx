@@ -1,9 +1,35 @@
 "use client";
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
+
 import { signup } from "@/app/auth/actions";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { useRouter } from "next/navigation";
 
 export default function SignUpForm() {
-  const [formState, formAction, isPending] = useActionState(signup, { error: "" });
+  const [formState, formAction, isPending] = useActionState(signup, { error: "", success: false } as { error?: string; success?: boolean });
+  const router = useRouter();
+  const { requestPermission, subscribe } = usePushNotifications();
+  const handledRef = useRef(false);
+
+  // 회원가입 성공 후 권한 요청 및 구독 처리 (한 번만 실행)
+  useEffect(() => {
+    if (!formState?.success || handledRef.current) return;
+    handledRef.current = true;
+
+    (async () => {
+      try {
+        const granted = await requestPermission();
+        if (granted) {
+          await subscribe();
+        }
+      } catch (e) {
+        console.warn("푸시 권한/구독 시도 중 경고:", e);
+      } finally {
+        router.push("/auth/signin");
+      }
+    })();
+    // 의존성은 성공 플래그만 사용하여 재실행 방지
+  }, [formState?.success]);
 
   return (
     <form action={formAction} className="space-y-4">

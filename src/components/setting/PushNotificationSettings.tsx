@@ -1,14 +1,43 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Bell, BellOff, CheckCircle, XCircle } from "lucide-react";
+import { Bell, BellOff, CheckCircle, XCircle, RefreshCw } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export default function PushNotificationSettings() {
-  const { isSupported, permission, isSubscribed, loading, subscribe, unsubscribe } = usePushNotifications();
+  const { isSupported, permission, isSubscribed, loading, subscribe, unsubscribe, getSubscription } = usePushNotifications();
 
   const [isEnabled, setIsEnabled] = useState(isSubscribed);
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
+
+  // 구독 상태 변경 시 토글 상태 동기화
+  useEffect(() => {
+    setIsEnabled(isSubscribed);
+  }, [isSubscribed]);
+
+  // 일정 시간마다 구독 상태 자동 확인 (5분마다)
+  useEffect(() => {
+    const checkInterval = setInterval(async () => {
+      if (isSupported && permission === "granted") {
+        await getSubscription();
+        setLastChecked(new Date());
+      }
+    }, 5 * 60 * 1000); // 5분
+
+    return () => clearInterval(checkInterval);
+  }, [isSupported, permission, getSubscription]);
+
+  // 권한이 허용되었는데 구독이 안 되어 있으면 자동 구독 시도
+  useEffect(() => {
+    const autoSubscribe = async () => {
+      if (isSupported && permission === "granted" && !isSubscribed && !loading) {
+        await subscribe();
+      }
+    };
+
+    autoSubscribe();
+  }, [isSupported, permission, isSubscribed, loading, subscribe]);
 
   const handleToggle = async () => {
     if (isEnabled) {
@@ -40,19 +69,19 @@ export default function PushNotificationSettings() {
     switch (permission) {
       case "granted":
         return {
-          icon: <CheckCircle className="w-5 h-5 text-green-500" />,
+          icon: <CheckCircle className="w-4 h-4 text-green-500" />,
           text: "허용됨",
           color: "text-green-700",
         };
       case "denied":
         return {
-          icon: <XCircle className="w-5 h-5 text-red-500" />,
+          icon: <XCircle className="w-4 h-4 text-red-500" />,
           text: "차단됨",
           color: "text-red-700",
         };
       default:
         return {
-          icon: <Bell className="w-5 h-5 text-gray-500" />,
+          icon: <Bell className="w-4 h-4 text-gray-500" />,
           text: "요청 필요",
           color: "text-gray-700",
         };
@@ -77,11 +106,24 @@ export default function PushNotificationSettings() {
       <div className="p-4 bg-gray-50 rounded-lg">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-medium text-gray-700">권한 상태</span>
-          <div className={`flex items-center gap-2 ${permissionStatus.color}`}>
+          <div className={`flex items-center gap-1 ${permissionStatus.color}`}>
             {permissionStatus.icon}
             <span className="text-sm">{permissionStatus.text}</span>
           </div>
         </div>
+
+        {/* 구독 상태 및 마지막 확인 시간 */}
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-medium text-gray-700">구독 상태</span>
+          <div className="flex gap-2 items-center">
+            <div className={`flex items-center gap-1 ${isSubscribed ? "text-green-600" : "text-gray-500"}`}>
+              {isSubscribed ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+              <span className="text-sm">{isSubscribed ? "구독됨" : "구독 안됨"}</span>
+            </div>
+          </div>
+        </div>
+
+        {lastChecked && <div className="mb-2 text-xs text-gray-500">마지막 확인: {lastChecked.toLocaleTimeString()}</div>}
 
         {permission === "denied" && (
           <div className="p-3 mt-3 bg-red-50 rounded-md border border-red-200">
@@ -98,36 +140,6 @@ export default function PushNotificationSettings() {
         {isEnabled && (
           <div className="p-3 mt-3 bg-green-50 rounded-md border border-green-200">
             <p className="text-sm text-green-700">푸시 알림이 활성화되었습니다. 입출고 및 제품 등록 시 알림을 받을 수 있습니다.</p>
-
-            {/* 테스트용 버튼 (개발 환경에서만 표시) */}
-            {
-              <div className="mt-3">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={async () => {
-                    try {
-                      const response = await fetch("/api/push/send", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          title: "🧪 테스트 알림",
-                          body: "개발 서버에서 푸시 알림 테스트입니다!",
-                          //icon: "/icons/logo-192x192.png",
-                        }),
-                      });
-                      const result = await response.json();
-                      console.log("푸시 테스트 결과:", result);
-                    } catch (error) {
-                      console.error("테스트 알림 전송 실패:", error);
-                      alert("테스트 알림 전송 실패");
-                    }
-                  }}
-                >
-                  🧪 테스트 알림 보내기
-                </Button>
-              </div>
-            }
           </div>
         )}
       </div>

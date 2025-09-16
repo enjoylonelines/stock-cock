@@ -28,13 +28,24 @@ export async function login(_prevState: unknown, formData: FormData) {
     return { error: "이메일 형식이 올바르지 않습니다." };
   }
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data: authData, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error?.message.includes("Invalid")) {
     return { error: "이메일 또는 비밀번호가 올바르지 않습니다." };
   }
   if (error) {
     return { error: "로그인 실패: " + error.message };
+  }
+
+  // profiles 테이블에 사용자 정보가 있는지 확인
+  if (authData.user?.id) {
+    const { data: profile, error: profileError } = await supabase.from("profiles").select("id").eq("id", authData.user.id).single();
+
+    if (profileError || !profile) {
+      // profiles 테이블에 정보가 없으면 로그아웃 처리
+      await supabase.auth.signOut();
+      return { error: "프로필 정보가 없습니다. 관리자에게 문의하세요." };
+    }
   }
 
   redirect("/home");
@@ -86,7 +97,8 @@ export async function signup(_prevState: unknown, formData: FormData) {
     }
   }
 
-  redirect("/auth/signin");
+  // redirect는 클라이언트에서 권한 요청/구독 후에 수행
+  return { success: true } as const;
 }
 
 export async function logout() {

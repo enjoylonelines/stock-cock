@@ -36,6 +36,19 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // 사용자가 로그인되어 있지만 profiles 테이블에 정보가 없는 경우 로그아웃 처리
+  if (user && !request.nextUrl.pathname.startsWith("/auth")) {
+    const { data: profile, error: profileError } = await supabase.from("profiles").select("id").eq("id", user.id).single();
+
+    if (profileError || !profile) {
+      // profiles 테이블에 정보가 없으면 로그아웃 처리
+      await supabase.auth.signOut();
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/signin";
+      return NextResponse.redirect(url);
+    }
+  }
+
   // 중요: supabaseResponse 객체를 반드시 그대로 반환해야 합니다.
   // NextResponse.next()로 새로운 response 객체를 생성하는 경우 다음 사항을 반드시 지켜주세요:s
   // 1. 다음과 같이 request를 전달하세요:
