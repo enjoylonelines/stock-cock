@@ -8,13 +8,10 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 export default function PushNotificationSettings() {
   const { isSupported, permission, isSubscribed, loading, subscribe, unsubscribe, getSubscription } = usePushNotifications();
 
-  const [isEnabled, setIsEnabled] = useState(isSubscribed);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
-  // 구독 상태 변경 시 토글 상태 동기화
-  useEffect(() => {
-    setIsEnabled(isSubscribed);
-  }, [isSubscribed]);
+  // isEnabled는 isSubscribed와 동일하게 사용
+  const isEnabled = isSubscribed;
 
   // 일정 시간마다 구독 상태 자동 확인 (5분마다)
   useEffect(() => {
@@ -40,16 +37,13 @@ export default function PushNotificationSettings() {
   }, [isSupported, permission, isSubscribed, loading, subscribe]);
 
   const handleToggle = async () => {
-    if (isEnabled) {
-      const success = await unsubscribe();
-      if (success) {
-        setIsEnabled(false);
-      }
+    console.log("토글 클릭:", { isSubscribed, loading, permission });
+    if (isSubscribed) {
+      console.log("구독 해제 시도...");
+      await unsubscribe();
     } else {
-      const success = await subscribe();
-      if (success) {
-        setIsEnabled(true);
-      }
+      console.log("구독 시도...");
+      await subscribe();
     }
   };
 
@@ -90,6 +84,16 @@ export default function PushNotificationSettings() {
 
   const permissionStatus = getPermissionStatus();
 
+  // 디버깅 정보
+  console.log("PushNotificationSettings 상태:", {
+    isSupported,
+    permission,
+    isSubscribed,
+    isEnabled,
+    loading,
+    disabled: loading || permission === "denied",
+  });
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center p-4 bg-white rounded-lg border">
@@ -100,7 +104,7 @@ export default function PushNotificationSettings() {
             <p className="text-sm text-gray-500">입출고, 제품 등록 시 알림을 받습니다</p>
           </div>
         </div>
-        <Switch checked={isEnabled} onCheckedChange={handleToggle} disabled={loading || permission === "denied"} />
+        <Switch checked={isEnabled} onCheckedChange={handleToggle} disabled={!loading || permission === "denied"} />
       </div>
 
       <div className="p-4 bg-gray-50 rounded-lg">

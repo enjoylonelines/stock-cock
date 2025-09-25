@@ -21,9 +21,11 @@ export function usePushNotifications() {
   // 기존 구독 정보 가져오기
   const getSubscription = useCallback(async () => {
     if (!isSupported || !user?.id) {
+      setLoading(false);
       return;
     }
 
+    setLoading(true);
     try {
       const registration = await navigator.serviceWorker.ready;
       const existingSubscription = await registration.pushManager.getSubscription();
@@ -31,16 +33,28 @@ export function usePushNotifications() {
 
       // 서버에 구독 정보 저장
       if (existingSubscription) {
-        await saveSubscriptionToServer(existingSubscription);
+        try {
+          await saveSubscriptionToServer(existingSubscription);
+        } catch (saveError) {
+          console.error("구독 정보 저장 실패:", saveError);
+          // 저장 실패해도 구독 정보는 유지
+        }
       }
     } catch (error) {
       console.error("구독 정보 가져오기 오류:", error);
+    } finally {
+      setLoading(false);
     }
-  }, [isSupported, user?.id]);
+  }, [isSupported, user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    getSubscription();
-  }, [getSubscription]);
+    // isSupported와 user?.id가 모두 준비되었을 때만 실행
+    if (isSupported && user?.id) {
+      getSubscription();
+    } else {
+      setLoading(false);
+    }
+  }, [isSupported, user?.id, getSubscription]);
 
   // ArrayBuffer -> base64url 문자열로 변환
   const arrayBufferToBase64Url = (buffer: ArrayBuffer | null): string | null => {
@@ -69,43 +83,64 @@ export function usePushNotifications() {
   };
 
   // 서버에 구독 정보 저장
-  const saveSubscriptionToServer = async (subscription: PushSubscription) => {
-    if (!user?.id) return;
+  const saveSubscriptionToServer = useCallback(
+    async (subscription: PushSubscription) => {
+      if (!user?.id) return;
 
-    try {
-      const p256dh = arrayBufferToBase64Url(subscription.getKey("p256dh"));
-      const auth = arrayBufferToBase64Url(subscription.getKey("auth"));
+      try {
+        const p256dh = arrayBufferToBase64Url(subscription.getKey("p256dh"));
+        const auth = arrayBufferToBase64Url(subscription.getKey("auth"));
 
-      const { error } = await supabase.from("push_subscriptions").upsert(
-        {
-          user_id: user.id,
+        console.log("구독 정보 저장 시도:", {
+          userId: user.id,
           endpoint: subscription.endpoint,
-          p256dh_key: p256dh ?? undefined,
-          auth_key: auth ?? undefined,
-          created_at: new Date().toISOString(),
-        },
-        {
-          onConflict: "user_id,endpoint",
-          ignoreDuplicates: false,
-        }
-      );
+          p256dh: p256dh ? "있음" : "없음",
+          auth: auth ? "있음" : "없음",
+        });
 
-      if (error) {
-        // 중복 충돌(409)은 이미 저장된 것으로 간주하고 무시
-        if (
-          (error as { code?: string; hint?: string; message?: string }).code === "23505" ||
-          (error as { code?: string; hint?: string; message?: string }).hint?.includes("duplicate key") ||
-          (error as { code?: string; hint?: string; message?: string }).message?.includes("duplicate")
-        ) {
-          console.warn("구독 정보 중복, 무시합니다.");
+        const { error } = await supabase.from("push_subscriptions").upsert(
+          {
+            user_id: user.id,
+            endpoint: subscription.endpoint,
+            p256dh_key: p256dh ?? undefined,
+            auth_key: auth ?? undefined,
+            created_at: new Date().toISOString(),
+          },
+          {
+            onConflict: "user_id,endpoint",
+            ignoreDuplicates: false,
+          }
+        );
+
+        if (error) {
+          console.error("구독 정보 저장 오류 상세:", {
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+          });
+
+          // 중복 충돌(409)은 이미 저장된 것으로 간주하고 무시
+          if (
+            (error as { code?: string; hint?: string; message?: string }).code === "23505" ||
+            (error as { code?: string; hint?: string; message?: string }).hint?.includes("duplicate key") ||
+            (error as { code?: string; hint?: string; message?: string }).message?.includes("duplicate")
+          ) {
+            console.warn("구독 정보 중복, 무시합니다.");
+            return;
+          }
+          console.error("구독 정보 저장 실패:", error);
           return;
         }
-        console.error("구독 정보 저장 오류:", error);
+
+        console.log("구독 정보 저장 성공");
+      } catch (error) {
+        console.error("구독 정보 저장 중 오류:", error);
+        // 오류를 throw하지 않고 로그만 출력
       }
-    } catch (error) {
-      console.error("구독 정보 저장 중 오류:", error);
-    }
-  };
+    },
+    [user?.id]
+  );
 
   // 푸시 알림 권한 요청
   const requestPermission = async (): Promise<boolean> => {
@@ -124,6 +159,7 @@ export function usePushNotifications() {
   // 푸시 구독 생성 (Service Worker 방식)
   const subscribe = async (): Promise<boolean> => {
     if (!isSupported || !user?.id) {
+      console.log("구독 조건 불만족:", { isSupported, userId: user?.id });
       return false;
     }
 
@@ -131,32 +167,52 @@ export function usePushNotifications() {
     try {
       // 권한 확인
       if (permission !== "granted") {
+        console.log("권한 요청 시작...");
         const granted = await requestPermission();
         if (!granted) {
+          console.log("권한 거부됨");
           setLoading(false);
           return false;
         }
+        console.log("권한 허용됨");
       }
 
       const registration = await navigator.serviceWorker.ready;
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
       if (!vapidPublicKey) {
+        console.error("VAPID 공개키가 설정되지 않음");
         setLoading(false);
         return false;
       }
 
+      console.log("VAPID 공개키 확인됨:", vapidPublicKey.substring(0, 20) + "...");
+
       const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+      console.log("구독 생성 시작...");
+
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey,
       });
 
+      console.log("구독 생성 성공:", subscription.endpoint);
       setSubscription(subscription);
+
+      console.log("서버에 구독 정보 저장 시작...");
       await saveSubscriptionToServer(subscription);
+      console.log("구독 완료!");
+
       return true;
     } catch (error) {
       console.error("구독 생성 오류:", error);
+      if (error instanceof Error) {
+        console.error("오류 상세:", {
+          name: error.name,
+          message: error.message,
+          stack: error.stack,
+        });
+      }
       return false;
     } finally {
       setLoading(false);
