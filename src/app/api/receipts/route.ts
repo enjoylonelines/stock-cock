@@ -1,5 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
+import { sendPushNotification } from "@/services/push-notification";
+import { getProductIconUrl } from "@/utils/product-icon";
 
 type ReceiptItemInput = {
   quantity: number;
@@ -133,60 +135,19 @@ export async function POST(request: Request) {
     }
 
     // 푸시 알림 전송
-    try {
-      const notificationTitle = type === "in" ? "입고 완료" : "출고 완료";
-      const notificationBody = `${items.length}개 제품이 ${type === "in" ? "입고" : "출고"}되었습니다`;
-      // 아이콘: 제품 이미지 시도 후 실패 시 기본값 사용
-      let iconUrl = "/icons/logo-192x192.png";
-      try {
-        // 대표로 첫 번째 아이템의 제품 이미지를 사용
-        const firstOptionId = items[0]?.option_id;
-        if (firstOptionId) {
-          // 1) option -> product_id 조회
-          const { data: optionRow, error: optionErr } = await supabase
-            .from("product_options")
-            .select("product_id")
-            .eq("id", firstOptionId)
-            .maybeSingle();
-
-          if (!optionErr && optionRow?.product_id) {
-            // 2) product_id -> image_url 조회
-            const { data: productRow, error: productErr } = await supabase
-              .from("products")
-              .select("image_url")
-              .eq("id", optionRow.product_id)
-              .maybeSingle();
-
-            if (!productErr && productRow?.image_url) {
-              iconUrl = productRow.image_url;
-            }
-          }
-        }
-      } catch (_) {
-        // 실패 시 기본 아이콘 유지
-      }
-
-      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/push/send`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: notificationTitle,
-          body: notificationBody,
-          icon: iconUrl,
-          tag: `receipt-${transaction.id}`,
-          data: {
-            type: "receipt",
-            transactionId: transaction.id,
-            receiptType: type,
-          },
-        }),
-      });
-    } catch (notificationError) {
-      console.error("푸시 알림 전송 실패:", notificationError);
-      // 푸시 알림 실패는 전체 프로세스를 중단시키지 않음
-    }
+    const firstOptionId = items[0]?.option_id;
+    const iconUrl = firstOptionId ? await getProductIconUrl(firstOptionId) : undefined;
+    await sendPushNotification({
+      title: type === "in" ? "입고 완료" : "출고 완료",
+      body: `${items.length}개 제품이 ${type === "in" ? "입고" : "출고"}되었습니다`,
+      icon: iconUrl,
+      tag: `receipt-${transaction.id}`,
+      data: {
+        type: "receipt",
+        transactionId: transaction.id,
+        receiptType: type,
+      },
+    });
 
     return NextResponse.json({ success: true, transaction_id: transaction.id });
   } catch (error) {

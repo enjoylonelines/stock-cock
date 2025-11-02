@@ -1,45 +1,9 @@
 import { supabase } from "@/lib/supabase";
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
-
-// 재고 업데이트 헬퍼 함수
-async function updateInventory(productOptionId: string, warehouseId: string, quantityChange: number) {
-  const { data: inventory, error: invError } = await supabase
-    .from("inventory")
-    .select("*")
-    .eq("product_option_id", productOptionId)
-    .eq("warehouse_id", warehouseId)
-    .maybeSingle();
-
-  if (invError) {
-    console.error("[INVENTORY SELECT ERROR]", invError);
-    throw invError;
-  }
-
-  const newQty = (inventory?.quantity ?? 0) + quantityChange;
-
-  if (inventory) {
-    const { error: updateError } = await supabase.from("inventory").update({ quantity: newQty }).eq("id", inventory.id);
-
-    if (updateError) {
-      console.error("[INVENTORY UPDATE ERROR]", updateError);
-      throw updateError;
-    }
-  } else {
-    const { error: insertError } = await supabase.from("inventory").insert([
-      {
-        product_option_id: productOptionId,
-        warehouse_id: warehouseId,
-        quantity: quantityChange,
-      },
-    ]);
-
-    if (insertError) {
-      console.error("[INVENTORY INSERT ERROR]", insertError);
-      throw insertError;
-    }
-  }
-}
+import { updateInventory } from "@/utils/inventory";
+import { sendPushNotification } from "@/services/push-notification";
+import { getProductIconUrl } from "@/utils/product-icon";
 
 type MoveItemInput = {
   quantity: number;
@@ -116,54 +80,18 @@ export async function POST(request: Request) {
     }
 
     // 푸시 알림 전송
-    try {
-      const notificationTitle = "재고 이동 완료";
-      const notificationBody = `${items.length}개 제품이 이동되었습니다`;
-      // 아이콘: 제품 이미지 시도 후 실패 시 기본값 사용
-      let iconUrl = "/icons/logo-192x192.png";
-      try {
-        const firstOptionId = items[0]?.option_id;
-        if (firstOptionId) {
-          const { data: optionRow, error: optionErr } = await supabase
-            .from("product_options")
-            .select("product_id")
-            .eq("id", firstOptionId)
-            .maybeSingle();
-
-          if (!optionErr && optionRow?.product_id) {
-            const { data: productRow, error: productErr } = await supabase
-              .from("products")
-              .select("image_url")
-              .eq("id", optionRow.product_id)
-              .maybeSingle();
-
-            if (!productErr && productRow?.image_url) {
-              iconUrl = productRow.image_url;
-            }
-          }
-        }
-      } catch (_) {}
-
-      await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/push/send`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: notificationTitle,
-          body: notificationBody,
-          icon: iconUrl,
-          tag: `move-${transaction.id}`,
-          data: {
-            type: "move",
-            transactionId: transaction.id,
-          },
-        }),
-      });
-    } catch (notificationError) {
-      console.error("푸시 알림 전송 실패:", notificationError);
-      // 푸시 알림 실패는 전체 프로세스를 중단시키지 않음
-    }
+    const firstOptionId = items[0]?.option_id;
+    const iconUrl = firstOptionId ? await getProductIconUrl(firstOptionId) : undefined;
+    await sendPushNotification({
+      title: "재고 이동 완료",
+      body: `${items.length}개 제품이 이동되었습니다`,
+      icon: iconUrl,
+      tag: `move-${transaction.id}`,
+      data: {
+        type: "move",
+        transactionId: transaction.id,
+      },
+    });
 
     return NextResponse.json({ success: true, transaction_id: transaction.id });
   } catch (error) {
