@@ -79,7 +79,7 @@ export default function ActivityLogDrawer() {
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && close()}>
-      <DrawerContent className="h-[80vh] flex flex-col" role="dialog" aria-modal="true">
+      <DrawerContent className="h-[80vh] flex flex-col max-w-3xl mx-auto" role="dialog" aria-modal="true">
         <DrawerHeader className="flex-shrink-0 py-0">
           <div className="flex justify-end">
             <Button variant="ghost" size="icon" className="flex justify-end w-8 h-8" onClick={close} aria-label="닫기">

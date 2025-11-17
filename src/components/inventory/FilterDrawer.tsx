@@ -110,7 +110,7 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="h-[90vh] flex flex-col" role="dialog" aria-modal="true">
+      <DrawerContent className="h-[90vh] flex flex-col max-w-3xl mx-auto" role="dialog" aria-modal="true">
         <DrawerHeader className="flex-shrink-0 py-0">
           <div className="flex justify-end">
             <Button variant="ghost" size="icon" className="flex justify-end w-8 h-8" onClick={onClose} aria-label="닫기">

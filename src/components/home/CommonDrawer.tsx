@@ -98,7 +98,7 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && closeDrawer()}>
-      <DrawerContent className="h-[90vh] flex flex-col" role="dialog" aria-modal="true">
+      <DrawerContent className="h-[90vh] flex flex-col max-w-3xl mx-auto" role="dialog" aria-modal="true">
         <DrawerHeader className="flex-shrink-0 py-0">
           <div className="flex justify-end">
             <Button variant="ghost" size="icon" className="flex justify-end w-8 h-8" onClick={closeDrawer} aria-label="닫기">
