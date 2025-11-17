@@ -51,7 +51,7 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
   const typeInfo = typeMap[data[0].type];
 
   return (
-    <div className="p-4 w-full bg-white">
+    <div className="p-4 mx-auto w-full max-w-3xl bg-white">
       {/* 헤더: 뒤로가기 + 제목 + 타입 뱃지 */}
       <div className="flex justify-start items-center mb-4">
         <span className={`px-3 py-1 rounded-full border text-sm font-semibold ${typeInfo.color} ${typeInfo.bg} ${typeInfo.border}`}>
