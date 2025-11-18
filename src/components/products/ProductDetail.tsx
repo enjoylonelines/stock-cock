@@ -40,7 +40,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
     .filter((group) => group.transactions.length > 0);
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex flex-col mx-auto max-w-3xl h-full bg-gray-50">
       {/* 상품 정보 */}
       <div className="flex-1 p-4 space-y-4">
         {/* 기본 정보 카드 */}
