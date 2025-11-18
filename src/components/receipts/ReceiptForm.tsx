@@ -192,9 +192,9 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
       {/* 하단 버튼 */}
       <div className="p-4 pb-8 border-t">
         <div className="flex gap-2">
-          <Button variant="outline" className="flex-1">
+          {/* <Button variant="outline" className="flex-1">
             임시 저장
-          </Button>
+          </Button> */}
           <Button
             onClick={handleSubmit}
             disabled={isLoading}
