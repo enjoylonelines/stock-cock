@@ -57,6 +57,7 @@ async function registerProduct(form: ProductFormInput) {
         buy_price: form.buy_price,
         sell_price: form.sell_price,
         unit_label: form.unit_label,
+        box_unit: form.box_unit,
         sku: form.sku,
       },
     ])
@@ -96,6 +97,7 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
   const [buyPrice, setBuyPrice] = useState("");
   const [sellPrice, setSellPrice] = useState("");
   const [initQuantity, setInitQuantity] = useState("");
+  const [boxUnit, setBoxUnit] = useState("");
   const [initLocation, setInitLocation] = useState("");
   const [weight, setWeight] = useState(WEIGHT_OPTIONS[0]);
   const { brands, addBrand, editBrand, deleteBrand } = useBrands();
@@ -176,6 +178,7 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
         buy_price: Number(buyPrice),
         sell_price: Number(sellPrice),
         unit_label: "g",
+        box_unit: boxUnit ? Number(boxUnit) : null,
         sku,
         image_url: finalImageUrl,
         quantity: +initQuantity || 0,
@@ -293,6 +296,22 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
               className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
             />
           </div>
+          <div className="flex gap-2 items-center py-2 w-full">
+            <h3 className="w-20 font-medium">박스 단위</h3>
+            <input
+              value={boxUnit}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9]/g, "");
+                setBoxUnit(val);
+              }}
+              placeholder="박스 1개당 수량"
+              type="number"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
+          </div>
+          <p className="text-xs text-gray-500">예: 박스당 12개면 12를 입력하세요.</p>
           <Button
             onClick={() => setActiveDrawer("category")}
             variant="ghost"
