@@ -3,6 +3,7 @@ export type ProductOptionView = {
   sku: string;
   weight: number;
   unit_label: string;
+  box_unit?: number | null;
   buy_price: number;
   sell_price: number;
   product_id: string;

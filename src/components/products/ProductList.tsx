@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
-import { formatNumber } from "@/lib/utils";
+import { formatNumber, formatBoxBreakdown } from "@/lib/utils";
 import Link from "next/link";
 import { ProductOptionView } from "@/types/product_option_view";
 import { useMemo } from "react";
@@ -62,7 +62,10 @@ export default function ProductList({ products }: ProductListProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      {filteredAndSortedProducts.map((product) => (
+      {filteredAndSortedProducts.map((product) => {
+        const boxSummary = formatBoxBreakdown(product.quantity, product.box_unit);
+
+        return (
         <Link key={product.product_option_id} href={`/products/${product.product_option_id}`}>
           <Card className="px-4 py-2 transition-colors bg-slate-50 hover:bg-slate-100">
             <CardContent className="p-0">
@@ -88,12 +91,16 @@ export default function ProductList({ products }: ProductListProps) {
                     <span>{product.brand_name}</span>
                   </div>
                 </div>
-                <div className="text-2xl font-semibold text-blue-600">{formatNumber(product.quantity)}</div>
+                <div className="text-right">
+                  <div className="text-2xl font-semibold text-blue-600">{formatNumber(product.quantity)}개</div>
+                  {boxSummary && <p className="mt-1 text-xs text-gray-500">{boxSummary}</p>}
+                </div>
               </div>
             </CardContent>
           </Card>
         </Link>
-      ))}
+        );
+      })}
     </div>
   );
 }

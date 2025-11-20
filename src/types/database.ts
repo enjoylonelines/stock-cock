@@ -36,6 +36,7 @@ export type ProductOption = {
   sku: string;
   weight: number;
   unit_label: string;
+  box_unit?: number | null;
   buy_price: number;
   sell_price: number;
   created_at: string;

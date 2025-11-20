@@ -9,6 +9,46 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat("ko-KR").format(value);
 }
 
+export function getBoxBreakdown(quantity?: number | null, boxUnit?: number | null) {
+  if (typeof quantity !== "number" || quantity < 0) {
+    return null;
+  }
+
+  const normalizedBoxUnit = typeof boxUnit === "number" && boxUnit > 1 ? Math.floor(boxUnit) : null;
+  if (!normalizedBoxUnit) {
+    return null;
+  }
+
+  return {
+    boxes: Math.floor(quantity / normalizedBoxUnit),
+    remainder: quantity % normalizedBoxUnit,
+    boxUnit: normalizedBoxUnit,
+  };
+}
+
+export function formatBoxBreakdown(quantity?: number | null, boxUnit?: number | null) {
+  const breakdown = getBoxBreakdown(quantity, boxUnit);
+  if (!breakdown) {
+    return "";
+  }
+
+  const { boxes, remainder } = breakdown;
+  const parts = [];
+
+  if (boxes > 0) {
+    parts.push(`${formatNumber(boxes)}박스`);
+  }
+  if (remainder > 0) {
+    parts.push(`${formatNumber(remainder)}개`);
+  }
+
+  if (parts.length === 0) {
+    return "0박스";
+  }
+
+  return parts.join(" + ");
+}
+
 // SKU 생성 함수
 function getInitials(str: string) {
   const CHO = [
