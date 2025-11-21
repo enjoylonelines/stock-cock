@@ -9,10 +9,15 @@ import ProductCreateForm from "../products/ProductCreateForm";
 import { useRef } from "react";
 import MoveForm from "../receipts/MoveForm";
 import AdjustForm from "../receipts/AdjustForm";
+import { useFormStateStore } from "@/store/formStateStore";
 
 export default function CommonDrawer({ children }: { children?: React.ReactNode }) {
   const { isOpen, currentForm, closeDrawer } = useDrawerStore();
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const resetProductForm = useFormStateStore((state) => state.resetProductForm);
+  const resetReceiptForm = useFormStateStore((state) => state.resetReceiptForm);
+  const resetMoveForm = useFormStateStore((state) => state.resetMoveForm);
+  const resetAdjustForm = useFormStateStore((state) => state.resetAdjustForm);
 
   const getFormTitle = () => {
     switch (currentForm) {
@@ -69,6 +74,32 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
     }
   };
 
+  const handleReset = () => {
+    switch (currentForm) {
+      case "product":
+        resetProductForm();
+        break;
+      case "receipt":
+        resetReceiptForm("in");
+        break;
+      case "issue":
+        resetReceiptForm("out");
+        break;
+      case "move":
+        resetMoveForm();
+        break;
+      case "adjust":
+        resetAdjustForm();
+        break;
+      default:
+        break;
+    }
+  };
+
+  const shouldShowResetButton = () => {
+    return ["product", "receipt", "issue", "move", "adjust"].includes(currentForm || "");
+  };
+
   const renderForm = () => {
     switch (currentForm) {
       case "receipt":
@@ -100,14 +131,21 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
     <Drawer open={isOpen} onOpenChange={(open) => !open && closeDrawer()}>
       <DrawerContent className="h-[90vh] flex flex-col max-w-3xl mx-auto" role="dialog" aria-modal="true">
         <DrawerHeader className="flex-shrink-0 py-0">
-          <div className="flex justify-end">
-            <Button variant="ghost" size="icon" className="flex justify-end w-8 h-8" onClick={closeDrawer} aria-label="닫기">
+          <div className="flex items-center justify-between py-2">
+            {shouldShowResetButton() ? (
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-gray-500" onClick={handleReset}>
+                초기화
+              </Button>
+            ) : (
+              <div />
+            )}
+            <Button variant="ghost" size="icon" className="w-8 h-8" onClick={closeDrawer} aria-label="닫기">
               <X className="size-7" />
             </Button>
           </div>
 
           <div
-            className={`flex items-center justify-between py-2 border-b-2 ${
+            className={`flex items-center py-2 border-b-2 ${
               currentForm === "receipt" ? "border-blue-400" : currentForm === "issue" ? "border-red-400" : "border-orange-400"
             }`}
           >

@@ -17,6 +17,7 @@ import { ko } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import { ProductOptionView } from "@/types/product_option_view";
 import { useUser } from "@/contexts/UserContext";
+import { useFormStateStore } from "@/store/formStateStore";
 
 export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out"; closeDrawer: () => void }) {
   const [isLocationViewVisible, setIsLocationViewVisible] = useState(false);
@@ -24,30 +25,29 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
   const [isProductViewVisible, setIsProductViewVisible] = useState(false);
   const [isMemoViewVisible, setIsMemoViewVisible] = useState(false);
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<string>("");
-  const [selectedSupplier, setSelectedSupplier] = useState<string>("");
-  const [selectedProducts, setSelectedProducts] = useState<ProductOptionView[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [memo, setMemo] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { locations, addLocation, editLocation, deleteLocation } = useLocations();
   const { suppliers, addSupplier, editSupplier, deleteSupplier } = useSuppliers();
   const { products } = useProducts();
   const router = useRouter();
   const user = useUser();
+  const receiptFormState = useFormStateStore((state) => state.receiptForms[mode]);
+  const updateReceiptForm = useFormStateStore((state) => state.updateReceiptForm);
+  const resetReceiptForm = useFormStateStore((state) => state.resetReceiptForm);
+  const { selectedLocation, selectedSupplier, selectedProducts, selectedDate, memo } = receiptFormState;
 
   const handleLocationSelect = (location: { id: string; name: string }) => {
-    setSelectedLocation(location.id);
+    updateReceiptForm(mode, { selectedLocation: location.id });
     setIsLocationViewVisible(false);
   };
 
   const handleSupplierSelect = (supplier: { id: string; name: string }) => {
-    setSelectedSupplier(supplier.id);
+    updateReceiptForm(mode, { selectedSupplier: supplier.id });
     setIsSupplierViewVisible(false);
   };
 
   const handleProductSelect = (list: ProductOptionView[]) => {
-    setSelectedProducts(list);
+    updateReceiptForm(mode, { selectedProducts: list });
     setIsProductViewVisible(false);
   };
 
@@ -56,7 +56,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
   };
 
   const handleDateSelect = (date: Date) => {
-    setSelectedDate(date);
+    updateReceiptForm(mode, { selectedDate: date });
   };
 
   const handleSubmit = async () => {
@@ -90,12 +90,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
         throw new Error("입고 처리 중 오류가 발생했습니다.");
       }
 
-      // 성공 시 폼 초기화
-      setSelectedLocation("");
-      setSelectedSupplier("");
-      setSelectedProducts([]);
-      setMemo("");
-      setSelectedDate(new Date());
+      resetReceiptForm(mode);
       closeDrawer();
 
       // /inventory로 replace
@@ -250,7 +245,12 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
 
       {/* 메모 입력 드로어 */}
       <DrawerView isVisible={isMemoViewVisible}>
-        <MemoView value={memo} onChange={setMemo} onBack={() => setIsMemoViewVisible(false)} onDone={handleMemoDone} />
+        <MemoView
+          value={memo}
+          onChange={(value) => updateReceiptForm(mode, { memo: value })}
+          onBack={() => setIsMemoViewVisible(false)}
+          onDone={handleMemoDone}
+        />
       </DrawerView>
     </div>
   );
