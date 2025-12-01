@@ -11,11 +11,15 @@ export default function SignUpForm() {
   const { requestPermission, subscribe } = usePushNotifications();
   const handledRef = useRef(false);
 
-  // 회원가입 성공 후 권한 요청 및 구독 처리 (한 번만 실행)
+  // 회원가입 성공 후 로그인 페이지로 리다이렉트 및 푸시 권한 요청 처리
   useEffect(() => {
     if (!formState?.success || handledRef.current) return;
     handledRef.current = true;
 
+    // 즉시 로그인 페이지로 리다이렉트
+    router.push("/auth/signin");
+
+    // 푸시 권한 요청 및 구독은 백그라운드에서 처리
     (async () => {
       try {
         const granted = await requestPermission();
@@ -24,12 +28,10 @@ export default function SignUpForm() {
         }
       } catch (e) {
         console.warn("푸시 권한/구독 시도 중 경고:", e);
-      } finally {
-        router.push("/auth/signin");
       }
     })();
     // 의존성은 성공 플래그만 사용하여 재실행 방지
-  }, [formState?.success]);
+  }, [formState?.success, router, requestPermission, subscribe]);
 
   return (
     <form action={formAction} className="space-y-4">

@@ -17,6 +17,7 @@ import { ko } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import { ProductOptionView } from "@/types/product_option_view";
 import { useUser } from "@/contexts/UserContext";
+import { useFormStateStore } from "@/store/formStateStore";
 
 export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
   const [isFromLocationViewVisible, setIsFromLocationViewVisible] = useState(false);
@@ -24,30 +25,29 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
   const [isProductViewVisible, setIsProductViewVisible] = useState(false);
   const [isMemoViewVisible, setIsMemoViewVisible] = useState(false);
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
-  const [fromLocation, setFromLocation] = useState<string>("");
-  const [toLocation, setToLocation] = useState<string>("");
-  const [selectedProducts, setSelectedProducts] = useState<ProductOptionView[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [memo, setMemo] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { locations, addLocation, editLocation, deleteLocation } = useLocations();
   const { products } = useProducts();
   const { inventories } = useInventories();
   const router = useRouter();
   const user = useUser();
+  const moveForm = useFormStateStore((state) => state.moveForm);
+  const updateMoveForm = useFormStateStore((state) => state.updateMoveForm);
+  const resetMoveForm = useFormStateStore((state) => state.resetMoveForm);
+  const { fromLocation, toLocation, selectedProducts, selectedDate, memo } = moveForm;
 
   const handleFromLocationSelect = (location: { id: string; name: string }) => {
-    setFromLocation(location.id);
+    updateMoveForm({ fromLocation: location.id });
     setIsFromLocationViewVisible(false);
   };
 
   const handleToLocationSelect = (location: { id: string; name: string }) => {
-    setToLocation(location.id);
+    updateMoveForm({ toLocation: location.id });
     setIsToLocationViewVisible(false);
   };
 
   const handleProductSelect = (list: ProductOptionView[]) => {
-    setSelectedProducts(list);
+    updateMoveForm({ selectedProducts: list });
     setIsProductViewVisible(false);
   };
 
@@ -56,7 +56,7 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
   };
 
   const handleDateSelect = (date: Date) => {
-    setSelectedDate(date);
+    updateMoveForm({ selectedDate: date });
   };
 
   const handleSubmit = async () => {
@@ -95,12 +95,7 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
         throw new Error("이동 처리 중 오류가 발생했습니다.");
       }
 
-      // 성공 시 폼 초기화
-      setFromLocation("");
-      setToLocation("");
-      setSelectedProducts([]);
-      setMemo("");
-      setSelectedDate(new Date());
+      resetMoveForm();
       closeDrawer();
 
       // /inventory로 replace
@@ -114,8 +109,7 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
   };
 
   const handleTemporarySave = () => {
-    // 임시 저장 로직 구현
-    alert("임시 저장되었습니다.");
+    alert("입력 값은 드로어를 닫아도 유지됩니다.");
   };
 
   // 출발지에 재고가 있는 제품만 필터링
@@ -269,7 +263,12 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
 
       {/* 메모 입력 드로어 */}
       <DrawerView isVisible={isMemoViewVisible}>
-        <MemoView value={memo} onChange={setMemo} onBack={() => setIsMemoViewVisible(false)} onDone={handleMemoDone} />
+        <MemoView
+          value={memo}
+          onChange={(value) => updateMoveForm({ memo: value })}
+          onBack={() => setIsMemoViewVisible(false)}
+          onDone={handleMemoDone}
+        />
       </DrawerView>
     </div>
   );
