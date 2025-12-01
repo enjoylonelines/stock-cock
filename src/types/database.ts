@@ -105,18 +105,6 @@ export type TransactionItem = {
   unit_price: number;
 };
 
-// Adjustment
-export type Adjustment = {
-  id: string;
-  product_option_id: string;
-  warehouse_id: string;
-  before_quantity: number;
-  after_quantity: number;
-  reason: string;
-  user_id: string;
-  created_at: string;
-};
-
 export type TransactionHistoryView = {
   transaction_id: string;
   type: "in" | "out" | "move" | "adjust";
