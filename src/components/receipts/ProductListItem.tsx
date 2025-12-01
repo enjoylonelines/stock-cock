@@ -22,7 +22,14 @@ export default function ProductListItem({ product, quantity, selected, onClick, 
     >
       {/* 제품 이미지 */}
       <div className="overflow-hidden relative w-12 h-12 bg-gray-100 rounded-lg shrink-0">
-        <Image src={product.image_url} alt={product.product_name} fill className="object-cover" />
+        <Image
+          src={product.image_url}
+          alt={product.product_name}
+          fill
+          className="object-cover"
+          loading="lazy"
+          sizes="48px"
+        />
       </div>
       {/* 제품 정보 */}
       <div className="flex-1 min-w-0">

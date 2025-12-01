@@ -4,11 +4,22 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } f
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDrawerStore } from "@/store/drawerStore";
-import ReceiptForm from "../receipts/ReceiptForm";
-import ProductCreateForm from "../products/ProductCreateForm";
-import { useRef } from "react";
-import MoveForm from "../receipts/MoveForm";
-import AdjustForm from "../receipts/AdjustForm";
+import { useRef, Suspense } from "react";
+import dynamic from "next/dynamic";
+
+// 동적 임포트로 코드 스플리팅
+const ReceiptForm = dynamic(() => import("../receipts/ReceiptForm"), {
+  loading: () => <div className="p-4">로딩 중...</div>,
+});
+const ProductCreateForm = dynamic(() => import("../products/ProductCreateForm"), {
+  loading: () => <div className="p-4">로딩 중...</div>,
+});
+const MoveForm = dynamic(() => import("../receipts/MoveForm"), {
+  loading: () => <div className="p-4">로딩 중...</div>,
+});
+const AdjustForm = dynamic(() => import("../receipts/AdjustForm"), {
+  loading: () => <div className="p-4">로딩 중...</div>,
+});
 
 export default function CommonDrawer({ children }: { children?: React.ReactNode }) {
   const { isOpen, currentForm, closeDrawer } = useDrawerStore();
@@ -72,13 +83,29 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
   const renderForm = () => {
     switch (currentForm) {
       case "receipt":
-        return <ReceiptForm mode="in" closeDrawer={closeDrawer} />;
+        return (
+          <Suspense fallback={<div className="p-4">로딩 중...</div>}>
+            <ReceiptForm mode="in" closeDrawer={closeDrawer} />
+          </Suspense>
+        );
       case "issue":
-        return <ReceiptForm mode="out" closeDrawer={closeDrawer} />;
+        return (
+          <Suspense fallback={<div className="p-4">로딩 중...</div>}>
+            <ReceiptForm mode="out" closeDrawer={closeDrawer} />
+          </Suspense>
+        );
       case "move":
-        return <MoveForm closeDrawer={closeDrawer} />;
+        return (
+          <Suspense fallback={<div className="p-4">로딩 중...</div>}>
+            <MoveForm closeDrawer={closeDrawer} />
+          </Suspense>
+        );
       case "adjust":
-        return <AdjustForm closeDrawer={closeDrawer} />;
+        return (
+          <Suspense fallback={<div className="p-4">로딩 중...</div>}>
+            <AdjustForm closeDrawer={closeDrawer} />
+          </Suspense>
+        );
       case "shortage":
         return <div>재고 부족 확인 폼</div>;
       case "inventory":
@@ -88,7 +115,11 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
       case "member":
         return <div>멤버 추가 폼</div>;
       case "product":
-        return <ProductCreateForm scrollRef={scrollRef} closeDrawer={closeDrawer} />;
+        return (
+          <Suspense fallback={<div className="p-4">로딩 중...</div>}>
+            <ProductCreateForm scrollRef={scrollRef} closeDrawer={closeDrawer} />
+          </Suspense>
+        );
       case "excel":
         return <div>엑셀 파일 업로드 폼</div>;
       default:

@@ -69,7 +69,14 @@ export default function ProductList({ products }: ProductListProps) {
               <div className="flex gap-4 items-center">
                 <div className="overflow-hidden relative flex-shrink-0 w-14 h-14 rounded-md bg-slate-200">
                   {product.image_url ? (
-                    <Image src={product.image_url} alt={product.product_name} fill className="object-cover" />
+                    <Image
+                      src={product.image_url}
+                      alt={product.product_name}
+                      fill
+                      className="object-cover"
+                      loading="lazy"
+                      sizes="56px"
+                    />
                   ) : (
                     <div className="w-full h-full bg-slate-200" />
                   )}

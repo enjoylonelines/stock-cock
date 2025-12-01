@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import useSWR, { mutate } from "swr";
 import { supabase } from "@/lib/supabase";
 
 interface Supplier {
@@ -6,62 +6,34 @@ interface Supplier {
   name: string;
 }
 
+const fetcher = async () => {
+  const { data, error } = await supabase.from("suppliers").select("*").order("name");
+  if (error) throw error;
+  return (data || []) as Supplier[];
+};
+
 export function useSuppliers() {
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // 초기 데이터 로드
-  useEffect(() => {
-    fetchSuppliers();
-  }, []);
-
-  const fetchSuppliers = async () => {
-    try {
-      const { data, error } = await supabase.from("suppliers").select("*").order("name");
-
-      if (error) throw error;
-      setSuppliers(data || []);
-    } catch (error) {
-      console.error("Error fetching suppliers:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data: suppliers = [], isLoading } = useSWR<Supplier[]>("suppliers", fetcher, {
+    revalidateOnFocus: false,
+  });
 
   const addSupplier = async (name: string) => {
-    try {
-      const { data, error } = await supabase.from("suppliers").insert({ name }).select().single();
-
-      if (error) throw error;
-      setSuppliers((prev) => [...prev, data]);
-    } catch (error) {
-      console.error("Error adding supplier:", error);
-      throw error;
-    }
+    const { data, error } = await supabase.from("suppliers").insert({ name }).select().single();
+    if (error) throw error;
+    await mutate("suppliers", (current: Supplier[] = []) => [...current, data], false);
+    return data;
   };
 
   const editSupplier = async (id: string, name: string) => {
-    try {
-      const { error } = await supabase.from("suppliers").update({ name }).eq("id", id);
-
-      if (error) throw error;
-      setSuppliers((prev) => prev.map((supplier) => (supplier.id === id ? { ...supplier, name } : supplier)));
-    } catch (error) {
-      console.error("Error editing supplier:", error);
-      throw error;
-    }
+    const { error } = await supabase.from("suppliers").update({ name }).eq("id", id);
+    if (error) throw error;
+    await mutate("suppliers", (current: Supplier[] = []) => current.map((supplier) => (supplier.id === id ? { ...supplier, name } : supplier)), false);
   };
 
   const deleteSupplier = async (id: string) => {
-    try {
-      const { error } = await supabase.from("suppliers").delete().eq("id", id);
-
-      if (error) throw error;
-      setSuppliers((prev) => prev.filter((supplier) => supplier.id !== id));
-    } catch (error) {
-      console.error("Error deleting supplier:", error);
-      throw error;
-    }
+    const { error } = await supabase.from("suppliers").delete().eq("id", id);
+    if (error) throw error;
+    await mutate("suppliers", (current: Supplier[] = []) => current.filter((supplier) => supplier.id !== id), false);
   };
 
   return {

@@ -1,19 +1,17 @@
-import { useState, useEffect } from "react";
+import useSWR from "swr";
 import { supabase } from "@/lib/supabase";
 import { Inventory } from "@/types/database";
 
-export function useInventories() {
-  const [inventories, setInventories] = useState<Inventory[]>([]);
+const fetcher = async () => {
+  const { data, error } = await supabase.from("inventory").select("*");
+  if (error) throw error;
+  return (data || []) as Inventory[];
+};
 
-  useEffect(() => {
-    const fetchInventories = async () => {
-      const { data, error } = await supabase.from("inventory").select("*");
-      if (!error && data) {
-        setInventories(data as Inventory[]);
-      }
-    };
-    fetchInventories();
-  }, []);
+export function useInventories() {
+  const { data: inventories = [] } = useSWR<Inventory[]>("inventories", fetcher, {
+    revalidateOnFocus: false,
+  });
 
   return { inventories };
 }
