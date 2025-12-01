@@ -131,7 +131,14 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
                 <div className="flex-shrink-0">
                   <div className="overflow-hidden relative w-12 h-12 rounded-md bg-slate-100">
                     {transaction.image_url ? (
-                      <Image src={transaction.image_url} alt={transaction.product_name} fill className="object-cover" />
+                      <Image
+                        src={transaction.image_url}
+                        alt={transaction.product_name}
+                        fill
+                        className="object-cover"
+                        loading="lazy"
+                        sizes="48px"
+                      />
                     ) : (
                       <div className="w-full h-full bg-slate-200" />
                     )}
