@@ -16,6 +16,7 @@ import Image from "next/image";
 import { useUser } from "@/contexts/UserContext";
 import { supabase } from "@/lib/supabase";
 import { generateSKU, generateUniqueFileName } from "@/lib/utils";
+import { useFormStateStore } from "@/store/formStateStore";
 
 const WEIGHT_OPTIONS = [350, 360, 400, 1000, 1400, 2400, 4000, 4200, 4300];
 
@@ -57,6 +58,7 @@ async function registerProduct(form: ProductFormInput) {
         buy_price: form.buy_price,
         sell_price: form.sell_price,
         unit_label: form.unit_label,
+        box_unit: form.box_unit,
         sku: form.sku,
       },
     ])
@@ -87,34 +89,43 @@ async function registerProduct(form: ProductFormInput) {
 }
 
 export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDrawer }: ProductCreateFormProps) {
-  // 상태
-  const [image, setImage] = useState<File | null>(null);
-  const [name, setName] = useState("");
-  const [barcode, setBarcode] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [brandId, setBrandId] = useState("");
-  const [buyPrice, setBuyPrice] = useState("");
-  const [sellPrice, setSellPrice] = useState("");
-  const [initQuantity, setInitQuantity] = useState("");
-  const [initLocation, setInitLocation] = useState("");
-  const [weight, setWeight] = useState(WEIGHT_OPTIONS[0]);
-  const { brands, addBrand, editBrand, deleteBrand } = useBrands();
   const [activeDrawer, setActiveDrawer] = useState<null | string>(null);
-  const [sku, setSKU] = useState("");
-  const [imagePath, setImagePath] = useState<string>("");
-  const [localPreviewUrl, setLocalPreviewUrl] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
   const { locations, addLocation, editLocation, deleteLocation } = useLocations();
   const { categories, addCategory, editCategory, deleteCategory } = useCategories();
+  const { brands, addBrand, editBrand, deleteBrand } = useBrands();
   const router = useRouter();
   const user = useUser();
+  const productForm = useFormStateStore((state) => state.productForm);
+  const updateProductForm = useFormStateStore((state) => state.updateProductForm);
+  const resetProductForm = useFormStateStore((state) => state.resetProductForm);
+  const {
+    imageFile,
+    imagePath,
+    localPreviewUrl,
+    name,
+    categoryId,
+    brandId,
+    buyPrice,
+    sellPrice,
+    initQuantity,
+    boxUnit,
+    initLocation,
+    weight,
+    sku,
+  } = productForm;
 
   // 옵션 중량 변경 시 SKU 자동 생성
   useEffect(() => {
     if (name && weight) {
-      setSKU(generateSKU(name, weight));
+      const nextSku = generateSKU(name, weight);
+      if (sku !== nextSku) {
+        updateProductForm({ sku: nextSku });
+      }
+    } else if (sku) {
+      updateProductForm({ sku: "" });
     }
-  }, [name, weight]);
+  }, [name, weight, sku, updateProductForm]);
 
   // 이미지 업로드 핸들러
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,11 +140,17 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
     // 고유한 파일명 생성
     const newFileName = generateUniqueFileName(file[0].name);
 
+    if (localPreviewUrl) {
+      URL.revokeObjectURL(localPreviewUrl);
+    }
+
     // 로컬 미리보기 URL 생성
     const localUrl = URL.createObjectURL(file[0]);
-    setLocalPreviewUrl(localUrl);
-    setImage(file[0]);
-    setImagePath(newFileName);
+    updateProductForm({
+      imageFile: file[0],
+      imagePath: newFileName,
+      localPreviewUrl: localUrl,
+    });
   };
 
   // 저장 핸들러
@@ -148,8 +165,8 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
 
       // 이미지가 있으면 Supabase Storage에 업로드
       let finalImageUrl = "";
-      if (image && imagePath) {
-        const { data, error } = await supabase.storage.from("image").upload(imagePath, image, {
+      if (imageFile && imagePath) {
+        const { data, error } = await supabase.storage.from("image").upload(imagePath, imageFile, {
           headers: {
             "x-upsert": "true",
           },
@@ -176,12 +193,17 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
         buy_price: Number(buyPrice),
         sell_price: Number(sellPrice),
         unit_label: "g",
+        box_unit: boxUnit ? Number(boxUnit) : null,
         sku,
         image_url: finalImageUrl,
         quantity: +initQuantity || 0,
         warehouse_id: initLocation, // initLocation은 위치 ID를 의미
       });
 
+      if (localPreviewUrl) {
+        URL.revokeObjectURL(localPreviewUrl);
+      }
+      resetProductForm();
       closeMainDrawer();
       router.push("/products");
     } catch (error: unknown) {
@@ -197,6 +219,15 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
 
   // DrawerView 닫기
   const closeDrawer = () => setActiveDrawer(null);
+
+  // localPreviewUrl 정리
+  useEffect(() => {
+    return () => {
+      if (localPreviewUrl) {
+        URL.revokeObjectURL(localPreviewUrl);
+      }
+    };
+  }, [localPreviewUrl]);
 
   return (
     <div className="flex relative flex-col h-full">
@@ -243,7 +274,7 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
             <h3 className="w-20 font-medium">제품명</h3>
             <input
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => updateProductForm({ name: e.target.value })}
               placeholder="제품명 입력"
               className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
             />
@@ -254,7 +285,7 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
               value={buyPrice}
               onChange={(e) => {
                 const val = e.target.value.replace(/[^0-9]/g, "");
-                setBuyPrice(val);
+                updateProductForm({ buyPrice: val });
               }}
               placeholder="구매가 입력"
               type="number"
@@ -269,7 +300,7 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
               value={sellPrice}
               onChange={(e) => {
                 const val = e.target.value.replace(/[^0-9]/g, "");
-                setSellPrice(val);
+                updateProductForm({ sellPrice: val });
               }}
               placeholder="판매가 입력"
               type="number"
@@ -284,7 +315,7 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
               value={initQuantity}
               onChange={(e) => {
                 const val = e.target.value.replace(/[^0-9]/g, "");
-                setInitQuantity(val);
+                updateProductForm({ initQuantity: val });
               }}
               placeholder="초기 수량 입력"
               type="number"
@@ -293,6 +324,22 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
               className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
             />
           </div>
+          <div className="flex gap-2 items-center py-2 w-full">
+            <h3 className="w-20 font-medium">박스 단위</h3>
+            <input
+              value={boxUnit}
+              onChange={(e) => {
+                const val = e.target.value.replace(/[^0-9]/g, "");
+                updateProductForm({ boxUnit: val });
+              }}
+              placeholder="박스 1개당 수량"
+              type="number"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
+          </div>
+          <p className="text-xs text-gray-500">예: 박스당 12개면 12를 입력하세요.</p>
           <Button
             onClick={() => setActiveDrawer("category")}
             variant="ghost"
@@ -359,7 +406,7 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
         <CommonInputView
           title="제품명 입력"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => updateProductForm({ name: e.target.value })}
           placeholder="제품명 입력"
           onClose={closeDrawer}
         />
@@ -380,7 +427,7 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
           items={categories}
           onBack={closeDrawer}
           onSelect={(item) => {
-            setCategoryId(item.id);
+            updateProductForm({ categoryId: item.id });
             closeDrawer();
           }}
           onAdd={addCategory}
@@ -394,7 +441,7 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
           items={brands}
           onBack={closeDrawer}
           onSelect={(item) => {
-            setBrandId(item.id);
+            updateProductForm({ brandId: item.id });
             closeDrawer();
           }}
           onAdd={addBrand}
@@ -408,7 +455,7 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
           items={locations}
           onBack={closeDrawer}
           onSelect={(item) => {
-            setInitLocation(item.id);
+            updateProductForm({ initLocation: item.id });
             closeDrawer();
           }}
           onAdd={addLocation}
@@ -429,7 +476,7 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
             <select
               value={weight}
               onChange={(e) => {
-                setWeight(Number(e.target.value));
+                updateProductForm({ weight: Number(e.target.value) });
                 closeDrawer();
               }}
               className="p-3 w-full text-lg rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"

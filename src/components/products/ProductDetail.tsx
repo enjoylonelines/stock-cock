@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { formatNumber } from "@/lib/utils";
+import { formatNumber, formatBoxBreakdown } from "@/lib/utils";
 import { useInventories } from "@/hooks/useInventories";
 import { useLocations } from "@/hooks/useWarehouses";
 import { useState } from "react";
@@ -24,6 +24,9 @@ export default function ProductDetail({ product }: ProductDetailProps) {
       .filter((i) => i.product_option_id === productId)
       .reduce((sum, i) => sum + (typeof i.quantity === "number" ? i.quantity : 0), 0);
 
+  const normalizeQuantity = (quantity: number | null) => (typeof quantity === "number" ? quantity : 0);
+  const totalStock = getTotalStock(product.product_option_id);
+  const totalBoxSummary = formatBoxBreakdown(totalStock, product.box_unit);
   const getLocationName = (locationId: string) => locations.find((loc) => loc.id === locationId)?.name || "알 수 없음";
 
   const productInventories = inventories.filter((i) => i.product_option_id === product.product_option_id);
@@ -66,7 +69,10 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                   <h2 className="text-lg font-semibold">{product.product_name}</h2>
                   <p className="text-sm text-gray-500">{""}</p>
                 </div>
-                <div className="text-xl font-bold text-blue-500">{formatNumber(getTotalStock(product.product_option_id))}</div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-blue-500">{formatNumber(totalStock)}개</div>
+                  {totalBoxSummary && <p className="mt-1 text-xs text-gray-500">{totalBoxSummary}</p>}
+                </div>
               </div>
               <div className="flex flex-wrap mt-2 text-sm text-gray-600">
                 <span>{formatNumber(product.sell_price)}원</span>
@@ -107,15 +113,23 @@ export default function ProductDetail({ product }: ProductDetailProps) {
             {filteredInventories.length === 0 ? (
               <div className="text-sm text-gray-400">재고 없음</div>
             ) : (
-              filteredInventories.map((inv) => (
-                <div key={inv.id} className="flex justify-between items-center p-4 w-full text-left">
-                  <div className="flex gap-2 items-center">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full" />
-                    <span>{getLocationName(inv.warehouse_id)}</span>
+              filteredInventories.map((inv) => {
+                const locationQuantity = normalizeQuantity(inv.quantity);
+                const boxSummary = formatBoxBreakdown(locationQuantity, product.box_unit);
+
+                return (
+                  <div key={inv.id} className="flex justify-between items-center p-4 w-full text-left">
+                    <div className="flex gap-2 items-center">
+                      <span className="w-2 h-2 bg-gray-400 rounded-full" />
+                      <span>{getLocationName(inv.warehouse_id)}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="block text-blue-500">{formatNumber(locationQuantity)}개</span>
+                      {boxSummary && <span className="text-xs text-gray-500">{boxSummary}</span>}
+                    </div>
                   </div>
-                  <span className="text-blue-500">{formatNumber(inv.quantity)}</span>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
