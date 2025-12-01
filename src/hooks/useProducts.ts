@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import useSWR from "swr";
 import { supabase } from "@/lib/supabase";
 import { ProductOptionView } from "@/types/product_option_view";
 
@@ -19,29 +19,21 @@ function groupProductsByOption(products: ProductOptionView[]) {
   return Object.values(map);
 }
 
+const fetcher = async () => {
+  const { data, error } = await supabase.from("product_option_inventory_view").select("*").order("product_name");
+  if (error) throw error;
+  return groupProductsByOption(data || []);
+};
+
 export function useProducts() {
-  const [products, setProducts] = useState<ProductOptionView[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      const { data, error } = await supabase.from("product_option_inventory_view").select("*").order("product_name");
-      if (error) throw error;
-      const groupedProducts = groupProductsByOption(data);
-      setProducts(groupedProducts);
-    } catch (error) {
-      console.error("Error fetching product options view:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { data: products = [], isLoading, error } = useSWR<ProductOptionView[]>("products", fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+  });
 
   return {
     products,
     isLoading,
+    error,
   };
 }

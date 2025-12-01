@@ -51,7 +51,14 @@ export default function ProductDetail({ product }: ProductDetailProps) {
           <div className="flex gap-4">
             <div className="overflow-hidden relative w-24 h-24 bg-gray-100 rounded-lg shrink-0">
               {product.image_url ? (
-                <Image src={product.image_url} alt={product.product_name} fill className="object-cover" />
+                <Image
+                  src={product.image_url}
+                  alt={product.product_name}
+                  fill
+                  className="object-cover"
+                  priority
+                  sizes="96px"
+                />
               ) : (
                 <div className="w-full h-full bg-gray-200" />
               )}

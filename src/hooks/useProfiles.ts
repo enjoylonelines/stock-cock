@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import useSWR, { mutate } from "swr";
 import { createClient } from "@/utils/supabase/client";
 
 interface Profile {
@@ -9,72 +9,40 @@ interface Profile {
   email?: string;
 }
 
-export function useProfiles() {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+const fetcher = async () => {
   const supabase = createClient();
+  const { data, error } = await supabase.from("profiles").select("id, name").order("name");
+  if (error) throw error;
+  return (data || []) as Profile[];
+};
 
-  const fetchProfiles = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase.from("profiles").select("id, name").order("name");
-
-      if (error) throw error;
-
-      setProfiles(data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "프로필을 불러오는데 실패했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
+export function useProfiles() {
+  const { data: profiles = [], isLoading: loading, error } = useSWR<Profile[]>("profiles", fetcher, {
+    revalidateOnFocus: false,
+  });
 
   const addProfile = async (name: string, email?: string) => {
-    try {
-      const { data, error } = await supabase.from("profiles").insert([{ name }]).select().single();
-
-      if (error) throw error;
-
-      setProfiles((prev) => [...prev, data]);
-      return data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "프로필 추가에 실패했습니다.");
-      throw err;
-    }
+    const supabase = createClient();
+    const { data, error } = await supabase.from("profiles").insert([{ name }]).select().single();
+    if (error) throw error;
+    await mutate("profiles", (current: Profile[] = []) => [...current, data], false);
+    return data;
   };
 
   const editProfile = async (id: string, name: string, email?: string) => {
-    try {
-      const { data, error } = await supabase.from("profiles").update({ name, email }).eq("id", id).select().single();
-
-      if (error) throw error;
-
-      setProfiles((prev) => prev.map((profile) => (profile.id === id ? data : profile)));
-      return data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "프로필 수정에 실패했습니다.");
-      throw err;
-    }
+    const supabase = createClient();
+    const { data, error } = await supabase.from("profiles").update({ name, email }).eq("id", id).select().single();
+    if (error) throw error;
+    await mutate("profiles", (current: Profile[] = []) => current.map((profile) => (profile.id === id ? data : profile)), false);
+    return data;
   };
 
   const deleteProfile = async (id: string) => {
-    try {
-      const { error } = await supabase.from("profiles").delete().eq("id", id);
-
-      if (error) throw error;
-
-      setProfiles((prev) => prev.filter((profile) => profile.id !== id));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "프로필 삭제에 실패했습니다.");
-      throw err;
-    }
+    const supabase = createClient();
+    const { error } = await supabase.from("profiles").delete().eq("id", id);
+    if (error) throw error;
+    await mutate("profiles", (current: Profile[] = []) => current.filter((profile) => profile.id !== id), false);
   };
-
-  useEffect(() => {
-    fetchProfiles();
-  }, [fetchProfiles]);
 
   return {
     profiles,
@@ -83,6 +51,6 @@ export function useProfiles() {
     addProfile,
     editProfile,
     deleteProfile,
-    refetch: fetchProfiles,
+    refetch: () => mutate("profiles"),
   };
 }

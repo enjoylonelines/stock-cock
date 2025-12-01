@@ -6,6 +6,7 @@ import { Metadata } from "next";
 import { createClient } from "@/utils/supabase/server";
 import { UserProvider } from "@/contexts/UserContext";
 import PushPermissionPrompt from "@/components/setting/PushPermissionPrompt";
+import { SWRProvider } from "@/components/providers/SWRProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,13 +33,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
 
       <UserProvider user={profile}>
-        <body className={`${inter.className} antialiased bg-slate-200`}>
-          <Header />
-          <main className="pt-14 pb-16 min-h-screen">{children}</main>
-          <Footer />
-          {/* 초기 접속 시 푸시 권한 요청 팝업 */}
-          <PushPermissionPrompt />
-        </body>
+        <SWRProvider>
+          <body className={`${inter.className} antialiased bg-slate-200`}>
+            <Header />
+            <main className="pt-14 pb-16 min-h-screen">{children}</main>
+            <Footer />
+            {/* 초기 접속 시 푸시 권한 요청 팝업 */}
+            <PushPermissionPrompt />
+          </body>
+        </SWRProvider>
       </UserProvider>
     </html>
   );
