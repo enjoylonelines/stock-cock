@@ -27,7 +27,7 @@ export default function DrawerView({ children, isVisible, className, scrollRef }
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ type: "tween", duration: 0.2 }}
-          className={cn("absolute inset-0 bg-background overflow-y-auto", className)}
+          className={cn("overflow-y-auto absolute inset-0 bg-background", className)}
         >
           {children}
         </motion.div>
