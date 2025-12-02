@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft, Filter, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ interface ProductSelectViewProps {
   products: ProductOptionView[];
   allowNegative?: boolean; // 조정 모드에서 음수 허용
   selectedLocationId?: string; // 조정 모드에서 현재 재고 확인용
+  initialSelectedProducts?: ProductOptionView[]; // 초기 선택된 제품 목록
 }
 
 export default function ProductSelectView({
@@ -22,13 +23,19 @@ export default function ProductSelectView({
   products,
   allowNegative = false,
   selectedLocationId,
+  initialSelectedProducts = [],
 }: ProductSelectViewProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProducts, setSelectedProducts] = useState<ProductOptionView[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<ProductOptionView[]>(initialSelectedProducts);
   const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductOptionView | null>(null);
   const [currentQuantity, setCurrentQuantity] = useState(0);
   const { inventories } = useInventories();
+
+  // initialSelectedProducts가 변경되면 로컬 state 업데이트
+  useEffect(() => {
+    setSelectedProducts(initialSelectedProducts);
+  }, [initialSelectedProducts]);
 
   const filteredProducts = products.filter((product) => product.product_name.toLowerCase().includes(searchTerm.toLowerCase()));
 

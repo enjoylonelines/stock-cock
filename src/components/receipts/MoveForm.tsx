@@ -258,7 +258,12 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
 
       {/* 제품 선택 드로어 */}
       <DrawerView isVisible={isProductViewVisible}>
-        <ProductSelectView products={availableProducts} onBack={() => setIsProductViewVisible(false)} onSelect={handleProductSelect} />
+        <ProductSelectView
+          products={availableProducts}
+          onBack={() => setIsProductViewVisible(false)}
+          onSelect={handleProductSelect}
+          initialSelectedProducts={selectedProducts}
+        />
       </DrawerView>
 
       {/* 메모 입력 드로어 */}
