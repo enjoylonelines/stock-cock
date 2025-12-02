@@ -205,6 +205,7 @@ export default function AdjustForm({ closeDrawer }: { closeDrawer: () => void })
           onSelect={handleProductSelect}
           allowNegative={true}
           selectedLocationId={selectedLocation}
+          initialSelectedProducts={selectedProducts}
         />
       </DrawerView>
 
