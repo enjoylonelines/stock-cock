@@ -41,13 +41,26 @@ export default function ProductSelectView({
 
   // 제품별 현재 재고 계산
   const getCurrentStock = (productOptionId: string) => {
-    if (!selectedLocationId) return 0;
-    return inventories.find((inv) => inv.product_option_id === productOptionId && inv.warehouse_id === selectedLocationId)?.quantity ?? 0;
+    if (selectedLocationId) {
+      // 특정 위치의 재고
+      return inventories.find((inv) => inv.product_option_id === productOptionId && inv.warehouse_id === selectedLocationId)?.quantity ?? 0;
+    }
+    // 전체 재고 (product.quantity는 모든 위치의 재고 합계)
+    const product = products.find((p) => p.product_option_id === productOptionId);
+    return product?.quantity ?? 0;
   };
+
   const handleProductClick = (product: ProductOptionView) => {
     setSelectedProduct(product);
     const existing = selectedProducts.find((p) => p.product_option_id === product.product_option_id);
-    setCurrentQuantity(existing ? existing.quantity ?? 0 : 0);
+    if (existing) {
+      // 이미 선택된 제품이 있으면 기존 수량 사용
+      setCurrentQuantity(existing.quantity ?? 0);
+    } else {
+      // 선택되지 않은 제품이면 재고 개수를 초기값으로 설정
+      const stock = getCurrentStock(product.product_option_id);
+      setCurrentQuantity(stock > 0 ? stock : 1); // 재고가 0이면 최소 1로 설정 (사용자가 직접 수정 가능)
+    }
     setQuantityDialogOpen(true);
   };
 
