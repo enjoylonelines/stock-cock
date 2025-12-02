@@ -7,6 +7,7 @@ import { useDrawerStore } from "@/store/drawerStore";
 
 import { useRef, Suspense } from "react";
 import dynamic from "next/dynamic";
+import { useFormStateStore } from "@/store/formStateStore";
 
 // 동적 임포트로 코드 스플리팅
 const ReceiptForm = dynamic(() => import("../receipts/ReceiptForm"), {
@@ -21,7 +22,6 @@ const MoveForm = dynamic(() => import("../receipts/MoveForm"), {
 const AdjustForm = dynamic(() => import("../receipts/AdjustForm"), {
   loading: () => <div className="p-4">로딩 중...</div>,
 });
-
 
 export default function CommonDrawer({ children }: { children?: React.ReactNode }) {
   const { isOpen, currentForm, closeDrawer } = useDrawerStore();
@@ -163,9 +163,9 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
     <Drawer open={isOpen} onOpenChange={(open) => !open && closeDrawer()}>
       <DrawerContent className="h-[90vh] flex flex-col max-w-3xl mx-auto" role="dialog" aria-modal="true">
         <DrawerHeader className="flex-shrink-0 py-0">
-          <div className="flex items-center justify-between py-2">
+          <div className="flex justify-between items-center py-2">
             {shouldShowResetButton() ? (
-              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-gray-500" onClick={handleReset}>
+              <Button variant="ghost" size="sm" className="px-2 h-7 text-xs text-gray-500" onClick={handleReset}>
                 초기화
               </Button>
             ) : (
