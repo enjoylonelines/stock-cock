@@ -8,6 +8,13 @@ import { useState } from "react";
 import { ProductOptionView } from "@/types/product_option_view";
 import { useInventoryHistory } from "@/hooks/useInventoryHistory";
 import InventoryList from "@/components/inventory/InventoryList";
+import { Button } from "@/components/ui/button";
+import { Edit } from "lucide-react";
+import { useDrawerStore } from "@/store/drawerStore";
+import { useFormStateStore } from "@/store/formStateStore";
+import { supabase } from "@/lib/supabase";
+import { useCategories } from "@/hooks/useCategories";
+import { useBrands } from "@/hooks/useBrands";
 
 interface ProductDetailProps {
   product: ProductOptionView;
@@ -18,6 +25,10 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   const { locations } = useLocations();
   const { grouped } = useInventoryHistory();
   const [showOnlyStocked, setShowOnlyStocked] = useState(false);
+  const { openDrawer } = useDrawerStore();
+  const { updateProductForm, resetProductForm } = useFormStateStore();
+  const { categories } = useCategories();
+  const { brands } = useBrands();
 
   const getTotalStock = (productId: string) =>
     inventories
@@ -42,6 +53,53 @@ export default function ProductDetail({ product }: ProductDetailProps) {
     }))
     .filter((group) => group.transactions.length > 0);
 
+  const handleEdit = async () => {
+    try {
+      // products 테이블에서 brand_id, category_id 가져오기
+      const { data: productData, error } = await supabase
+        .from("products")
+        .select("category_id, brand_id, image_url")
+        .eq("id", product.product_id)
+        .single();
+
+      if (error) {
+        alert("제품 정보를 불러오는데 실패했습니다.");
+        return;
+      }
+
+      // category와 brand를 이름으로 찾기
+      const category = categories.find((c) => c.id === productData.category_id);
+      const brand = brands.find((b) => b.id === productData.brand_id);
+
+      // 중량 단위 결정 (1000g 이상이면 kg)
+      const weightUnit: "g" | "kg" = product.weight >= 1000 ? "kg" : "g";
+
+      // formStateStore에 제품 데이터 로드
+      resetProductForm(); // 먼저 초기화
+      updateProductForm({
+        name: product.product_name,
+        categoryId: productData.category_id,
+        brandId: productData.brand_id,
+        buyPrice: product.buy_price.toString(),
+        sellPrice: product.sell_price.toString(),
+        weight: product.weight,
+        weightUnit,
+        boxUnit: product.box_unit ? product.box_unit.toString() : "",
+        sku: product.sku,
+        imagePath: product.image_url || "",
+        localPreviewUrl: product.image_url || "",
+        editingProductId: product.product_id,
+        editingProductOptionId: product.product_option_id,
+      });
+
+      // 수정 모드로 드로어 열기
+      openDrawer("product-edit");
+    } catch (error) {
+      console.error("제품 수정 오류:", error);
+      alert("제품 정보를 불러오는데 실패했습니다.");
+    }
+  };
+
   return (
     <div className="flex flex-col mx-auto max-w-3xl h-full bg-gray-50">
       {/* 상품 정보 */}
@@ -51,22 +109,20 @@ export default function ProductDetail({ product }: ProductDetailProps) {
           <div className="flex gap-4">
             <div className="overflow-hidden relative w-24 h-24 bg-gray-100 rounded-lg shrink-0">
               {product.image_url ? (
-                <Image
-                  src={product.image_url}
-                  alt={product.product_name}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="96px"
-                />
+                <Image src={product.image_url} alt={product.product_name} fill className="object-cover" priority sizes="96px" />
               ) : (
                 <div className="w-full h-full bg-gray-200" />
               )}
             </div>
             <div className="flex-1">
               <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-lg font-semibold">{product.product_name}</h2>
+                <div className="flex-1">
+                  <div className="flex gap-2 items-center">
+                    <h2 className="text-lg font-semibold">{product.product_name}</h2>
+                    <Button variant="ghost" size="icon" className="w-8 h-8" onClick={handleEdit}>
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  </div>
                   <p className="text-sm text-gray-500">{""}</p>
                 </div>
                 <div className="text-right">

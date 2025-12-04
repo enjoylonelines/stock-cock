@@ -10,6 +10,7 @@ export type FormType =
   | "history"
   | "member"
   | "product"
+  | "product-edit"
   | "excel"
   | null;
 type ReceiptStep = "main" | "location" | "supplier" | "products" | "memo" | null;

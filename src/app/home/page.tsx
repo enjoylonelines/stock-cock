@@ -3,7 +3,6 @@
 import StatsBox from "@/components/home/StatsBox";
 import SearchInput from "@/components/home/SearchInput";
 import ActionCards from "@/components/home/ActionCards";
-import CommonDrawer from "@/components/home/CommonDrawer";
 import HomeSkeleton from "@/components/home/HomeSkeleton";
 import { useStats } from "@/hooks/useStats";
 import { useState, useEffect } from "react";
@@ -24,7 +23,6 @@ export default function Home() {
       <StatsBox />
       {/* <SearchInput /> */}
       <ActionCards />
-      <CommonDrawer />
     </div>
   );
 }
