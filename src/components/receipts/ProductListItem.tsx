@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { formatNumber } from "@/lib/utils";
+import { formatNumber, formatWeightDisplay } from "@/lib/utils";
 import { ProductOptionView } from "@/types/product_option_view";
 
 interface ProductListItemProps {
@@ -22,19 +22,17 @@ export default function ProductListItem({ product, quantity, selected, onClick, 
     >
       {/* 제품 이미지 */}
       <div className="overflow-hidden relative w-12 h-12 bg-gray-100 rounded-lg shrink-0">
-        <Image
-          src={product.image_url}
-          alt={product.product_name}
-          fill
-          className="object-cover"
-          loading="lazy"
-          sizes="48px"
-        />
+        <Image src={product.image_url} alt={product.product_name} fill className="object-cover" loading="lazy" sizes="48px" />
       </div>
       {/* 제품 정보 */}
       <div className="flex-1 min-w-0">
         <div className="flex gap-2 justify-between items-center">
-          <h3 className="font-medium truncate">{product.product_name}</h3>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium truncate">
+              {product.product_name}
+              {product.weight > 0 && <span className="ml-2 text-gray-500">{formatWeightDisplay(product.weight)}</span>}
+            </h3>
+          </div>
           <div className="text-center shrink-0">
             {quantity !== undefined ? (
               <p
