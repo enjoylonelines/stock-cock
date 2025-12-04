@@ -15,34 +15,8 @@ import { Brand, Category, Warehouse } from "@/types/database";
 import Image from "next/image";
 import { useUser } from "@/contexts/UserContext";
 import { supabase } from "@/lib/supabase";
-import { generateSKU, generateUniqueFileName } from "@/lib/utils";
+import { generateSKU, generateUniqueFileName, formatWeightDisplay } from "@/lib/utils";
 import { useFormStateStore } from "@/store/formStateStore";
-
-// 중량을 읽기 쉽게 표시하는 함수
-const formatWeightDisplay = (weightInGrams: number, preferredUnit?: "g" | "kg"): string => {
-  if (!weightInGrams) return "중량 선택";
-
-  // 선호하는 단위가 있으면 그것을 사용
-  if (preferredUnit === "kg") {
-    const kgValue = weightInGrams / 1000;
-    if (kgValue % 1 === 0) {
-      return `${kgValue}kg`;
-    }
-    return `${parseFloat(kgValue.toFixed(2))}kg`;
-  } else if (preferredUnit === "g") {
-    return `${weightInGrams}g`;
-  }
-
-  // 선호하는 단위가 없으면 기본 규칙 사용: 1000g 이상이면 kg로 표시
-  if (weightInGrams >= 1000) {
-    const kgValue = weightInGrams / 1000;
-    if (kgValue % 1 === 0) {
-      return `${kgValue}kg`;
-    }
-    return `${parseFloat(kgValue.toFixed(2))}kg`;
-  }
-  return `${weightInGrams}g`;
-};
 interface ProductCreateFormProps {
   scrollRef?: RefObject<HTMLDivElement | null>;
   closeDrawer: () => void;
