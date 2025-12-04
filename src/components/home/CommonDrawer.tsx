@@ -35,6 +35,8 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
     switch (currentForm) {
       case "product":
         return "제품 등록";
+      case "product-edit":
+        return "제품 수정";
       case "excel":
         return "엑셀 파일로 등록";
       case "receipt":
@@ -79,6 +81,8 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
         return "새로운 팀원을 추가합니다.";
       case "product":
         return "새로운 제품을 등록합니다.";
+      case "product-edit":
+        return "제품 정보를 수정합니다.";
       case "excel":
         return "엑셀 파일을 업로드하여 여러 제품을 한 번에 등록합니다.";
       default:
@@ -149,7 +153,13 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
       case "product":
         return (
           <Suspense fallback={<div className="p-4">로딩 중...</div>}>
-            <ProductCreateForm scrollRef={scrollRef} closeDrawer={closeDrawer} />
+            <ProductCreateForm scrollRef={scrollRef} closeDrawer={closeDrawer} mode="create" />
+          </Suspense>
+        );
+      case "product-edit":
+        return (
+          <Suspense fallback={<div className="p-4">로딩 중...</div>}>
+            <ProductCreateForm scrollRef={scrollRef} closeDrawer={closeDrawer} mode="edit" />
           </Suspense>
         );
       case "excel":

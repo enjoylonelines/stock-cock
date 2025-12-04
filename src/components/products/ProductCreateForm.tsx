@@ -20,6 +20,9 @@ import { useFormStateStore } from "@/store/formStateStore";
 interface ProductCreateFormProps {
   scrollRef?: RefObject<HTMLDivElement | null>;
   closeDrawer: () => void;
+  mode?: "create" | "edit";
+  productId?: string;
+  productOptionId?: string;
 }
 
 type ProductFormInput = Insertable<Product> & Insertable<ProductOption> & { warehouse_id: string; quantity: number };
@@ -83,6 +86,42 @@ async function registerProduct(form: ProductFormInput) {
   }
 
   return { product, option, inventory };
+}
+
+async function updateProduct(productId: string, productOptionId: string, form: Omit<ProductFormInput, "warehouse_id" | "quantity">) {
+  // 1. products 테이블 업데이트
+  const { error: productError } = await supabase
+    .from("products")
+    .update({
+      name: form.name,
+      category_id: form.category_id,
+      brand_id: form.brand_id,
+      image_url: form.image_url,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", productId);
+
+  if (productError) {
+    throw new Error("제품 업데이트 실패: " + productError.message);
+  }
+
+  // 2. product_options 테이블 업데이트
+  const { error: optionError } = await supabase
+    .from("product_options")
+    .update({
+      weight: form.weight,
+      buy_price: form.buy_price,
+      sell_price: form.sell_price,
+      unit_label: form.unit_label,
+      box_unit: form.box_unit,
+      sku: form.sku,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", productOptionId);
+
+  if (optionError) {
+    throw new Error("옵션 업데이트 실패: " + optionError.message);
+  }
 }
 
 // 중량 선택 컴포넌트
@@ -270,7 +309,13 @@ const WeightPickerView = ({
   );
 };
 
-export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDrawer }: ProductCreateFormProps) {
+export default function ProductCreateForm({
+  scrollRef,
+  closeDrawer: closeMainDrawer,
+  mode = "create",
+  productId,
+  productOptionId,
+}: ProductCreateFormProps) {
   const [activeDrawer, setActiveDrawer] = useState<null | string>(null);
   const [isUploading, setIsUploading] = useState(false);
   const { locations, addLocation, editLocation, deleteLocation } = useLocations();
@@ -296,7 +341,13 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
     weight,
     weightUnit,
     sku,
+    editingProductId,
+    editingProductOptionId,
   } = productForm;
+
+  // 수정 모드일 때 formStateStore에서 ID 사용
+  const finalProductId = productId || editingProductId;
+  const finalProductOptionId = productOptionId || editingProductOptionId;
 
   // 옵션 중량 변경 시 SKU 자동 생성
   useEffect(() => {
@@ -343,11 +394,16 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
       return;
     }
 
+    if (mode === "edit" && (!finalProductId || !finalProductOptionId)) {
+      alert("제품 ID가 없습니다.");
+      return;
+    }
+
     try {
       setIsUploading(true);
 
       // 이미지가 있으면 Supabase Storage에 업로드
-      let finalImageUrl = "";
+      let finalImageUrl = imagePath && !imageFile ? imagePath : ""; // 수정 모드에서 이미지가 변경되지 않았으면 기존 URL 사용
       if (imageFile && imagePath) {
         const { data, error } = await supabase.storage.from("image").upload(imagePath, imageFile, {
           headers: {
@@ -367,28 +423,52 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
         finalImageUrl = urlData.publicUrl;
       }
 
-      // 제품 등록
-      await registerProduct({
-        name,
-        category_id: categoryId,
-        brand_id: brandId,
-        weight,
-        buy_price: Number(buyPrice),
-        sell_price: Number(sellPrice),
-        unit_label: "g",
-        box_unit: boxUnit ? Number(boxUnit) : null,
-        sku,
-        image_url: finalImageUrl,
-        quantity: +initQuantity || 0,
-        warehouse_id: initLocation, // initLocation은 위치 ID를 의미
-      });
+      if (mode === "edit") {
+        // 제품 업데이트
+        await updateProduct(finalProductId!, finalProductOptionId!, {
+          name,
+          category_id: categoryId,
+          brand_id: brandId,
+          weight,
+          buy_price: Number(buyPrice),
+          sell_price: Number(sellPrice),
+          unit_label: "g",
+          box_unit: boxUnit ? Number(boxUnit) : null,
+          sku,
+          image_url: finalImageUrl,
+        });
 
-      if (localPreviewUrl) {
-        URL.revokeObjectURL(localPreviewUrl);
+        if (localPreviewUrl && imageFile) {
+          URL.revokeObjectURL(localPreviewUrl);
+        }
+        resetProductForm();
+        closeMainDrawer();
+        router.refresh(); // 데이터 새로고침
+        router.push(`/products/${finalProductOptionId}`);
+      } else {
+        // 제품 등록
+        await registerProduct({
+          name,
+          category_id: categoryId,
+          brand_id: brandId,
+          weight,
+          buy_price: Number(buyPrice),
+          sell_price: Number(sellPrice),
+          unit_label: "g",
+          box_unit: boxUnit ? Number(boxUnit) : null,
+          sku,
+          image_url: finalImageUrl,
+          quantity: +initQuantity || 0,
+          warehouse_id: initLocation, // initLocation은 위치 ID를 의미
+        });
+
+        if (localPreviewUrl) {
+          URL.revokeObjectURL(localPreviewUrl);
+        }
+        resetProductForm();
+        closeMainDrawer();
+        router.push("/products");
       }
-      resetProductForm();
-      closeMainDrawer();
-      router.push("/products");
     } catch (error: unknown) {
       if (error instanceof Error) {
         alert(error.message);
@@ -492,21 +572,25 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
               className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
             />
           </div>
-          <div className="flex gap-2 items-center py-2 w-full">
-            <h3 className="w-20 font-medium">초기수량</h3>
-            <input
-              value={initQuantity}
-              onChange={(e) => {
-                const val = e.target.value.replace(/[^0-9]/g, "");
-                updateProductForm({ initQuantity: val });
-              }}
-              placeholder="초기 수량 입력"
-              type="number"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
-            />
-          </div>
+          {mode === "create" && (
+            <>
+              <div className="flex gap-2 items-center py-2 w-full">
+                <h3 className="w-20 font-medium">초기수량</h3>
+                <input
+                  value={initQuantity}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, "");
+                    updateProductForm({ initQuantity: val });
+                  }}
+                  placeholder="초기 수량 입력"
+                  type="number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
+                />
+              </div>
+            </>
+          )}
           <div className="flex gap-2 items-center py-2 w-full">
             <h3 className="w-20 font-medium">박스 단위</h3>
             <input
@@ -559,18 +643,20 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
-          <Button
-            onClick={() => setActiveDrawer("initLocation")}
-            variant="ghost"
-            className="flex justify-between items-center py-2 w-full"
-            size="none"
-          >
-            <div className="flex justify-between w-full">
-              <h3 className="font-medium">위치</h3>
-              <p className="text-sm text-gray-500">{locations.find((l) => l.id === initLocation)?.name || "위치 선택"}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </Button>
+          {mode === "create" && (
+            <Button
+              onClick={() => setActiveDrawer("initLocation")}
+              variant="ghost"
+              className="flex justify-between items-center py-2 w-full"
+              size="none"
+            >
+              <div className="flex justify-between w-full">
+                <h3 className="font-medium">위치</h3>
+                <p className="text-sm text-gray-500">{locations.find((l) => l.id === initLocation)?.name || "위치 선택"}</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </Button>
+          )}
         </div>
       </div>
       {/* 하단 버튼 */}
@@ -580,7 +666,7 @@ export default function ProductCreateForm({ scrollRef, closeDrawer: closeMainDra
           onClick={handleSave}
           disabled={isUploading}
         >
-          {isUploading ? "저장 중..." : "저장"}
+          {isUploading ? "저장 중..." : mode === "edit" ? "수정 완료" : "저장"}
         </Button>
       </div>
 

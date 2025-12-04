@@ -7,6 +7,7 @@ import { createClient } from "@/utils/supabase/server";
 import { UserProvider } from "@/contexts/UserContext";
 import PushPermissionPrompt from "@/components/setting/PushPermissionPrompt";
 import { SWRProvider } from "@/components/providers/SWRProvider";
+import CommonDrawer from "@/components/home/CommonDrawer";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -40,6 +41,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Footer />
             {/* 초기 접속 시 푸시 권한 요청 팝업 */}
             <PushPermissionPrompt />
+            {/* 전역 드로어 - 모든 페이지에서 사용 가능 */}
+            <CommonDrawer />
           </body>
         </SWRProvider>
       </UserProvider>

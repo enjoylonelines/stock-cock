@@ -67,6 +67,8 @@ export interface ProductFormState {
   weight: number;
   weightUnit: "g" | "kg";
   sku: string;
+  editingProductId?: string;
+  editingProductOptionId?: string;
 }
 
 const createDefaultProductFormState = (): ProductFormState => ({
