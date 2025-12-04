@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { ProductOptionView } from "@/types/product_option_view";
 
 export type ReceiptMode = "in" | "out";
-
+const initialWeight = 1200;
 // localStorage 키
 const STORAGE_KEYS = {
   PRODUCT_FORM: "formState:productForm",
@@ -65,6 +65,7 @@ export interface ProductFormState {
   boxUnit: string;
   initLocation: string;
   weight: number;
+  weightUnit: "g" | "kg";
   sku: string;
 }
 
@@ -81,7 +82,8 @@ const createDefaultProductFormState = (): ProductFormState => ({
   initQuantity: "",
   boxUnit: "",
   initLocation: "",
-  weight: 350,
+  weight: initialWeight,
+  weightUnit: "g" as const,
   sku: "",
 });
 
