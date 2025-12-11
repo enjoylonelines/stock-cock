@@ -40,7 +40,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <main className="pt-14 pb-16 min-h-screen">{children}</main>
             <Footer />
             {/* 초기 접속 시 푸시 권한 요청 팝업 */}
-            <PushPermissionPrompt />
+            {/* <PushPermissionPrompt /> */}
             {/* 전역 드로어 - 모든 페이지에서 사용 가능 */}
             <CommonDrawer />
           </body>
