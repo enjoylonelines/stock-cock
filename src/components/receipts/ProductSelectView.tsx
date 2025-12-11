@@ -30,6 +30,7 @@ export default function ProductSelectView({
   const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductOptionView | null>(null);
   const [currentQuantity, setCurrentQuantity] = useState(0);
+  const [initialQuantity, setInitialQuantity] = useState(0); // 모달이 열릴 때의 초기 수량 저장
   const { inventories } = useInventories();
 
   // initialSelectedProducts가 변경되면 로컬 state 업데이트
@@ -53,14 +54,16 @@ export default function ProductSelectView({
   const handleProductClick = (product: ProductOptionView) => {
     setSelectedProduct(product);
     const existing = selectedProducts.find((p) => p.product_option_id === product.product_option_id);
+    let initialQty = 0;
     if (existing) {
       // 이미 선택된 제품이 있으면 기존 수량 사용
-      setCurrentQuantity(existing.quantity ?? 0);
+      initialQty = existing.quantity ?? 0;
     } else {
-      // 선택되지 않은 제품이면 재고 개수를 초기값으로 설정
-      const stock = getCurrentStock(product.product_option_id);
-      setCurrentQuantity(stock > 0 ? stock : 1); // 재고가 0이면 최소 1로 설정 (사용자가 직접 수정 가능)
+      // 선택되지 않은 제품이면 0으로 초기화 (추가할 수량)
+      initialQty = 0;
     }
+    setCurrentQuantity(initialQty);
+    setInitialQuantity(initialQty); // 초기 수량 저장
     setQuantityDialogOpen(true);
   };
 
@@ -77,6 +80,14 @@ export default function ProductSelectView({
       }
       return [...prev, { ...product, quantity }];
     });
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      // 모달이 닫힐 때 적용하지 않았으면 원래 수량으로 되돌리기
+      setCurrentQuantity(initialQuantity);
+    }
+    setQuantityDialogOpen(open);
   };
 
   const isSelected = (productOptionId: string) => {
@@ -153,7 +164,7 @@ export default function ProductSelectView({
         quantity={currentQuantity}
         setQuantity={setCurrentQuantity}
         open={quantityDialogOpen}
-        onOpenChange={setQuantityDialogOpen}
+        onOpenChange={handleDialogOpenChange}
         product={selectedProduct}
         onConfirm={handleQuantityConfirm}
         allowNegative={allowNegative}
