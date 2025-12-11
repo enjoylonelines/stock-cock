@@ -26,7 +26,11 @@ const fetcher = async () => {
 };
 
 export function useProducts() {
-  const { data: products = [], isLoading, error } = useSWR<ProductOptionView[]>("products", fetcher, {
+  const {
+    data: products = [],
+    isLoading,
+    error,
+  } = useSWR<ProductOptionView[]>("products", fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
   });
@@ -48,19 +52,19 @@ export function useProduct(productOptionId: string | null) {
       .order("product_name")
       .limit(1)
       .single();
-    
+
     if (error) throw error;
     return data as ProductOptionView;
   };
 
-  const { data: product, isLoading, error } = useSWR<ProductOptionView>(
-    productOptionId ? [`product`, productOptionId] : null,
-    ([, id]) => fetcher(id),
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-    }
-  );
+  const {
+    data: product,
+    isLoading,
+    error,
+  } = useSWR<ProductOptionView>(productOptionId ? [`product`, productOptionId] : null, ([, id]: [string, string]) => fetcher(id), {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+  });
 
   return {
     product,
