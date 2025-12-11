@@ -12,6 +12,8 @@ interface ProductListItemProps {
 }
 
 export default function ProductListItem({ product, quantity, selected, onClick, currentStock }: ProductListItemProps) {
+  const hasImage = product.image_url && product.image_url.trim() !== "";
+
   return (
     <button
       type="button"
@@ -21,8 +23,14 @@ export default function ProductListItem({ product, quantity, selected, onClick, 
       onClick={onClick}
     >
       {/* 제품 이미지 */}
-      <div className="overflow-hidden relative w-12 h-12 bg-gray-100 rounded-lg shrink-0">
-        <Image src={product.image_url} alt={product.product_name} fill className="object-cover" loading="lazy" sizes="48px" />
+      <div className="flex overflow-hidden relative justify-center items-center w-12 h-12 bg-gray-100 rounded-lg shrink-0">
+        {hasImage ? (
+          <Image src={product.image_url} alt={product.product_name} fill className="object-cover" loading="lazy" sizes="48px" />
+        ) : (
+          <div className="flex justify-center items-center w-full h-full text-xs font-medium text-gray-400">
+            {product.product_name.charAt(0).toUpperCase()}
+          </div>
+        )}
       </div>
       {/* 제품 정보 */}
       <div className="flex-1 min-w-0">
