@@ -3,7 +3,7 @@ import Image from "next/image";
 import { formatNumber, formatBoxBreakdown } from "@/lib/utils";
 import Link from "next/link";
 import { ProductOptionView } from "@/types/product_option_view";
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
 import { useProductSortStore } from "@/store/productSortStore";
 
@@ -11,7 +11,7 @@ type ProductListProps = {
   products: ProductOptionView[];
 };
 
-export default function ProductList({ products }: ProductListProps) {
+const ProductList = memo(function ProductList({ products }: ProductListProps) {
   const { filters } = useProductFilterDrawerStore();
   const { sortOption } = useProductSortStore();
 
@@ -106,4 +106,8 @@ export default function ProductList({ products }: ProductListProps) {
       })}
     </div>
   );
-}
+});
+
+ProductList.displayName = "ProductList";
+
+export default ProductList;

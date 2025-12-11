@@ -37,3 +37,34 @@ export function useProducts() {
     error,
   };
 }
+
+// 개별 제품만 가져오는 hook (성능 최적화)
+export function useProduct(productOptionId: string | null) {
+  const fetcher = async (id: string) => {
+    const { data, error } = await supabase
+      .from("product_option_inventory_view")
+      .select("*")
+      .eq("product_option_id", id)
+      .order("product_name")
+      .limit(1)
+      .single();
+    
+    if (error) throw error;
+    return data as ProductOptionView;
+  };
+
+  const { data: product, isLoading, error } = useSWR<ProductOptionView>(
+    productOptionId ? [`product`, productOptionId] : null,
+    ([, id]) => fetcher(id),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+    }
+  );
+
+  return {
+    product,
+    isLoading,
+    error,
+  };
+}

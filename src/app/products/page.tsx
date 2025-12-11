@@ -7,17 +7,27 @@ import ProductList from "@/components/products/ProductList";
 import ProductListSkeleton from "@/components/products/ProductListSkeleton";
 import { useProducts } from "@/hooks/useProducts";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export default function ProductsPage() {
   const { products, isLoading } = useProducts();
   const { filters, setFilters } = useProductFilterDrawerStore();
   const [searchInput, setSearchInput] = useState(filters.searchQuery || "");
 
-  const handleSearchChange = (value: string) => {
+  // Debounce 검색 입력
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInput !== filters.searchQuery) {
+        setFilters({ ...filters, searchQuery: searchInput });
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchInput, filters, setFilters]);
+
+  const handleSearchChange = useCallback((value: string) => {
     setSearchInput(value);
-    setFilters({ ...filters, searchQuery: value });
-  };
+  }, []);
 
   return (
     <div className="container p-4 mx-auto space-y-4 max-w-3xl">
