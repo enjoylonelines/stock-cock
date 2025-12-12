@@ -2,11 +2,10 @@
 
 import ProductList from "@/components/products/ProductList";
 import ProductListSkeleton from "@/components/products/ProductListSkeleton";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useProducts } from "@/hooks/useProducts";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 export default function ProductsPage() {
@@ -45,13 +44,6 @@ export default function ProductsPage() {
 
       {/* 제품 리스트 */}
       {isLoading ? <ProductListSkeleton /> : <ProductList products={products} />}
-
-      {/* 플로팅 액션 버튼 */}
-      {/* <div className="fixed right-4 bottom-24">
-        <Button size="icon" className="w-14 h-14 rounded-full shadow-lg">
-          <Plus />
-        </Button>
-      </div> */}
     </div>
   );
 }
