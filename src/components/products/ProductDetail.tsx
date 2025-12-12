@@ -1,20 +1,20 @@
 "use client";
 
-import Image from "next/image";
-import { formatNumber, formatBoxBreakdown } from "@/lib/utils";
-import { useInventories } from "@/hooks/useInventories";
-import { useLocations } from "@/hooks/useWarehouses";
-import { useState } from "react";
-import { ProductOptionView } from "@/types/product_option_view";
-import { useInventoryHistory } from "@/hooks/useInventoryHistory";
 import InventoryList from "@/components/inventory/InventoryList";
 import { Button } from "@/components/ui/button";
-import { Edit } from "lucide-react";
+import { useBrands } from "@/hooks/useBrands";
+import { useCategories } from "@/hooks/useCategories";
+import { useInventories } from "@/hooks/useInventories";
+import { useInventoryHistory } from "@/hooks/useInventoryHistory";
+import { useLocations } from "@/hooks/useWarehouses";
+import { supabase } from "@/lib/supabase";
+import { formatBoxBreakdown, formatNumber } from "@/lib/utils";
 import { useDrawerStore } from "@/store/drawerStore";
 import { useFormStateStore } from "@/store/formStateStore";
-import { supabase } from "@/lib/supabase";
-import { useCategories } from "@/hooks/useCategories";
-import { useBrands } from "@/hooks/useBrands";
+import type { ProductOptionView } from "@/types/product_option_view";
+import { Edit } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
 interface ProductDetailProps {
   product: ProductOptionView;
@@ -32,26 +32,26 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
   const getTotalStock = (productId: string) =>
     inventories
-      .filter((i) => i.product_option_id === productId)
+      .filter(i => i.product_option_id === productId)
       .reduce((sum, i) => sum + (typeof i.quantity === "number" ? i.quantity : 0), 0);
 
   const normalizeQuantity = (quantity: number | null) => (typeof quantity === "number" ? quantity : 0);
   const totalStock = getTotalStock(product.product_option_id);
   const totalBoxSummary = formatBoxBreakdown(totalStock, product.box_unit);
-  const getLocationName = (locationId: string) => locations.find((loc) => loc.id === locationId)?.name || "알 수 없음";
+  const getLocationName = (locationId: string) => locations.find(loc => loc.id === locationId)?.name || "알 수 없음";
 
-  const productInventories = inventories.filter((i) => i.product_option_id === product.product_option_id);
+  const productInventories = inventories.filter(i => i.product_option_id === product.product_option_id);
   const filteredInventories = showOnlyStocked
-    ? productInventories.filter((inv) => (typeof inv.quantity === "number" ? inv.quantity : 0) > 0)
+    ? productInventories.filter(inv => (typeof inv.quantity === "number" ? inv.quantity : 0) > 0)
     : productInventories;
 
   // 특정 제품의 재고 변동 내역만 필터링
   const productHistory = grouped
-    .map((group) => ({
+    .map(group => ({
       ...group,
-      transactions: group.transactions.filter((tx) => tx.product_option_id === product.product_option_id),
+      transactions: group.transactions.filter(tx => tx.product_option_id === product.product_option_id),
     }))
-    .filter((group) => group.transactions.length > 0);
+    .filter(group => group.transactions.length > 0);
 
   const handleEdit = async () => {
     try {
@@ -68,8 +68,8 @@ export default function ProductDetail({ product }: ProductDetailProps) {
       }
 
       // category와 brand를 이름으로 찾기
-      const category = categories.find((c) => c.id === productData.category_id);
-      const brand = brands.find((b) => b.id === productData.brand_id);
+      const category = categories.find(c => c.id === productData.category_id);
+      const brand = brands.find(b => b.id === productData.brand_id);
 
       // 중량 단위 결정 (1000g 이상이면 kg)
       const weightUnit: "g" | "kg" = product.weight >= 1000 ? "kg" : "g";
@@ -109,7 +109,14 @@ export default function ProductDetail({ product }: ProductDetailProps) {
           <div className="flex gap-4">
             <div className="overflow-hidden relative w-24 h-24 bg-gray-100 rounded-lg shrink-0">
               {product.image_url ? (
-                <Image src={product.image_url} alt={product.product_name} fill className="object-cover" priority sizes="96px" />
+                <Image
+                  src={product.image_url}
+                  alt={product.product_name}
+                  fill
+                  className="object-cover"
+                  priority
+                  sizes="96px"
+                />
               ) : (
                 <div className="w-full h-full bg-gray-200" />
               )}
@@ -154,7 +161,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                 className={`w-8 h-4 rounded-full transition-colors duration-200 focus:outline-none ${
                   showOnlyStocked ? "bg-blue-500" : "bg-gray-200"
                 }`}
-                onClick={() => setShowOnlyStocked((prev) => !prev)}
+                onClick={() => setShowOnlyStocked(prev => !prev)}
                 aria-pressed={showOnlyStocked}
               >
                 <span
@@ -169,7 +176,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
             {filteredInventories.length === 0 ? (
               <div className="text-sm text-gray-400">재고 없음</div>
             ) : (
-              filteredInventories.map((inv) => {
+              filteredInventories.map(inv => {
                 const locationQuantity = normalizeQuantity(inv.quantity);
                 const boxSummary = formatBoxBreakdown(locationQuantity, product.box_unit);
 

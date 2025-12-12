@@ -26,13 +26,14 @@ export default async function Settings() {
   }
 
   // 병렬로 모든 데이터 가져오기
-  const [profileResult, productsCountResult, membersCountResult, warehousesCountResult, suppliersCountResult] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).single(),
-    supabase.from("products").select("*", { count: "exact", head: true }),
-    supabase.from("profiles").select("*", { count: "exact", head: true }),
-    supabase.from("warehouses").select("*", { count: "exact", head: true }),
-    supabase.from("suppliers").select("*", { count: "exact", head: true }),
-  ]);
+  const [profileResult, productsCountResult, membersCountResult, warehousesCountResult, suppliersCountResult] =
+    await Promise.all([
+      supabase.from("profiles").select("*").eq("id", user.id).single(),
+      supabase.from("products").select("*", { count: "exact", head: true }),
+      supabase.from("profiles").select("*", { count: "exact", head: true }),
+      supabase.from("warehouses").select("*", { count: "exact", head: true }),
+      supabase.from("suppliers").select("*", { count: "exact", head: true }),
+    ]);
 
   const { data: profile } = profileResult;
   const { count: productsCount } = productsCountResult;

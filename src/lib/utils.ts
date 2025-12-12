@@ -59,8 +59,9 @@ export function formatWeightDisplay(weightInGrams: number | null | undefined, pr
     if (kgValue % 1 === 0) {
       return `${kgValue}kg`;
     }
-    return `${parseFloat(kgValue.toFixed(2))}kg`;
-  } else if (preferredUnit === "g") {
+    return `${Number.parseFloat(kgValue.toFixed(2))}kg`;
+  }
+  if (preferredUnit === "g") {
     return `${weightInGrams}g`;
   }
 
@@ -70,7 +71,7 @@ export function formatWeightDisplay(weightInGrams: number | null | undefined, pr
     if (kgValue % 1 === 0) {
       return `${kgValue}kg`;
     }
-    return `${parseFloat(kgValue.toFixed(2))}kg`;
+    return `${Number.parseFloat(kgValue.toFixed(2))}kg`;
   }
   return `${weightInGrams}g`;
 }

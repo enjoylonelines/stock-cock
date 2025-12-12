@@ -1,9 +1,9 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useStats } from "@/hooks/useStats";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { useStats } from "@/hooks/useStats";
 
 export default function StatsBox() {
   const { summary, error, isLoading } = useStats();

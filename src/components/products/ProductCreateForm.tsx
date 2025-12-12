@@ -1,22 +1,22 @@
 "use client";
 
-import { useState, useEffect, RefObject, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ChevronRight } from "lucide-react";
 import DrawerView from "@/components/ui/drawer-view";
-import { useLocations } from "@/hooks/useWarehouses";
-import ManageView from "../receipts/ManageView";
-import { useCategories } from "@/hooks/useCategories";
-import { useBrands } from "@/hooks/useBrands";
-import { useRouter } from "next/navigation";
-import { Product, ProductOption } from "@/types/database";
-import { Insertable } from "@/types/util";
-import { Brand, Category, Warehouse } from "@/types/database";
-import Image from "next/image";
 import { useUser } from "@/contexts/UserContext";
+import { useBrands } from "@/hooks/useBrands";
+import { useCategories } from "@/hooks/useCategories";
+import { useLocations } from "@/hooks/useWarehouses";
 import { supabase } from "@/lib/supabase";
-import { generateSKU, generateUniqueFileName, formatWeightDisplay } from "@/lib/utils";
+import { formatWeightDisplay, generateSKU, generateUniqueFileName } from "@/lib/utils";
 import { useFormStateStore } from "@/store/formStateStore";
+import type { Product, ProductOption } from "@/types/database";
+import type { Brand, Category, Warehouse } from "@/types/database";
+import type { Insertable } from "@/types/util";
+import { ArrowLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { type RefObject, useCallback, useEffect, useMemo, useState } from "react";
+import ManageView from "../receipts/ManageView";
 interface ProductCreateFormProps {
   scrollRef?: RefObject<HTMLDivElement | null>;
   closeDrawer: () => void;
@@ -45,7 +45,7 @@ async function registerProduct(form: ProductFormInput) {
     .single();
 
   if (productError) {
-    throw new Error("제품 등록 실패: " + productError.message);
+    throw new Error(`제품 등록 실패: ${productError.message}`);
   }
 
   // 2. product_options 테이블에 insert
@@ -79,16 +79,20 @@ async function registerProduct(form: ProductFormInput) {
     .single();
 
   if (optionError) {
-    throw new Error("옵션 등록 실패: " + optionError.message);
+    throw new Error(`옵션 등록 실패: ${optionError.message}`);
   }
   if (inventoryError) {
-    throw new Error("인벤토리 등록 실패: " + inventoryError.message);
+    throw new Error(`인벤토리 등록 실패: ${inventoryError.message}`);
   }
 
   return { product, option, inventory };
 }
 
-async function updateProduct(productId: string, productOptionId: string, form: Omit<ProductFormInput, "warehouse_id" | "quantity">) {
+async function updateProduct(
+  productId: string,
+  productOptionId: string,
+  form: Omit<ProductFormInput, "warehouse_id" | "quantity">
+) {
   // 1. products 테이블 업데이트
   const { error: productError } = await supabase
     .from("products")
@@ -102,7 +106,7 @@ async function updateProduct(productId: string, productOptionId: string, form: O
     .eq("id", productId);
 
   if (productError) {
-    throw new Error("제품 업데이트 실패: " + productError.message);
+    throw new Error(`제품 업데이트 실패: ${productError.message}`);
   }
 
   // 2. product_options 테이블 업데이트
@@ -120,7 +124,7 @@ async function updateProduct(productId: string, productOptionId: string, form: O
     .eq("id", productOptionId);
 
   if (optionError) {
-    throw new Error("옵션 업데이트 실패: " + optionError.message);
+    throw new Error(`옵션 업데이트 실패: ${optionError.message}`);
   }
 }
 
@@ -137,24 +141,25 @@ const WeightPickerView = ({
   onClose: () => void;
 }) => {
   // 현재 중량을 kg/g로 변환
-  const getDisplayWeight = (weightInGrams: number, preferredUnit?: "g" | "kg") => {
+  const getDisplayWeight = useCallback((weightInGrams: number, preferredUnit?: "g" | "kg") => {
     // 선호하는 단위가 있으면 그것을 사용
     if (preferredUnit === "kg") {
       const kgValue = weightInGrams / 1000;
-      const formattedValue = kgValue % 1 === 0 ? kgValue.toString() : parseFloat(kgValue.toFixed(2)).toString();
+      const formattedValue = kgValue % 1 === 0 ? kgValue.toString() : Number.parseFloat(kgValue.toFixed(2)).toString();
       return { value: formattedValue, unit: "kg" as const };
-    } else if (preferredUnit === "g") {
+    }
+    if (preferredUnit === "g") {
       return { value: weightInGrams.toString(), unit: "g" as const };
     }
 
     // 선호하는 단위가 없으면 기본 규칙: 1000g 이상이면 kg로 표시
     if (weightInGrams >= 1000) {
       const kgValue = weightInGrams / 1000;
-      const formattedValue = kgValue % 1 === 0 ? kgValue.toString() : parseFloat(kgValue.toFixed(2)).toString();
+      const formattedValue = kgValue % 1 === 0 ? kgValue.toString() : Number.parseFloat(kgValue.toFixed(2)).toString();
       return { value: formattedValue, unit: "kg" as const };
     }
     return { value: weightInGrams.toString(), unit: "g" as const };
-  };
+  }, []);
 
   const displayWeight = getDisplayWeight(currentWeight, currentWeightUnit);
   const [selectedValue, setSelectedValue] = useState<string>(displayWeight.value);
@@ -165,14 +170,14 @@ const WeightPickerView = ({
     const newDisplayWeight = getDisplayWeight(currentWeight, currentWeightUnit);
     setSelectedValue(newDisplayWeight.value);
     setSelectedUnit(newDisplayWeight.unit);
-  }, [currentWeight, currentWeightUnit]);
+  }, [currentWeight, currentWeightUnit, getDisplayWeight]);
 
   // 단위 변경 핸들러
   const handleUnitChange = (newUnit: "g" | "kg") => {
     const oldUnit = selectedUnit;
     const currentNumValue = Number(selectedValue);
 
-    if (!selectedValue || isNaN(currentNumValue) || currentNumValue <= 0) {
+    if (!selectedValue || Number.isNaN(currentNumValue) || currentNumValue <= 0) {
       setSelectedUnit(newUnit);
       return;
     }
@@ -181,7 +186,8 @@ const WeightPickerView = ({
     if (oldUnit === "g" && newUnit === "kg") {
       // g -> kg: 1000으로 나누기 (소수점 보존)
       const newValue = currentNumValue / 1000;
-      const formattedValue = newValue % 1 === 0 ? newValue.toString() : parseFloat(newValue.toFixed(2)).toString();
+      const formattedValue =
+        newValue % 1 === 0 ? newValue.toString() : Number.parseFloat(newValue.toFixed(2)).toString();
       setSelectedValue(formattedValue);
     } else if (oldUnit === "kg" && newUnit === "g") {
       // kg -> g: 1000 곱하기 (정수로 변환)
@@ -195,7 +201,7 @@ const WeightPickerView = ({
   // 완료 버튼 클릭 시 그램으로 변환해서 전달
   const handleDone = () => {
     const numValue = Number(selectedValue);
-    if (!selectedValue || isNaN(numValue) || numValue <= 0) {
+    if (!selectedValue || Number.isNaN(numValue) || numValue <= 0) {
       alert("올바른 중량을 입력해주세요.");
       return;
     }
@@ -217,14 +223,14 @@ const WeightPickerView = ({
   const formatDisplayValue = (value: string): string => {
     if (!value) return "";
     const num = Number(value);
-    if (isNaN(num)) return "";
+    if (Number.isNaN(num)) return "";
     if (selectedUnit === "kg") {
       // 정수면 정수로, 소수면 최대 2자리까지 표시 (불필요한 0 제거)
       if (num % 1 === 0) {
         return `${num}kg`;
       }
       // 소수점이 있으면 최대 2자리까지 표시하되, 마지막 0은 제거
-      return `${parseFloat(num.toFixed(2))}kg`;
+      return `${Number.parseFloat(num.toFixed(2))}kg`;
     }
     return `${num}g`;
   };
@@ -245,10 +251,10 @@ const WeightPickerView = ({
             <input
               type="number"
               value={selectedValue}
-              onChange={(e) => {
+              onChange={e => {
                 const value = e.target.value;
                 // 숫자만 입력 가능
-                if (value === "" || (!isNaN(Number(value)) && Number(value) >= 0)) {
+                if (value === "" || (!Number.isNaN(Number(value)) && Number(value) >= 0)) {
                   setSelectedValue(value);
                 }
               }}
@@ -293,7 +299,7 @@ const WeightPickerView = ({
         <div className="text-center">
           <p className="text-sm text-gray-500">선택된 중량</p>
           <p className="text-2xl font-bold text-orange-500">{formatDisplayValue(selectedValue) || "입력 필요"}</p>
-          {selectedValue && !isNaN(Number(selectedValue)) && (
+          {selectedValue && !Number.isNaN(Number(selectedValue)) && (
             <p className="mt-1 text-xs text-gray-400">
               ({selectedUnit === "kg" ? Math.round(Number(selectedValue) * 1000) : selectedValue}g로 저장됨)
             </p>
@@ -301,7 +307,10 @@ const WeightPickerView = ({
         </div>
 
         {/* 완료 버튼 */}
-        <Button onClick={handleDone} className="w-full h-12 text-lg font-semibold text-white bg-orange-500 hover:bg-orange-600">
+        <Button
+          onClick={handleDone}
+          className="w-full h-12 text-lg font-semibold text-white bg-orange-500 hover:bg-orange-600"
+        >
           완료
         </Button>
       </div>
@@ -323,9 +332,9 @@ export default function ProductCreateForm({
   const { brands, addBrand, editBrand, deleteBrand } = useBrands();
   const router = useRouter();
   const user = useUser();
-  const productForm = useFormStateStore((state) => state.productForm);
-  const updateProductForm = useFormStateStore((state) => state.updateProductForm);
-  const resetProductForm = useFormStateStore((state) => state.resetProductForm);
+  const productForm = useFormStateStore(state => state.productForm);
+  const updateProductForm = useFormStateStore(state => state.updateProductForm);
+  const resetProductForm = useFormStateStore(state => state.resetProductForm);
   const {
     imageFile,
     imagePath,
@@ -423,9 +432,9 @@ export default function ProductCreateForm({
         finalImageUrl = urlData.publicUrl;
       }
 
-      if (mode === "edit") {
+      if (mode === "edit" && finalProductId && finalProductOptionId) {
         // 제품 업데이트
-        await updateProduct(finalProductId!, finalProductOptionId!, {
+        await updateProduct(finalProductId, finalProductOptionId, {
           name,
           category_id: categoryId,
           brand_id: brandId,
@@ -498,7 +507,13 @@ export default function ProductCreateForm({
       <div className="flex flex-col items-center pt-6 pb-2">
         <label className="flex overflow-hidden relative justify-center items-center w-24 h-24 bg-gray-100 rounded-md cursor-pointer">
           {localPreviewUrl ? (
-            <Image src={localPreviewUrl} alt="제품 이미지" width={96} height={96} className="object-cover w-full h-full" />
+            <Image
+              src={localPreviewUrl}
+              alt="제품 이미지"
+              width={96}
+              height={96}
+              className="object-cover w-full h-full"
+            />
           ) : (
             <span className="text-sm text-center text-gray-400">
               {user ? (
@@ -537,7 +552,7 @@ export default function ProductCreateForm({
             <h3 className="w-20 font-medium">제품명</h3>
             <input
               value={name}
-              onChange={(e) => updateProductForm({ name: e.target.value })}
+              onChange={e => updateProductForm({ name: e.target.value })}
               placeholder="제품명 입력"
               className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
             />
@@ -546,7 +561,7 @@ export default function ProductCreateForm({
             <h3 className="w-20 font-medium">구매가</h3>
             <input
               value={buyPrice}
-              onChange={(e) => {
+              onChange={e => {
                 const val = e.target.value.replace(/[^0-9]/g, "");
                 updateProductForm({ buyPrice: val });
               }}
@@ -561,7 +576,7 @@ export default function ProductCreateForm({
             <h3 className="w-20 font-medium">판매가</h3>
             <input
               value={sellPrice}
-              onChange={(e) => {
+              onChange={e => {
                 const val = e.target.value.replace(/[^0-9]/g, "");
                 updateProductForm({ sellPrice: val });
               }}
@@ -573,29 +588,27 @@ export default function ProductCreateForm({
             />
           </div>
           {mode === "create" && (
-            <>
-              <div className="flex gap-2 items-center py-2 w-full">
-                <h3 className="w-20 font-medium">초기수량</h3>
-                <input
-                  value={initQuantity}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/[^0-9]/g, "");
-                    updateProductForm({ initQuantity: val });
-                  }}
-                  placeholder="초기 수량 입력"
-                  type="number"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
-                />
-              </div>
-            </>
+            <div className="flex gap-2 items-center py-2 w-full">
+              <h3 className="w-20 font-medium">초기수량</h3>
+              <input
+                value={initQuantity}
+                onChange={e => {
+                  const val = e.target.value.replace(/[^0-9]/g, "");
+                  updateProductForm({ initQuantity: val });
+                }}
+                placeholder="초기 수량 입력"
+                type="number"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
+              />
+            </div>
           )}
           <div className="flex gap-2 items-center py-2 w-full">
             <h3 className="w-20 font-medium">박스 단위</h3>
             <input
               value={boxUnit}
-              onChange={(e) => {
+              onChange={e => {
                 const val = e.target.value.replace(/[^0-9]/g, "");
                 updateProductForm({ boxUnit: val });
               }}
@@ -615,7 +628,9 @@ export default function ProductCreateForm({
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">카테고리</h3>
-              <p className="text-sm text-gray-500">{categories.find((c) => c.id === categoryId)?.name || "카테고리 선택"}</p>
+              <p className="text-sm text-gray-500">
+                {categories.find(c => c.id === categoryId)?.name || "카테고리 선택"}
+              </p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -627,7 +642,7 @@ export default function ProductCreateForm({
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">브랜드</h3>
-              <p className="text-sm text-gray-500">{brands.find((b) => b.id === brandId)?.name || "브랜드 선택"}</p>
+              <p className="text-sm text-gray-500">{brands.find(b => b.id === brandId)?.name || "브랜드 선택"}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -652,7 +667,9 @@ export default function ProductCreateForm({
             >
               <div className="flex justify-between w-full">
                 <h3 className="font-medium">위치</h3>
-                <p className="text-sm text-gray-500">{locations.find((l) => l.id === initLocation)?.name || "위치 선택"}</p>
+                <p className="text-sm text-gray-500">
+                  {locations.find(l => l.id === initLocation)?.name || "위치 선택"}
+                </p>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </Button>
@@ -675,7 +692,7 @@ export default function ProductCreateForm({
         <CommonInputView
           title="제품명 입력"
           value={name}
-          onChange={(e) => updateProductForm({ name: e.target.value })}
+          onChange={e => updateProductForm({ name: e.target.value })}
           placeholder="제품명 입력"
           onClose={closeDrawer}
         />
@@ -695,7 +712,7 @@ export default function ProductCreateForm({
           title="카테고리 선택"
           items={categories}
           onBack={closeDrawer}
-          onSelect={(item) => {
+          onSelect={item => {
             updateProductForm({ categoryId: item.id });
             closeDrawer();
           }}
@@ -709,7 +726,7 @@ export default function ProductCreateForm({
           title="브랜드 선택"
           items={brands}
           onBack={closeDrawer}
-          onSelect={(item) => {
+          onSelect={item => {
             updateProductForm({ brandId: item.id });
             closeDrawer();
           }}
@@ -723,7 +740,7 @@ export default function ProductCreateForm({
           title="위치 선택"
           items={locations}
           onBack={closeDrawer}
-          onSelect={(item) => {
+          onSelect={item => {
             updateProductForm({ initLocation: item.id });
             closeDrawer();
           }}
@@ -772,7 +789,7 @@ const CommonInputView = ({
       <div className="flex flex-col flex-1 justify-center px-6">
         <input
           value={value}
-          onChange={(e) => onChange(e)}
+          onChange={e => onChange(e)}
           placeholder={placeholder}
           className="p-3 w-full text-lg rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
         />

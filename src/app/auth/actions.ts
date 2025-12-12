@@ -1,9 +1,9 @@
 // app/login/actions.ts
 "use server";
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 function validateEmail(email: string) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -34,12 +34,16 @@ export async function login(_prevState: unknown, formData: FormData) {
     return { error: "이메일 또는 비밀번호가 올바르지 않습니다." };
   }
   if (error) {
-    return { error: "로그인 실패: " + error.message };
+    return { error: `로그인 실패: ${error.message}` };
   }
 
   // profiles 테이블에 사용자 정보가 있는지 확인
   if (authData.user?.id) {
-    const { data: profile, error: profileError } = await supabase.from("profiles").select("id").eq("id", authData.user.id).single();
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", authData.user.id)
+      .single();
 
     if (profileError || !profile) {
       // profiles 테이블에 정보가 없으면 로그아웃 처리
@@ -80,7 +84,7 @@ export async function signup(_prevState: unknown, formData: FormData) {
   });
 
   if (error) {
-    return { error: "회원가입 실패: " + error.message };
+    return { error: `회원가입 실패: ${error.message}` };
   }
 
   const userId = signUpData.user?.id;
@@ -93,7 +97,7 @@ export async function signup(_prevState: unknown, formData: FormData) {
       },
     ]);
     if (profileError) {
-      return { error: "회원가입 실패: " + profileError.message };
+      return { error: `회원가입 실패: ${profileError.message}` };
     }
   }
 

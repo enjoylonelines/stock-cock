@@ -3,6 +3,7 @@ import { useCRUD } from "./useCRUD";
 interface Supplier {
   id: string;
   name: string;
+  [key: string]: unknown;
 }
 
 export function useSuppliers() {

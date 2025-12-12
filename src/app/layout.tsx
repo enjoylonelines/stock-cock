@@ -1,13 +1,13 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-import { Metadata } from "next";
-import { createClient } from "@/utils/supabase/server";
-import { UserProvider } from "@/contexts/UserContext";
-import PushPermissionPrompt from "@/components/setting/PushPermissionPrompt";
-import { SWRProvider } from "@/components/providers/SWRProvider";
 import CommonDrawer from "@/components/home/CommonDrawer";
+import Footer from "@/components/layout/Footer";
+import Header from "@/components/layout/Header";
+import { SWRProvider } from "@/components/providers/SWRProvider";
+import PushPermissionPrompt from "@/components/setting/PushPermissionPrompt";
+import { UserProvider } from "@/contexts/UserContext";
+import { createClient } from "@/utils/supabase/server";
+import type { Metadata } from "next";
 
 const inter = Inter({ subsets: ["latin"] });
 

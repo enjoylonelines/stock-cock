@@ -13,11 +13,11 @@ interface InventoryState {
   addRecord: (type: "IN" | "OUT", quantity: number) => void;
 }
 
-export const useInventoryStore = create<InventoryState>((set) => ({
+export const useInventoryStore = create<InventoryState>(set => ({
   totalStock: 1000, // 초기 재고
   records: [],
   addRecord: (type, quantity) =>
-    set((state) => {
+    set(state => {
       const newRecord: InventoryRecord = {
         id: Math.random().toString(36).substring(7),
         type,

@@ -3,6 +3,7 @@ import { useCRUD } from "./useCRUD";
 interface Brand {
   id: string;
   name: string;
+  [key: string]: unknown;
 }
 
 export function useBrands() {

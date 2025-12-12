@@ -7,7 +7,9 @@ const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const privateVapidKey = process.env.VAPID_PRIVATE_KEY;
 
 // VAPID 키 설정
-webpush.setVapidDetails(subject, publicVapidKey!, privateVapidKey!);
+if (publicVapidKey && privateVapidKey) {
+  webpush.setVapidDetails(subject, publicVapidKey, privateVapidKey);
+}
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -21,9 +23,19 @@ export async function POST(request: Request) {
     }
 
     // 특정 사용자들에게만 전송하는 경우
-    let subscriptions;
+    let subscriptions: Array<{
+      id: string;
+      user_id: string;
+      endpoint: string;
+      p256dh_key: string;
+      auth_key: string;
+      created_at: string;
+    }> = [];
     if (userIds && userIds.length > 0) {
-      const { data: userSubscriptions, error } = await supabase.from("push_subscriptions").select("*").in("user_id", userIds);
+      const { data: userSubscriptions, error } = await supabase
+        .from("push_subscriptions")
+        .select("*")
+        .in("user_id", userIds);
 
       if (error) {
         console.error("구독 정보 조회 오류:", error);
@@ -48,7 +60,7 @@ export async function POST(request: Request) {
     }
 
     // 푸시 알림 전송
-    const pushPromises = subscriptions.map(async (subscription) => {
+    const pushPromises = subscriptions.map(async subscription => {
       try {
         const pushSubscription = {
           endpoint: subscription.endpoint,
@@ -76,7 +88,7 @@ export async function POST(request: Request) {
     });
 
     const results = await Promise.allSettled(pushPromises);
-    const successful = results.filter((result) => result.status === "fulfilled" && result.value.success).length;
+    const successful = results.filter(result => result.status === "fulfilled" && result.value.success).length;
     const failed = results.length - successful;
 
     return NextResponse.json({

@@ -1,5 +1,5 @@
-import useSWR from "swr";
 import { supabase } from "@/lib/supabase";
+import useSWR from "swr";
 
 interface Stats {
   totalStock: number;
@@ -40,7 +40,11 @@ const fetcher = async () => {
 };
 
 export function useStats() {
-  const { data: summary = { total: 0, in: 0, out: 0 }, isLoading, error } = useSWR("stats", fetcher, {
+  const {
+    data: summary = { total: 0, in: 0, out: 0 },
+    isLoading,
+    error,
+  } = useSWR("stats", fetcher, {
     revalidateOnFocus: false,
     refreshInterval: 30000, // 30초마다 자동 갱신
   });

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ArrowLeft, Plus } from "lucide-react";
+import { useState } from "react";
 import LocationFormDialog from "./LocationFormDialog";
 import LocationItemMenu from "./LocationItemMenu";
 
@@ -35,7 +35,7 @@ const ManageView = <T extends { id: string; name: string }>({
   };
 
   const handleEdit = (id: string) => {
-    const item = items.find((item) => item.id === id);
+    const item = items.find(item => item.id === id);
     if (item) {
       setEditingItem(item);
     }
@@ -66,12 +66,12 @@ const ManageView = <T extends { id: string; name: string }>({
       {/* 리스트 */}
       <div className="overflow-y-auto flex-1">
         <div className="p-4 space-y-2">
-          {items.map((item) => (
+          {items.map(item => (
             <div
               key={item.id}
               className="flex justify-between items-center p-3 rounded-lg border hover:bg-accent hover:text-accent-foreground"
             >
-              <button className="flex-1 text-left" onClick={() => onSelect(item)}>
+              <button type="button" className="flex-1 text-left" onClick={() => onSelect(item)}>
                 {item.name}
               </button>
               <LocationItemMenu
@@ -90,7 +90,7 @@ const ManageView = <T extends { id: string; name: string }>({
       <LocationFormDialog open={isFormOpen} onOpenChange={setIsFormOpen} onSubmit={handleAdd} mode="add" />
       <LocationFormDialog
         open={!!editingItem}
-        onOpenChange={(open) => !open && setEditingItem(null)}
+        onOpenChange={open => !open && setEditingItem(null)}
         onSubmit={handleUpdate}
         initialValue={editingItem?.name}
         mode="edit"

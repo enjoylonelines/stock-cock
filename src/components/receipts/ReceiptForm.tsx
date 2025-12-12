@@ -1,23 +1,23 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
-import { useState } from "react";
-import DrawerView from "../ui/drawer-view";
-import ManageView from "./ManageView";
-import ProductSelectView from "./ProductSelectView";
-import { useLocations } from "@/hooks/useWarehouses";
-import { useSuppliers } from "@/hooks/useSuppliers";
+import { useUser } from "@/contexts/UserContext";
 import { useProducts } from "@/hooks/useProducts";
-import ProductListItem from "./ProductListItem";
-import MemoView from "./MemoView";
-import DatePickerDialog from "./DatePickerDialog";
+import { useSuppliers } from "@/hooks/useSuppliers";
+import { useLocations } from "@/hooks/useWarehouses";
+import { useFormStateStore } from "@/store/formStateStore";
+import type { ProductOptionView } from "@/types/product_option_view";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
+import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ProductOptionView } from "@/types/product_option_view";
-import { useUser } from "@/contexts/UserContext";
-import { useFormStateStore } from "@/store/formStateStore";
+import { useState } from "react";
+import DrawerView from "../ui/drawer-view";
+import DatePickerDialog from "./DatePickerDialog";
+import ManageView from "./ManageView";
+import MemoView from "./MemoView";
+import ProductListItem from "./ProductListItem";
+import ProductSelectView from "./ProductSelectView";
 
 export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out"; closeDrawer: () => void }) {
   const [isLocationViewVisible, setIsLocationViewVisible] = useState(false);
@@ -31,9 +31,9 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
   const { products } = useProducts();
   const router = useRouter();
   const user = useUser();
-  const receiptFormState = useFormStateStore((state) => state.receiptForms[mode]);
-  const updateReceiptForm = useFormStateStore((state) => state.updateReceiptForm);
-  const resetReceiptForm = useFormStateStore((state) => state.resetReceiptForm);
+  const receiptFormState = useFormStateStore(state => state.receiptForms[mode]);
+  const updateReceiptForm = useFormStateStore(state => state.updateReceiptForm);
+  const resetReceiptForm = useFormStateStore(state => state.resetReceiptForm);
   const { selectedLocation, selectedSupplier, selectedProducts, selectedDate, memo } = receiptFormState;
 
   const handleLocationSelect = (location: { id: string; name: string }) => {
@@ -78,7 +78,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
           memo,
           user_id: user?.id,
           created_at: format(selectedDate, "yyyy-MM-dd HH:mm:ss"),
-          items: selectedProducts.map((product) => ({
+          items: selectedProducts.map(product => ({
             option_id: product.product_option_id,
             quantity: product.quantity || 1,
             unit_price: product.sell_price || null,
@@ -129,7 +129,9 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">위치</h3>
-              <p className="text-sm text-gray-500">{locations.find((loc) => loc.id === selectedLocation)?.name || "선택"}</p>
+              <p className="text-sm text-gray-500">
+                {locations.find(loc => loc.id === selectedLocation)?.name || "선택"}
+              </p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -142,7 +144,9 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">{mode === "in" ? "입고처" : "출고처"}</h3>
-              <p className="text-sm text-gray-500">{suppliers.find((sup) => sup.id === selectedSupplier)?.name || "선택"}</p>
+              <p className="text-sm text-gray-500">
+                {suppliers.find(sup => sup.id === selectedSupplier)?.name || "선택"}
+              </p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -163,8 +167,13 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
           {/* 선택된 제품 리스트 */}
           {selectedProducts.length > 0 && (
             <div className="mt-2 space-y-2">
-              {selectedProducts.map((product) => (
-                <ProductListItem key={product.product_option_id} product={product} quantity={product.quantity} selected={false} />
+              {selectedProducts.map(product => (
+                <ProductListItem
+                  key={product.product_option_id}
+                  product={product}
+                  quantity={product.quantity}
+                  selected={false}
+                />
               ))}
             </div>
           )}
@@ -252,7 +261,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
       <DrawerView isVisible={isMemoViewVisible}>
         <MemoView
           value={memo}
-          onChange={(value) => updateReceiptForm(mode, { memo: value })}
+          onChange={value => updateReceiptForm(mode, { memo: value })}
           onBack={() => setIsMemoViewVisible(false)}
           onDone={handleMemoDone}
         />

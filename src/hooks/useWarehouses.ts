@@ -1,5 +1,5 @@
+import type { Warehouse } from "@/types/database";
 import { useCRUD } from "./useCRUD";
-import { Warehouse } from "@/types/database";
 
 export function useLocations() {
   const { items, isLoading, addItem, editItem, deleteItem, refetch } = useCRUD<Warehouse>({
