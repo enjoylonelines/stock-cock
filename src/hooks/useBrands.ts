@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { useCRUD } from "./useCRUD";
 
 interface Brand {
   id: string;
@@ -7,63 +6,30 @@ interface Brand {
 }
 
 export function useBrands() {
-  const [brands, setBrands] = useState<Brand[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    fetchBrands();
-  }, []);
-
-  const fetchBrands = async () => {
-    try {
-      const { data, error } = await supabase.from("brands").select("*").order("name");
-      if (error) throw error;
-      setBrands(data || []);
-    } catch (error) {
-      console.error("Error fetching brands:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { items, isLoading, addItem, editItem, deleteItem, refetch } = useCRUD<Brand>({
+    tableName: "brands",
+    swrKey: "brands",
+    orderBy: "name",
+  });
 
   const addBrand = async (name: string) => {
-    try {
-      const { data, error } = await supabase.from("brands").insert({ name }).select().single();
-      if (error) throw error;
-      setBrands((prev) => [...prev, data]);
-    } catch (error) {
-      console.error("Error adding brand:", error);
-      throw error;
-    }
+    return await addItem({ name });
   };
 
   const editBrand = async (id: string, name: string) => {
-    try {
-      const { error } = await supabase.from("brands").update({ name }).eq("id", id);
-      if (error) throw error;
-      setBrands((prev) => prev.map((brand) => (brand.id === id ? { ...brand, name } : brand)));
-    } catch (error) {
-      console.error("Error editing brand:", error);
-      throw error;
-    }
+    return await editItem(id, { name });
   };
 
   const deleteBrand = async (id: string) => {
-    try {
-      const { error } = await supabase.from("brands").delete().eq("id", id);
-      if (error) throw error;
-      setBrands((prev) => prev.filter((brand) => brand.id !== id));
-    } catch (error) {
-      console.error("Error deleting brand:", error);
-      throw error;
-    }
+    return await deleteItem(id);
   };
 
   return {
-    brands,
+    brands: items,
     isLoading,
     addBrand,
     editBrand,
     deleteBrand,
+    refetch,
   };
 }
