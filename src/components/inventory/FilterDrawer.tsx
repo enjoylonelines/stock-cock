@@ -1,7 +1,5 @@
 "use client";
 
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
-import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { useState } from "react";
@@ -15,6 +13,7 @@ import DatePickerDialog from "../receipts/DatePickerDialog";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { FilterState, TransactionType } from "@/store/InventoryFilterDrawer";
+import BaseFilterDrawer from "@/components/ui/BaseFilterDrawer";
 
 interface FilterDrawerProps {
   isOpen: boolean;
@@ -109,27 +108,14 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent className="h-[90vh] flex flex-col max-w-3xl mx-auto" role="dialog" aria-modal="true">
-        <DrawerHeader className="flex-shrink-0 py-0">
-          <div className="flex justify-end">
-            <Button variant="ghost" size="icon" className="flex justify-end w-8 h-8" onClick={onClose} aria-label="닫기">
-              <X className="size-7" />
-            </Button>
-          </div>
-
-          <div className="flex justify-between items-center py-2 border-b-2 border-blue-400">
-            <div>
-              <DrawerTitle className="text-lg font-medium text-blue-400">필터</DrawerTitle>
-              <DrawerDescription className="text-sm text-gray-500">재고 변동 내역을 필터링합니다.</DrawerDescription>
-            </div>
-            <Button variant="ghost" onClick={handleReset}>
-              초기화
-            </Button>
-          </div>
-        </DrawerHeader>
-
-        <div className="overflow-y-auto flex-1 p-4 space-y-6">
+    <BaseFilterDrawer
+      isOpen={isOpen}
+      onClose={onClose}
+      onApplyFilter={handleApplyFilter}
+      onReset={handleReset}
+      title="필터"
+      description="재고 변동 내역을 필터링합니다."
+    >
           {/* 거래 종류 */}
           <div className="space-y-3">
             <h3 className="font-medium">거래 종류</h3>
@@ -227,14 +213,6 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </Button>
           </div>
-        </div>
-
-        {/* 하단 버튼 */}
-        <div className="p-4 border-t">
-          <Button className="w-full h-12 text-lg font-semibold text-white bg-blue-500 hover:bg-blue-600" onClick={handleApplyFilter}>
-            필터 적용
-          </Button>
-        </div>
 
         {/* 날짜 선택 다이얼로그 */}
         <DatePickerDialog
@@ -292,7 +270,6 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
             onDelete={deleteProfile}
           />
         </DrawerView>
-      </DrawerContent>
-    </Drawer>
+    </BaseFilterDrawer>
   );
 }
