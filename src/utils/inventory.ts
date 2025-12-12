@@ -7,7 +7,11 @@ import { supabase } from "@/lib/supabase";
  * @param quantityChange 수량 변경량 (음수면 감소, 양수면 증가)
  * @throws 에러 발생 시 throw
  */
-export async function updateInventory(productOptionId: string, warehouseId: string, quantityChange: number): Promise<void> {
+export async function updateInventory(
+  productOptionId: string,
+  warehouseId: string,
+  quantityChange: number
+): Promise<void> {
   const { data: inventory, error: invError } = await supabase
     .from("inventory")
     .select("*")

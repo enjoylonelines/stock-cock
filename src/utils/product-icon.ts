@@ -44,7 +44,11 @@ export async function getProductIconUrl(optionId: string): Promise<string> {
  */
 export async function getProductIconUrlByProductId(productId: string): Promise<string> {
   try {
-    const { data: productRow, error: productErr } = await supabase.from("products").select("image_url").eq("id", productId).maybeSingle();
+    const { data: productRow, error: productErr } = await supabase
+      .from("products")
+      .select("image_url")
+      .eq("id", productId)
+      .maybeSingle();
 
     if (productErr || !productRow?.image_url) {
       return DEFAULT_ICON;
