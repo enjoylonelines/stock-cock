@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, RefObject } from "react";
+import { type RefObject, useEffect, useRef } from "react";
 
 interface DrawerViewProps {
   children: React.ReactNode;

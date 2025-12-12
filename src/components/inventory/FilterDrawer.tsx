@@ -1,19 +1,19 @@
 "use client";
 
+import BaseFilterDrawer from "@/components/ui/BaseFilterDrawer";
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
-import { useState } from "react";
-import DrawerView from "../ui/drawer-view";
-import ManageView from "../receipts/ManageView";
-import { useLocations } from "@/hooks/useWarehouses";
-import { useSuppliers } from "@/hooks/useSuppliers";
 import { useProducts } from "@/hooks/useProducts";
 import { useProfiles } from "@/hooks/useProfiles";
-import DatePickerDialog from "../receipts/DatePickerDialog";
+import { useSuppliers } from "@/hooks/useSuppliers";
+import { useLocations } from "@/hooks/useWarehouses";
+import type { FilterState, TransactionType } from "@/store/InventoryFilterDrawer";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { FilterState, TransactionType } from "@/store/InventoryFilterDrawer";
-import BaseFilterDrawer from "@/components/ui/BaseFilterDrawer";
+import { ChevronRight } from "lucide-react";
+import { useState } from "react";
+import DatePickerDialog from "../receipts/DatePickerDialog";
+import ManageView from "../receipts/ManageView";
+import DrawerView from "../ui/drawer-view";
 
 interface FilterDrawerProps {
   isOpen: boolean;
@@ -29,7 +29,9 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
   const [isMemberViewVisible, setIsMemberViewVisible] = useState(false);
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
 
-  const [selectedTransactionType, setSelectedTransactionType] = useState<TransactionType>(initialFilters?.transactionType || "전체");
+  const [selectedTransactionType, setSelectedTransactionType] = useState<TransactionType>(
+    initialFilters?.transactionType || "전체"
+  );
   const [startDate, setStartDate] = useState<Date | null>(initialFilters?.startDate || null);
   const [endDate, setEndDate] = useState<Date | null>(initialFilters?.endDate || null);
   const [selectedLocation, setSelectedLocation] = useState<string>(initialFilters?.location || "");
@@ -116,160 +118,165 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
       title="필터"
       description="재고 변동 내역을 필터링합니다."
     >
-          {/* 거래 종류 */}
-          <div className="space-y-3">
-            <h3 className="font-medium">거래 종류</h3>
-            <div className="flex gap-2">
-              {transactionTypes.map((type: TransactionType) => (
-                <Button
-                  key={type}
-                  variant={selectedTransactionType === type ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedTransactionType(type)}
-                  className={selectedTransactionType === type ? "bg-blue-500 text-white" : ""}
-                >
-                  {type}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          {/* 기간 */}
-          <div className="space-y-3">
-            <h3 className="font-medium">기간</h3>
-            <div className="flex gap-2 items-center">
-              <Button variant="outline" className="flex-1 justify-between" onClick={() => setIsDatePickerVisible(true)}>
-                <span className="text-gray-500">{startDate ? format(startDate, "yyyy.MM.dd", { locale: ko }) : "선택"}</span>
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-              <span className="text-gray-400">-</span>
-              <Button variant="outline" className="flex-1 justify-between" onClick={() => setIsDatePickerVisible(true)}>
-                <span className="text-gray-500">{endDate ? format(endDate, "yyyy.MM.dd", { locale: ko }) : "선택"}</span>
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* 위치 */}
-          <div className="space-y-3">
-            <h3 className="font-medium">위치</h3>
+      {/* 거래 종류 */}
+      <div className="space-y-3">
+        <h3 className="font-medium">거래 종류</h3>
+        <div className="flex gap-2">
+          {transactionTypes.map((type: TransactionType) => (
             <Button
-              variant="ghost"
-              className="flex justify-between items-center py-2 w-full"
-              size="none"
-              onClick={() => setIsLocationViewVisible(true)}
+              key={type}
+              variant={selectedTransactionType === type ? "default" : "outline"}
+              size="sm"
+              onClick={() => setSelectedTransactionType(type)}
+              className={selectedTransactionType === type ? "bg-blue-500 text-white" : ""}
             >
-              <span className="text-gray-500">
-                {selectedLocation ? locations.find((loc) => loc.id === selectedLocation)?.name : "전체"}
-              </span>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
+              {type}
             </Button>
-          </div>
+          ))}
+        </div>
+      </div>
 
-          {/* 제품 */}
-          <div className="space-y-3">
-            <h3 className="font-medium">제품</h3>
-            <Button
-              variant="ghost"
-              className="flex justify-between items-center py-2 w-full"
-              size="none"
-              onClick={() => setIsProductViewVisible(true)}
-            >
-              <span className="text-gray-500">
-                {selectedProduct ? products.find((prod) => prod.product_option_id === selectedProduct)?.product_name : "전체"}
-              </span>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </Button>
-          </div>
+      {/* 기간 */}
+      <div className="space-y-3">
+        <h3 className="font-medium">기간</h3>
+        <div className="flex gap-2 items-center">
+          <Button variant="outline" className="flex-1 justify-between" onClick={() => setIsDatePickerVisible(true)}>
+            <span className="text-gray-500">
+              {startDate ? format(startDate, "yyyy.MM.dd", { locale: ko }) : "선택"}
+            </span>
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+          <span className="text-gray-400">-</span>
+          <Button variant="outline" className="flex-1 justify-between" onClick={() => setIsDatePickerVisible(true)}>
+            <span className="text-gray-500">{endDate ? format(endDate, "yyyy.MM.dd", { locale: ko }) : "선택"}</span>
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
 
-          {/* 거래처 */}
-          <div className="space-y-3">
-            <h3 className="font-medium">거래처</h3>
-            <Button
-              variant="ghost"
-              className="flex justify-between items-center py-2 w-full"
-              size="none"
-              onClick={() => setIsSupplierViewVisible(true)}
-            >
-              <span className="text-gray-500">
-                {selectedSupplier ? suppliers.find((sup) => sup.id === selectedSupplier)?.name : "전체"}
-              </span>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </Button>
-          </div>
+      {/* 위치 */}
+      <div className="space-y-3">
+        <h3 className="font-medium">위치</h3>
+        <Button
+          variant="ghost"
+          className="flex justify-between items-center py-2 w-full"
+          size="none"
+          onClick={() => setIsLocationViewVisible(true)}
+        >
+          <span className="text-gray-500">
+            {selectedLocation ? locations.find(loc => loc.id === selectedLocation)?.name : "전체"}
+          </span>
+          <ChevronRight className="w-5 h-5 text-gray-400" />
+        </Button>
+      </div>
 
-          {/* 멤버 */}
-          <div className="space-y-3">
-            <h3 className="font-medium">멤버</h3>
-            <Button
-              variant="ghost"
-              className="flex justify-between items-center py-2 w-full"
-              size="none"
-              onClick={() => setIsMemberViewVisible(true)}
-            >
-              <span className="text-gray-500">
-                {selectedMember ? profiles.find((profile) => profile.id === selectedMember)?.name : "전체"}
-              </span>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </Button>
-          </div>
+      {/* 제품 */}
+      <div className="space-y-3">
+        <h3 className="font-medium">제품</h3>
+        <Button
+          variant="ghost"
+          className="flex justify-between items-center py-2 w-full"
+          size="none"
+          onClick={() => setIsProductViewVisible(true)}
+        >
+          <span className="text-gray-500">
+            {selectedProduct ? products.find(prod => prod.product_option_id === selectedProduct)?.product_name : "전체"}
+          </span>
+          <ChevronRight className="w-5 h-5 text-gray-400" />
+        </Button>
+      </div>
 
-        {/* 날짜 선택 다이얼로그 */}
-        <DatePickerDialog
-          open={isDatePickerVisible}
-          onOpenChange={setIsDatePickerVisible}
-          selectedDate={startDate || new Date()}
-          onSelect={handleDateSelect}
+      {/* 거래처 */}
+      <div className="space-y-3">
+        <h3 className="font-medium">거래처</h3>
+        <Button
+          variant="ghost"
+          className="flex justify-between items-center py-2 w-full"
+          size="none"
+          onClick={() => setIsSupplierViewVisible(true)}
+        >
+          <span className="text-gray-500">
+            {selectedSupplier ? suppliers.find(sup => sup.id === selectedSupplier)?.name : "전체"}
+          </span>
+          <ChevronRight className="w-5 h-5 text-gray-400" />
+        </Button>
+      </div>
+
+      {/* 멤버 */}
+      <div className="space-y-3">
+        <h3 className="font-medium">멤버</h3>
+        <Button
+          variant="ghost"
+          className="flex justify-between items-center py-2 w-full"
+          size="none"
+          onClick={() => setIsMemberViewVisible(true)}
+        >
+          <span className="text-gray-500">
+            {selectedMember ? profiles.find(profile => profile.id === selectedMember)?.name : "전체"}
+          </span>
+          <ChevronRight className="w-5 h-5 text-gray-400" />
+        </Button>
+      </div>
+
+      {/* 날짜 선택 다이얼로그 */}
+      <DatePickerDialog
+        open={isDatePickerVisible}
+        onOpenChange={setIsDatePickerVisible}
+        selectedDate={startDate || new Date()}
+        onSelect={handleDateSelect}
+      />
+
+      {/* 위치 선택 드로어 */}
+      <DrawerView isVisible={isLocationViewVisible}>
+        <ManageView
+          onBack={closeDrawer}
+          onSelect={handleLocationSelect}
+          title="위치 선택"
+          items={locations}
+          onAdd={addLocation}
+          onEdit={editLocation}
+          onDelete={deleteLocation}
         />
+      </DrawerView>
 
-        {/* 위치 선택 드로어 */}
-        <DrawerView isVisible={isLocationViewVisible}>
-          <ManageView
-            onBack={closeDrawer}
-            onSelect={handleLocationSelect}
-            title="위치 선택"
-            items={locations}
-            onAdd={addLocation}
-            onEdit={editLocation}
-            onDelete={deleteLocation}
-          />
-        </DrawerView>
+      {/* 제품 선택 드로어 */}
+      <DrawerView isVisible={isProductViewVisible}>
+        <ManageView
+          onBack={closeDrawer}
+          onSelect={handleProductSelect}
+          title="제품 선택"
+          items={products.map(product => ({
+            id: product.product_option_id,
+            name: product.product_name,
+          }))}
+        />
+      </DrawerView>
 
-        {/* 제품 선택 드로어 */}
-        <DrawerView isVisible={isProductViewVisible}>
-          <ManageView
-            onBack={closeDrawer}
-            onSelect={handleProductSelect}
-            title="제품 선택"
-            items={products.map((product) => ({ id: product.product_option_id, name: product.product_name }))}
-          />
-        </DrawerView>
+      {/* 거래처 선택 드로어 */}
+      <DrawerView isVisible={isSupplierViewVisible}>
+        <ManageView
+          onBack={closeDrawer}
+          onSelect={handleSupplierSelect}
+          title="거래처 선택"
+          items={suppliers}
+          onAdd={addSupplier}
+          onEdit={editSupplier}
+          onDelete={deleteSupplier}
+        />
+      </DrawerView>
 
-        {/* 거래처 선택 드로어 */}
-        <DrawerView isVisible={isSupplierViewVisible}>
-          <ManageView
-            onBack={closeDrawer}
-            onSelect={handleSupplierSelect}
-            title="거래처 선택"
-            items={suppliers}
-            onAdd={addSupplier}
-            onEdit={editSupplier}
-            onDelete={deleteSupplier}
-          />
-        </DrawerView>
-
-        {/* 멤버 선택 드로어 */}
-        <DrawerView isVisible={isMemberViewVisible}>
-          <ManageView
-            onBack={closeDrawer}
-            onSelect={handleMemberSelect}
-            title="멤버 선택"
-            items={profiles}
-            onAdd={addProfile}
-            onEdit={editProfile}
-            onDelete={deleteProfile}
-          />
-        </DrawerView>
+      {/* 멤버 선택 드로어 */}
+      <DrawerView isVisible={isMemberViewVisible}>
+        <ManageView
+          onBack={closeDrawer}
+          onSelect={handleMemberSelect}
+          title="멤버 선택"
+          items={profiles}
+          onAdd={addProfile}
+          onEdit={editProfile}
+          onDelete={deleteProfile}
+        />
+      </DrawerView>
     </BaseFilterDrawer>
   );
 }

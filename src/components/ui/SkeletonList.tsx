@@ -1,5 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface SkeletonListProps {
   count?: number;
@@ -15,7 +15,7 @@ export default function SkeletonList({ count = 6, children, className }: Skeleto
   return (
     <div className={className}>
       {Array.from({ length: count }).map((_, index) => (
-        <div key={index}>{children(index)}</div>
+        <div key={`skeleton-item-${index}`}>{children(index)}</div>
       ))}
     </div>
   );
@@ -54,4 +54,3 @@ export function SkeletonCard({
     </div>
   );
 }
-

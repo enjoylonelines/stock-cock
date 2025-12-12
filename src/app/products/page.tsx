@@ -1,13 +1,13 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
 import ProductList from "@/components/products/ProductList";
 import ProductListSkeleton from "@/components/products/ProductListSkeleton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useProducts } from "@/hooks/useProducts";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
-import { useState, useEffect, useCallback } from "react";
+import { Plus, Search } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function ProductsPage() {
   const { products, isLoading } = useProducts();
@@ -39,7 +39,7 @@ export default function ProductsPage() {
           placeholder="제품 이름, 바코드, 속성 검색"
           className="pl-9 h-12 bg-white"
           value={searchInput}
-          onChange={(e) => handleSearchChange(e.target.value)}
+          onChange={e => handleSearchChange(e.target.value)}
         />
       </div>
 

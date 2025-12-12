@@ -1,5 +1,5 @@
+import type { Category } from "@/types/database";
 import { useCRUD } from "./useCRUD";
-import { Category } from "@/types/database";
 
 export function useCategories() {
   const { items, isLoading, addItem, editItem, deleteItem, refetch } = useCRUD<Category>({

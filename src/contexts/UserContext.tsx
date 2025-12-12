@@ -1,6 +1,6 @@
 "use client";
-import { UserInfo } from "@/types/database";
-import { createContext, ReactNode, useContext } from "react";
+import type { UserInfo } from "@/types/database";
+import { type ReactNode, createContext, useContext } from "react";
 
 // context/UserContext.tsx
 export const UserContext = createContext<UserInfo | null>(null);

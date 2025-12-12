@@ -1,23 +1,23 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ChevronRight } from "lucide-react";
-import { useState } from "react";
-import DrawerView from "../ui/drawer-view";
-import ManageView from "./ManageView";
-import ProductSelectView from "./ProductSelectView";
-import { useLocations } from "@/hooks/useWarehouses";
-import { useProducts } from "@/hooks/useProducts";
+import { useUser } from "@/contexts/UserContext";
 import { useInventories } from "@/hooks/useInventories";
-import ProductListItem from "./ProductListItem";
-import MemoView from "./MemoView";
-import DatePickerDialog from "./DatePickerDialog";
+import { useProducts } from "@/hooks/useProducts";
+import { useLocations } from "@/hooks/useWarehouses";
+import { useFormStateStore } from "@/store/formStateStore";
+import type { ProductOptionView } from "@/types/product_option_view";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
+import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ProductOptionView } from "@/types/product_option_view";
-import { useUser } from "@/contexts/UserContext";
-import { useFormStateStore } from "@/store/formStateStore";
+import { useState } from "react";
+import DrawerView from "../ui/drawer-view";
+import DatePickerDialog from "./DatePickerDialog";
+import ManageView from "./ManageView";
+import MemoView from "./MemoView";
+import ProductListItem from "./ProductListItem";
+import ProductSelectView from "./ProductSelectView";
 
 export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
   const [isFromLocationViewVisible, setIsFromLocationViewVisible] = useState(false);
@@ -31,9 +31,9 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
   const { inventories } = useInventories();
   const router = useRouter();
   const user = useUser();
-  const moveForm = useFormStateStore((state) => state.moveForm);
-  const updateMoveForm = useFormStateStore((state) => state.updateMoveForm);
-  const resetMoveForm = useFormStateStore((state) => state.resetMoveForm);
+  const moveForm = useFormStateStore(state => state.moveForm);
+  const updateMoveForm = useFormStateStore(state => state.updateMoveForm);
+  const resetMoveForm = useFormStateStore(state => state.resetMoveForm);
   const { fromLocation, toLocation, selectedProducts, selectedDate, memo } = moveForm;
 
   const handleFromLocationSelect = (location: { id: string; name: string }) => {
@@ -83,7 +83,7 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
           memo,
           user_id: user?.id,
           created_at: format(selectedDate, "yyyy-MM-dd HH:mm:ss"),
-          items: selectedProducts.map((product) => ({
+          items: selectedProducts.map(product => ({
             option_id: product.product_option_id,
             quantity: product.quantity || 1,
             unit_price: product.sell_price || null,
@@ -114,9 +114,9 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
 
   // 출발지에 재고가 있는 제품만 필터링
   const availableProducts = fromLocation
-    ? products.filter((product) => {
+    ? products.filter(product => {
         const inventory = inventories.find(
-          (inv) => inv.product_option_id === product.product_option_id && inv.warehouse_id === fromLocation
+          inv => inv.product_option_id === product.product_option_id && inv.warehouse_id === fromLocation
         );
         return inventory && inventory.quantity > 0;
       })
@@ -148,7 +148,7 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">From.</h3>
-              <p className="text-sm text-gray-500">{locations.find((loc) => loc.id === fromLocation)?.name || "선택"}</p>
+              <p className="text-sm text-gray-500">{locations.find(loc => loc.id === fromLocation)?.name || "선택"}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -161,7 +161,7 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">To.</h3>
-              <p className="text-sm text-gray-500">{locations.find((loc) => loc.id === toLocation)?.name || "선택"}</p>
+              <p className="text-sm text-gray-500">{locations.find(loc => loc.id === toLocation)?.name || "선택"}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -179,8 +179,8 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
                 {!fromLocation || !toLocation
                   ? "위치를 먼저 선택해주세요"
                   : fromLocation && availableProducts.length === 0
-                  ? "재고가 없습니다"
-                  : `${selectedProducts.length}개 품목`}
+                    ? "재고가 없습니다"
+                    : `${selectedProducts.length}개 품목`}
               </p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -189,8 +189,13 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
           {/* 선택된 제품 리스트 */}
           {selectedProducts.length > 0 && (
             <div className="mt-2 space-y-2">
-              {selectedProducts.map((product) => (
-                <ProductListItem key={product.product_option_id} product={product} quantity={product.quantity} selected={false} />
+              {selectedProducts.map(product => (
+                <ProductListItem
+                  key={product.product_option_id}
+                  product={product}
+                  quantity={product.quantity}
+                  selected={false}
+                />
               ))}
             </div>
           )}
@@ -216,7 +221,11 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
           <Button variant="outline" className="flex-1" onClick={handleTemporarySave}>
             임시 저장
           </Button>
-          <Button onClick={handleSubmit} disabled={isLoading} className="flex-1 text-white bg-orange-500 hover:bg-orange-600">
+          <Button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="flex-1 text-white bg-orange-500 hover:bg-orange-600"
+          >
             {isLoading ? "처리 중..." : "이동 완료"}
           </Button>
         </div>
@@ -236,7 +245,7 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
           onBack={() => setIsFromLocationViewVisible(false)}
           onSelect={handleFromLocationSelect}
           title="출발지 선택"
-          items={locations.filter((loc) => loc.id !== toLocation)}
+          items={locations.filter(loc => loc.id !== toLocation)}
           onAdd={addLocation}
           onEdit={editLocation}
           onDelete={deleteLocation}
@@ -249,7 +258,7 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
           onBack={() => setIsToLocationViewVisible(false)}
           onSelect={handleToLocationSelect}
           title="도착지 선택"
-          items={locations.filter((loc) => loc.id !== fromLocation)}
+          items={locations.filter(loc => loc.id !== fromLocation)}
           onAdd={addLocation}
           onEdit={editLocation}
           onDelete={deleteLocation}
@@ -270,7 +279,7 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
       <DrawerView isVisible={isMemoViewVisible}>
         <MemoView
           value={memo}
-          onChange={(value) => updateMoveForm({ memo: value })}
+          onChange={value => updateMoveForm({ memo: value })}
           onBack={() => setIsMemoViewVisible(false)}
           onDone={handleMemoDone}
         />

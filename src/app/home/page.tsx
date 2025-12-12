@@ -1,11 +1,11 @@
 "use client";
 
-import StatsBox from "@/components/home/StatsBox";
-import SearchInput from "@/components/home/SearchInput";
 import ActionCards from "@/components/home/ActionCards";
 import HomeSkeleton from "@/components/home/HomeSkeleton";
+import SearchInput from "@/components/home/SearchInput";
+import StatsBox from "@/components/home/StatsBox";
 import { useStats } from "@/hooks/useStats";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const { summary, isLoading } = useStats();

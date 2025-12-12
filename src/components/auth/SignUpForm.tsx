@@ -6,7 +6,10 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useRouter } from "next/navigation";
 
 export default function SignUpForm() {
-  const [formState, formAction, isPending] = useActionState(signup, { error: "", success: false } as { error?: string; success?: boolean });
+  const [formState, formAction, isPending] = useActionState(signup, {
+    error: "",
+    success: false,
+  } as { error?: string; success?: boolean });
   const router = useRouter();
   const { requestPermission, subscribe } = usePushNotifications();
   const handledRef = useRef(false);
@@ -39,21 +42,42 @@ export default function SignUpForm() {
         <label htmlFor="name" className="block text-sm font-medium">
           이름
         </label>
-        <input type="text" id="name" name="name" required className="px-3 py-2 w-full rounded border" placeholder="홍길동" />
+        <input
+          type="text"
+          id="name"
+          name="name"
+          required
+          className="px-3 py-2 w-full rounded border"
+          placeholder="홍길동"
+        />
       </div>
 
       <div>
         <label htmlFor="email" className="block text-sm font-medium">
           이메일
         </label>
-        <input type="email" id="email" name="email" required className="px-3 py-2 w-full rounded border" placeholder="example@email.com" />
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          className="px-3 py-2 w-full rounded border"
+          placeholder="example@email.com"
+        />
       </div>
 
       <div>
         <label htmlFor="password" className="block text-sm font-medium">
           비밀번호
         </label>
-        <input type="password" id="password" name="password" required className="px-3 py-2 w-full rounded border" placeholder="6자 이상" />
+        <input
+          type="password"
+          id="password"
+          name="password"
+          required
+          className="px-3 py-2 w-full rounded border"
+          placeholder="6자 이상"
+        />
       </div>
 
       <div>

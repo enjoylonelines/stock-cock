@@ -10,6 +10,7 @@ export interface FilterState {
   product: string;
   supplier: string;
   member: string;
+  [key: string]: unknown;
 }
 
 export const defaultFilterState: FilterState = {
@@ -22,7 +23,4 @@ export const defaultFilterState: FilterState = {
   member: "",
 };
 
-export const useInventoryFilterDrawerStore = createFilterStore<FilterState>(
-  "inventoryFilter",
-  defaultFilterState
-);
+export const useInventoryFilterDrawerStore = createFilterStore<FilterState>("inventoryFilter", defaultFilterState);

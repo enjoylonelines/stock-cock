@@ -9,11 +9,9 @@ export interface ProductFilterState {
   };
   inStock?: boolean;
   searchQuery?: string;
+  [key: string]: unknown;
 }
 
 const initialFilters: ProductFilterState = {};
 
-export const useProductFilterDrawerStore = createFilterStore<ProductFilterState>(
-  "productFilter",
-  initialFilters
-);
+export const useProductFilterDrawerStore = createFilterStore<ProductFilterState>("productFilter", initialFilters);

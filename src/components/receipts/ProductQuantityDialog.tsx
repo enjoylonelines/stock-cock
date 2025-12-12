@@ -1,10 +1,10 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus } from "lucide-react";
-import { formatNumber } from "@/lib/utils";
-import { ProductOptionView } from "@/types/product_option_view";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useInventories } from "@/hooks/useInventories";
 import { useLocations } from "@/hooks/useWarehouses";
+import { formatNumber } from "@/lib/utils";
+import type { ProductOptionView } from "@/types/product_option_view";
+import { Minus, Plus } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 interface ProductQuantityDialogProps {
@@ -59,9 +59,12 @@ export default function ProductQuantityDialog({
   // 현재 재고 계산
   const currentStock = product
     ? selectedLocationId
-      ? inventories.find((inv) => inv.product_option_id === product.product_option_id && inv.warehouse_id === selectedLocationId)
-          ?.quantity ?? 0
-      : inventories.filter((inv) => inv.product_option_id === product.product_option_id).reduce((sum, inv) => sum + inv.quantity, 0)
+      ? (inventories.find(
+          inv => inv.product_option_id === product.product_option_id && inv.warehouse_id === selectedLocationId
+        )?.quantity ?? 0)
+      : inventories
+          .filter(inv => inv.product_option_id === product.product_option_id)
+          .reduce((sum, inv) => sum + inv.quantity, 0)
     : 0;
 
   // 추가 후 재고 (현재 재고 + 추가 수량)
@@ -112,7 +115,7 @@ export default function ProductQuantityDialog({
                 max={2147483647}
                 className="w-20 text-2xl font-semibold text-center bg-transparent border-none focus:ring-0 focus:outline-none"
                 value={quantity === 0 ? "" : quantity}
-                onChange={(e) => {
+                onChange={e => {
                   const val = e.target.value;
                   if (val === "") {
                     setQuantity(0);
@@ -123,7 +126,6 @@ export default function ProductQuantityDialog({
                     setQuantity(num);
                   }
                 }}
-                autoFocus
               />
               <div className="text-sm text-center text-gray-500">
                 <div>
@@ -137,7 +139,13 @@ export default function ProductQuantityDialog({
                 )}
               </div>
             </div>
-            <Button type="button" variant="outline" size="icon" className="w-10 h-10 rounded-full" onClick={() => handleQuantityChange(1)}>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="w-10 h-10 rounded-full"
+              onClick={() => handleQuantityChange(1)}
+            >
               <Plus className="w-4 h-4" />
             </Button>
           </div>

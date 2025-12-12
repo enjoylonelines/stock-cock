@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { ProductFilterState } from "@/store/productFilterDrawer";
 import BaseFilterDrawer from "@/components/ui/BaseFilterDrawer";
+import { Button } from "@/components/ui/button";
+import type { ProductFilterState } from "@/store/productFilterDrawer";
+import { useState } from "react";
 
 interface ProductFilterDrawerProps {
   isOpen: boolean;
@@ -12,7 +12,12 @@ interface ProductFilterDrawerProps {
   initialFilters?: ProductFilterState;
 }
 
-export default function ProductFilterDrawer({ isOpen, onClose, onApplyFilter, initialFilters }: ProductFilterDrawerProps) {
+export default function ProductFilterDrawer({
+  isOpen,
+  onClose,
+  onApplyFilter,
+  initialFilters,
+}: ProductFilterDrawerProps) {
   const [filters, setFilters] = useState<ProductFilterState>(initialFilters || {});
 
   const handleReset = () => {
@@ -41,7 +46,7 @@ export default function ProductFilterDrawer({ isOpen, onClose, onApplyFilter, in
           placeholder="제품명으로 검색..."
           className="p-3 w-full rounded-lg border"
           value={filters.searchQuery || ""}
-          onChange={(e) => setFilters({ ...filters, searchQuery: e.target.value })}
+          onChange={e => setFilters({ ...filters, searchQuery: e.target.value })}
         />
       </div>
 

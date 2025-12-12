@@ -1,11 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
-import Image from "next/image";
-import { formatNumber, formatBoxBreakdown } from "@/lib/utils";
-import Link from "next/link";
-import { ProductOptionView } from "@/types/product_option_view";
-import { useMemo, memo } from "react";
+import { formatBoxBreakdown, formatNumber } from "@/lib/utils";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
 import { useProductSortStore } from "@/store/productSortStore";
+import type { ProductOptionView } from "@/types/product_option_view";
+import Image from "next/image";
+import Link from "next/link";
+import { memo, useMemo } from "react";
 
 type ProductListProps = {
   products: ProductOptionView[];
@@ -22,7 +22,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
     if (filters.searchQuery) {
       const query = filters.searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (product) =>
+        product =>
           product.product_name.toLowerCase().includes(query) ||
           product.category_name?.toLowerCase().includes(query) ||
           product.brand_name?.toLowerCase().includes(query)
@@ -31,10 +31,11 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
 
     // 재고 상태 필터
     if (filters.inStock !== undefined) {
-      filtered = filtered.filter((product) => {
+      filtered = filtered.filter(product => {
         if (filters.inStock === true) {
           return product.quantity > 0;
-        } else if (filters.inStock === false) {
+        }
+        if (filters.inStock === false) {
           return product.quantity <= 0;
         }
         return true;
@@ -62,7 +63,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      {filteredAndSortedProducts.map((product) => {
+      {filteredAndSortedProducts.map(product => {
         const boxSummary = formatBoxBreakdown(product.quantity, product.box_unit);
         const hasImage = product.image_url && product.image_url.trim() !== "";
 
@@ -73,7 +74,14 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
                 <div className="flex gap-4 items-center">
                   <div className="flex overflow-hidden relative flex-shrink-0 justify-center items-center w-14 h-14 rounded-md bg-slate-200">
                     {hasImage ? (
-                      <Image src={product.image_url} alt={product.product_name} fill className="object-cover" loading="lazy" sizes="56px" />
+                      <Image
+                        src={product.image_url}
+                        alt={product.product_name}
+                        fill
+                        className="object-cover"
+                        loading="lazy"
+                        sizes="56px"
+                      />
                     ) : (
                       <div className="flex justify-center items-center w-full h-full text-sm font-medium text-gray-400">
                         {product.product_name.charAt(0).toUpperCase()}

@@ -1,4 +1,4 @@
-import { SWRConfiguration } from "swr";
+import type { SWRConfiguration } from "swr";
 
 export const swrConfig: SWRConfiguration = {
   revalidateOnFocus: false,
@@ -8,4 +8,3 @@ export const swrConfig: SWRConfiguration = {
   errorRetryCount: 3,
   errorRetryInterval: 5000,
 };
-

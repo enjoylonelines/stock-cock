@@ -1,9 +1,9 @@
 "use client";
 
 import ProductDetail from "@/components/products/ProductDetail";
+import ProductDetailSkeleton from "@/components/products/ProductDetailSkeleton";
 import { useProduct } from "@/hooks/useProducts";
 import { useParams } from "next/navigation";
-import ProductDetailSkeleton from "@/components/products/ProductDetailSkeleton";
 
 export default function ProductDetailPage() {
   const params = useParams();

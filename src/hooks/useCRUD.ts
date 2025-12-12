@@ -1,18 +1,18 @@
-import useSWR, { mutate, MutatorOptions } from "swr";
 import { supabase } from "@/lib/supabase";
 import { swrConfig } from "@/lib/swr-config";
+import useSWR, { mutate, MutatorOptions } from "swr";
 
 interface CRUDEntity {
   id: string;
   name: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface UseCRUDOptions<T extends CRUDEntity> {
   tableName: string;
   swrKey: string;
   orderBy?: string;
-  transform?: (data: any[]) => T[];
+  transform?: (data: unknown[]) => T[];
 }
 
 /**
@@ -40,14 +40,14 @@ export function useCRUD<T extends CRUDEntity>({ tableName, swrKey, orderBy = "na
   const editItem = async (id: string, itemData: Partial<T>) => {
     const { data, error } = await supabase.from(tableName).update(itemData).eq("id", id).select().single();
     if (error) throw error;
-    await mutate(swrKey, (current: T[] = []) => current.map((item) => (item.id === id ? data : item)), false);
+    await mutate(swrKey, (current: T[] = []) => current.map(item => (item.id === id ? data : item)), false);
     return data;
   };
 
   const deleteItem = async (id: string) => {
     const { error } = await supabase.from(tableName).delete().eq("id", id);
     if (error) throw error;
-    await mutate(swrKey, (current: T[] = []) => current.filter((item) => item.id !== id), false);
+    await mutate(swrKey, (current: T[] = []) => current.filter(item => item.id !== id), false);
   };
 
   const refetch = () => mutate(swrKey);
@@ -62,4 +62,3 @@ export function useCRUD<T extends CRUDEntity>({ tableName, swrKey, orderBy = "na
     refetch,
   };
 }
-

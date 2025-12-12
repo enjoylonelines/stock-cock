@@ -1,11 +1,11 @@
-import useSWR from "swr";
 import { supabase } from "@/lib/supabase";
-import { ProductOptionView } from "@/types/product_option_view";
+import type { ProductOptionView } from "@/types/product_option_view";
+import useSWR from "swr";
 
 function groupProductsByOption(products: ProductOptionView[]) {
   const map: Record<string, ProductOptionView> = {};
 
-  products.forEach((p) => {
+  products.forEach(p => {
     if (!map[p.product_option_id]) {
       // 처음 들어온 상품이면 복사해서 넣음
       map[p.product_option_id] = { ...p };
@@ -61,10 +61,14 @@ export function useProduct(productOptionId: string | null) {
     data: product,
     isLoading,
     error,
-  } = useSWR<ProductOptionView>(productOptionId ? [`product`, productOptionId] : null, ([, id]: [string, string]) => fetcher(id), {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: true,
-  });
+  } = useSWR<ProductOptionView>(
+    productOptionId ? ["product", productOptionId] : null,
+    ([, id]: [string, string]) => fetcher(id),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+    }
+  );
 
   return {
     product,
