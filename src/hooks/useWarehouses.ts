@@ -1,42 +1,31 @@
-import useSWR, { mutate } from "swr";
-import { supabase } from "@/lib/supabase";
+import { useCRUD } from "./useCRUD";
 import { Warehouse } from "@/types/database";
 
-const fetcher = async () => {
-  const { data, error } = await supabase.from("warehouses").select("*").order("name");
-  if (error) throw error;
-  return (data || []) as Warehouse[];
-};
-
 export function useLocations() {
-  const { data: locations = [], isLoading } = useSWR<Warehouse[]>("warehouses", fetcher, {
-    revalidateOnFocus: false,
+  const { items, isLoading, addItem, editItem, deleteItem, refetch } = useCRUD<Warehouse>({
+    tableName: "warehouses",
+    swrKey: "warehouses",
+    orderBy: "name",
   });
 
   const addLocation = async (name: string) => {
-    const { data, error } = await supabase.from("warehouses").insert({ name }).select().single();
-    if (error) throw error;
-    await mutate("warehouses", (current: Warehouse[] = []) => [...current, data], false);
-    return data;
+    return await addItem({ name });
   };
 
   const editLocation = async (id: string, name: string) => {
-    const { error } = await supabase.from("warehouses").update({ name }).eq("id", id);
-    if (error) throw error;
-    await mutate("warehouses", (current: Warehouse[] = []) => current.map((location) => (location.id === id ? { ...location, name } : location)), false);
+    return await editItem(id, { name });
   };
 
   const deleteLocation = async (id: string) => {
-    const { error } = await supabase.from("warehouses").delete().eq("id", id);
-    if (error) throw error;
-    await mutate("warehouses", (current: Warehouse[] = []) => current.filter((location) => location.id !== id), false);
+    return await deleteItem(id);
   };
 
   return {
-    locations,
+    locations: items,
     isLoading,
     addLocation,
     editLocation,
     deleteLocation,
+    refetch,
   };
 }
