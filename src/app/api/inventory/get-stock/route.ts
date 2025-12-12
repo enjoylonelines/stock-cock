@@ -1,9 +1,10 @@
 // 단건 재고조회
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 const baseURL = `https://sboapi${process.env.ZONE}.ecount.com/OAPI/V2`;
 const today = new Date();
-const date = today.getFullYear() + String(today.getMonth() + 1).padStart(2, "0") + String(today.getDate()).padStart(2, "0");
+const date =
+  today.getFullYear() + String(today.getMonth() + 1).padStart(2, "0") + String(today.getDate()).padStart(2, "0");
 
 // 캐시 저장을 위한 Map 객체 생성
 const stockCache = new Map();

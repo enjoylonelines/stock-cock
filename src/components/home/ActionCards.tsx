@@ -1,22 +1,22 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { type FormType, useDrawerStore } from "@/store/drawerStore";
 import {
-  FileSpreadsheet,
-  PackagePlus,
   ArrowDownToLine,
-  ArrowUpFromLine,
-  ArrowLeftRight,
-  Settings2,
   ArrowDownWideNarrow,
-  History,
+  ArrowLeftRight,
+  ArrowUpFromLine,
   FileDigit,
-  UserRoundPlus,
+  FileSpreadsheet,
+  History,
+  PackagePlus,
   Plus,
+  Settings2,
+  UserRoundPlus,
 } from "lucide-react";
 import ActionButton from "./ActionButton";
-import { FormType, useDrawerStore } from "@/store/drawerStore";
 
 // 액션 카드 데이터 정의
 const actionCards = [
@@ -112,34 +112,34 @@ const actionCards = [
   //     },
   //   ],
   // },
-  {
-    id: "member-management",
-    title: "멤버 추가",
-    buttons: [
-      {
-        icon: UserRoundPlus,
-        iconColor: "text-blue-500",
-        label: "우리팀에 멤버 추가하기",
-        description: "새로운 팀원을 추가합니다.",
-        formType: "member",
-      },
-    ],
-  },
+  // {
+  //   id: "member-management",
+  //   title: "멤버 추가",
+  //   buttons: [
+  //     {
+  //       icon: UserRoundPlus,
+  //       iconColor: "text-blue-500",
+  //       label: "우리팀에 멤버 추가하기",
+  //       description: "새로운 팀원을 추가합니다.",
+  //       formType: "member",
+  //     },
+  //   ],
+  // },
 ];
 
 export default function ActionCards() {
   const { openDrawer } = useDrawerStore();
 
   return (
-    <div className="h-full pb-16 overflow-y-auto">
+    <div className="overflow-y-auto pb-16 h-full">
       <div className="grid gap-4">
-        {actionCards.map((card) => (
+        {actionCards.map(card => (
           <Card key={card.id} className="shadow-sm bg-slate-50">
             <CardHeader>
               <CardTitle className="text-lg font-extrabold">{card.title}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2">
-              {card.buttons.map((button) => (
+              {card.buttons.map(button => (
                 <ActionButton
                   key={button.formType}
                   icon={button.icon}
@@ -155,7 +155,7 @@ export default function ActionCards() {
         ))}
 
         {/*추가하기 카드*/}
-        {/* <Button className="flex justify-center shadow-sm h-14 bg-slate-50">
+        {/* <Button className="flex justify-center h-14 shadow-sm bg-slate-50">
           <Plus className="text-slate-500" />
           <p className="text-lg text-black">추가하기</p>
         </Button> */}

@@ -36,6 +36,7 @@ export type ProductOption = {
   sku: string;
   weight: number;
   unit_label: string;
+  box_unit?: number | null;
   buy_price: number;
   sell_price: number;
   created_at: string;
@@ -102,18 +103,6 @@ export type TransactionItem = {
   batch_id?: string;
   quantity: number;
   unit_price: number;
-};
-
-// Adjustment
-export type Adjustment = {
-  id: string;
-  product_option_id: string;
-  warehouse_id: string;
-  before_quantity: number;
-  after_quantity: number;
-  reason: string;
-  user_id: string;
-  created_at: string;
 };
 
 export type TransactionHistoryView = {

@@ -6,7 +6,7 @@ export default function HomeSkeleton() {
       {/* 통계 카드 스켈레톤 - 실제 StatsBox 크기에 맞춤 */}
       <div className="">
         {Array.from({ length: 1 }).map((_, index) => (
-          <div key={index} className="p-4 bg-white rounded-lg border border-gray-200">
+          <div key={`stats-skeleton-${index}`} className="p-4 bg-white rounded-lg border border-gray-200">
             <Skeleton className="mb-2 w-1/2 h-4" />
             <Skeleton className="w-3/4 h-8" />
             <Skeleton className="mt-1 w-1/3 h-3" />
@@ -17,7 +17,7 @@ export default function HomeSkeleton() {
       {/* 액션 카드 스켈레톤 - 실제 ActionCards 크기에 맞춤 */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {Array.from({ length: 2 }).map((_, index) => (
-          <div key={index} className="p-6 bg-white rounded-lg border border-gray-200">
+          <div key={`action-card-skeleton-${index}`} className="p-6 bg-white rounded-lg border border-gray-200">
             <div className="flex gap-3 items-center mb-4">
               <Skeleton className="w-8 h-8 rounded-full" />
               <Skeleton className="w-1/3 h-6" />
@@ -39,7 +39,7 @@ export default function HomeSkeleton() {
         </div>
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, index) => (
-            <div key={index} className="flex gap-3 p-2 bg-gray-50 rounded-lg">
+            <div key={`activity-skeleton-${index}`} className="flex gap-3 p-2 bg-gray-50 rounded-lg">
               <Skeleton className="w-8 h-8 rounded-full" />
               <div className="flex-1">
                 <Skeleton className="mb-1 w-3/4 h-4" />
