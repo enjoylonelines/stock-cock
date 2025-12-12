@@ -1,7 +1,7 @@
 "use client";
 
-import { ChevronLeft, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ChevronLeft, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function SupplierPage() {
@@ -24,7 +24,11 @@ export default function SupplierPage() {
 
       {/* 검색 */}
       <div className="p-4 border-b">
-        <input type="text" placeholder="입고처 검색" className="w-full px-4 py-2 bg-gray-100 rounded-lg focus:outline-none" />
+        <input
+          type="text"
+          placeholder="입고처 검색"
+          className="w-full px-4 py-2 bg-gray-100 rounded-lg focus:outline-none"
+        />
       </div>
 
       {/* 입고처 목록 */}

@@ -1,13 +1,20 @@
 "use client";
 
-import Image from "next/image";
-import { formatNumber } from "@/lib/utils";
-import { useInventories } from "@/hooks/useInventories";
-import { useLocations } from "@/hooks/useWarehouses";
-import { useState } from "react";
-import { ProductOptionView } from "@/types/product_option_view";
-import { useInventoryHistory } from "@/hooks/useInventoryHistory";
 import InventoryList from "@/components/inventory/InventoryList";
+import { Button } from "@/components/ui/button";
+import { useBrands } from "@/hooks/useBrands";
+import { useCategories } from "@/hooks/useCategories";
+import { useInventories } from "@/hooks/useInventories";
+import { useInventoryHistory } from "@/hooks/useInventoryHistory";
+import { useLocations } from "@/hooks/useWarehouses";
+import { supabase } from "@/lib/supabase";
+import { formatBoxBreakdown, formatNumber } from "@/lib/utils";
+import { useDrawerStore } from "@/store/drawerStore";
+import { useFormStateStore } from "@/store/formStateStore";
+import type { ProductOptionView } from "@/types/product_option_view";
+import { Edit } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
 interface ProductDetailProps {
   product: ProductOptionView;
@@ -18,29 +25,83 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   const { locations } = useLocations();
   const { grouped } = useInventoryHistory();
   const [showOnlyStocked, setShowOnlyStocked] = useState(false);
+  const { openDrawer } = useDrawerStore();
+  const { updateProductForm, resetProductForm } = useFormStateStore();
+  const { categories } = useCategories();
+  const { brands } = useBrands();
 
   const getTotalStock = (productId: string) =>
     inventories
-      .filter((i) => i.product_option_id === productId)
+      .filter(i => i.product_option_id === productId)
       .reduce((sum, i) => sum + (typeof i.quantity === "number" ? i.quantity : 0), 0);
 
-  const getLocationName = (locationId: string) => locations.find((loc) => loc.id === locationId)?.name || "알 수 없음";
+  const normalizeQuantity = (quantity: number | null) => (typeof quantity === "number" ? quantity : 0);
+  const totalStock = getTotalStock(product.product_option_id);
+  const totalBoxSummary = formatBoxBreakdown(totalStock, product.box_unit);
+  const getLocationName = (locationId: string) => locations.find(loc => loc.id === locationId)?.name || "알 수 없음";
 
-  const productInventories = inventories.filter((i) => i.product_option_id === product.product_option_id);
+  const productInventories = inventories.filter(i => i.product_option_id === product.product_option_id);
   const filteredInventories = showOnlyStocked
-    ? productInventories.filter((inv) => (typeof inv.quantity === "number" ? inv.quantity : 0) > 0)
+    ? productInventories.filter(inv => (typeof inv.quantity === "number" ? inv.quantity : 0) > 0)
     : productInventories;
 
   // 특정 제품의 재고 변동 내역만 필터링
   const productHistory = grouped
-    .map((group) => ({
+    .map(group => ({
       ...group,
-      transactions: group.transactions.filter((tx) => tx.product_option_id === product.product_option_id),
+      transactions: group.transactions.filter(tx => tx.product_option_id === product.product_option_id),
     }))
-    .filter((group) => group.transactions.length > 0);
+    .filter(group => group.transactions.length > 0);
+
+  const handleEdit = async () => {
+    try {
+      // products 테이블에서 brand_id, category_id 가져오기
+      const { data: productData, error } = await supabase
+        .from("products")
+        .select("category_id, brand_id, image_url")
+        .eq("id", product.product_id)
+        .single();
+
+      if (error) {
+        alert("제품 정보를 불러오는데 실패했습니다.");
+        return;
+      }
+
+      // category와 brand를 이름으로 찾기
+      const category = categories.find(c => c.id === productData.category_id);
+      const brand = brands.find(b => b.id === productData.brand_id);
+
+      // 중량 단위 결정 (1000g 이상이면 kg)
+      const weightUnit: "g" | "kg" = product.weight >= 1000 ? "kg" : "g";
+
+      // formStateStore에 제품 데이터 로드
+      resetProductForm(); // 먼저 초기화
+      updateProductForm({
+        name: product.product_name,
+        categoryId: productData.category_id,
+        brandId: productData.brand_id,
+        buyPrice: product.buy_price.toString(),
+        sellPrice: product.sell_price.toString(),
+        weight: product.weight,
+        weightUnit,
+        boxUnit: product.box_unit ? product.box_unit.toString() : "",
+        sku: product.sku,
+        imagePath: product.image_url || "",
+        localPreviewUrl: product.image_url || "",
+        editingProductId: product.product_id,
+        editingProductOptionId: product.product_option_id,
+      });
+
+      // 수정 모드로 드로어 열기
+      openDrawer("product-edit");
+    } catch (error) {
+      console.error("제품 수정 오류:", error);
+      alert("제품 정보를 불러오는데 실패했습니다.");
+    }
+  };
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex flex-col mx-auto max-w-3xl h-full bg-gray-50">
       {/* 상품 정보 */}
       <div className="flex-1 p-4 space-y-4">
         {/* 기본 정보 카드 */}
@@ -48,18 +109,33 @@ export default function ProductDetail({ product }: ProductDetailProps) {
           <div className="flex gap-4">
             <div className="overflow-hidden relative w-24 h-24 bg-gray-100 rounded-lg shrink-0">
               {product.image_url ? (
-                <Image src={product.image_url} alt={product.product_name} fill className="object-cover" />
+                <Image
+                  src={product.image_url}
+                  alt={product.product_name}
+                  fill
+                  className="object-cover"
+                  priority
+                  sizes="96px"
+                />
               ) : (
                 <div className="w-full h-full bg-gray-200" />
               )}
             </div>
             <div className="flex-1">
               <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-lg font-semibold">{product.product_name}</h2>
+                <div className="flex-1">
+                  <div className="flex gap-2 items-center">
+                    <h2 className="text-lg font-semibold">{product.product_name}</h2>
+                    <Button variant="ghost" size="icon" className="w-8 h-8" onClick={handleEdit}>
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  </div>
                   <p className="text-sm text-gray-500">{""}</p>
                 </div>
-                <div className="text-xl font-bold text-blue-500">{formatNumber(getTotalStock(product.product_option_id))}</div>
+                <div className="text-right">
+                  <div className="text-xl font-bold text-blue-500">{formatNumber(totalStock)}개</div>
+                  {totalBoxSummary && <p className="mt-1 text-xs text-gray-500">{totalBoxSummary}</p>}
+                </div>
               </div>
               <div className="flex flex-wrap mt-2 text-sm text-gray-600">
                 <span>{formatNumber(product.sell_price)}원</span>
@@ -85,7 +161,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                 className={`w-8 h-4 rounded-full transition-colors duration-200 focus:outline-none ${
                   showOnlyStocked ? "bg-blue-500" : "bg-gray-200"
                 }`}
-                onClick={() => setShowOnlyStocked((prev) => !prev)}
+                onClick={() => setShowOnlyStocked(prev => !prev)}
                 aria-pressed={showOnlyStocked}
               >
                 <span
@@ -100,15 +176,23 @@ export default function ProductDetail({ product }: ProductDetailProps) {
             {filteredInventories.length === 0 ? (
               <div className="text-sm text-gray-400">재고 없음</div>
             ) : (
-              filteredInventories.map((inv) => (
-                <div key={inv.id} className="flex justify-between items-center p-4 w-full text-left">
-                  <div className="flex gap-2 items-center">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full" />
-                    <span>{getLocationName(inv.warehouse_id)}</span>
+              filteredInventories.map(inv => {
+                const locationQuantity = normalizeQuantity(inv.quantity);
+                const boxSummary = formatBoxBreakdown(locationQuantity, product.box_unit);
+
+                return (
+                  <div key={inv.id} className="flex justify-between items-center p-4 w-full text-left">
+                    <div className="flex gap-2 items-center">
+                      <span className="w-2 h-2 bg-gray-400 rounded-full" />
+                      <span>{getLocationName(inv.warehouse_id)}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="block text-blue-500">{formatNumber(locationQuantity)}개</span>
+                      {boxSummary && <span className="text-xs text-gray-500">{boxSummary}</span>}
+                    </div>
                   </div>
-                  <span className="text-blue-500">{formatNumber(inv.quantity)}</span>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

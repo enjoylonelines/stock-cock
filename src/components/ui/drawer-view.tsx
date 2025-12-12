@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, RefObject } from "react";
+import { type RefObject, useEffect, useRef } from "react";
 
 interface DrawerViewProps {
   children: React.ReactNode;
@@ -27,7 +27,7 @@ export default function DrawerView({ children, isVisible, className, scrollRef }
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ type: "tween", duration: 0.2 }}
-          className={cn("absolute inset-0 bg-background overflow-y-auto", className)}
+          className={cn("overflow-y-auto absolute inset-0 h-full bg-background", className)}
         >
           {children}
         </motion.div>

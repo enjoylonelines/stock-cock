@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { login } from "@/app/auth/actions";
+import { Button } from "@/components/ui/button";
+import { useActionState, useState } from "react";
 
 export default function SignInForm() {
   const [email, setEmail] = useState("");
@@ -20,7 +20,7 @@ export default function SignInForm() {
           id="email"
           name="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={e => setEmail(e.target.value)}
           required
           className="block px-3 py-2 mt-1 w-full rounded-md border border-gray-300 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500"
           placeholder="example@email.com"
@@ -36,7 +36,7 @@ export default function SignInForm() {
           id="password"
           name="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={e => setPassword(e.target.value)}
           required
           className="block px-3 py-2 mt-1 w-full rounded-md border border-gray-300 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-orange-500"
           placeholder="비밀번호를 입력하세요"

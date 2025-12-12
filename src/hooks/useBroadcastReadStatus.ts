@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
-import { supabase } from "@/lib/supabase";
 import { useUser } from "@/contexts/UserContext";
+import { supabase } from "@/lib/supabase";
+import { useCallback, useEffect, useState } from "react";
 
 export function useBroadcastReadStatus() {
   const [lastReadBroadcastId, setLastReadBroadcastId] = useState<number>(0);
@@ -14,7 +14,11 @@ export function useBroadcastReadStatus() {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase.from("user_read_status").select("last_read_broadcast_id").eq("user_id", user.id).single();
+      const { data, error } = await supabase
+        .from("user_read_status")
+        .select("last_read_broadcast_id")
+        .eq("user_id", user.id)
+        .single();
 
       if (error && error.code !== "PGRST116") {
         // PGRST116은 데이터가 없을 때
@@ -93,7 +97,7 @@ export function useBroadcastReadStatus() {
   };
 
   const getUnreadCount = (transactions: { broadcast_id?: number }[]): number => {
-    return transactions.filter((tx) => !isRead(tx.broadcast_id || 0)).length;
+    return transactions.filter(tx => !isRead(tx.broadcast_id || 0)).length;
   };
 
   // 실시간 구독 설정 - 새로운 트랜잭션이 추가되면 읽지 않은 알람 개수 업데이트

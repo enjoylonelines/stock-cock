@@ -1,13 +1,13 @@
 "use client";
 
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { X, ArrowDownToLine, ArrowUpToLine, ArrowLeftRight, ArrowUpDown } from "lucide-react";
-import { useActivityLogStore } from "@/store/activityLogStore";
-import { useInventoryHistory, InventoryTransaction } from "@/hooks/useInventoryHistory";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { useBroadcastReadStatus } from "@/hooks/useBroadcastReadStatus";
+import { type InventoryTransaction, useInventoryHistory } from "@/hooks/useInventoryHistory";
+import { useActivityLogStore } from "@/store/activityLogStore";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
+import { ArrowDownToLine, ArrowLeftRight, ArrowUpDown, ArrowUpToLine, X } from "lucide-react";
 
 export default function ActivityLogDrawer() {
   const { isOpen, close } = useActivityLogStore();
@@ -78,8 +78,8 @@ export default function ActivityLogDrawer() {
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={(open) => !open && close()}>
-      <DrawerContent className="h-[80vh] flex flex-col" role="dialog" aria-modal="true">
+    <Drawer open={isOpen} onOpenChange={open => !open && close()}>
+      <DrawerContent className="h-[80vh] flex flex-col max-w-3xl mx-auto" role="dialog" aria-modal="true">
         <DrawerHeader className="flex-shrink-0 py-0">
           <div className="flex justify-end">
             <Button variant="ghost" size="icon" className="flex justify-end w-8 h-8" onClick={close} aria-label="닫기">
@@ -91,7 +91,9 @@ export default function ActivityLogDrawer() {
             <div>
               <DrawerTitle className="text-lg font-medium text-blue-400">
                 최근 활동
-                {unreadCount > 0 && <span className="px-2 py-1 ml-2 text-xs text-white bg-red-500 rounded-full">{unreadCount}</span>}
+                {unreadCount > 0 && (
+                  <span className="px-2 py-1 ml-2 text-xs text-white bg-red-500 rounded-full">{unreadCount}</span>
+                )}
               </DrawerTitle>
             </div>
           </div>
@@ -113,7 +115,7 @@ export default function ActivityLogDrawer() {
             </div>
           ) : (
             <div className="space-y-3">
-              {transactions.slice(0, 20).map((transaction) => {
+              {transactions.slice(0, 20).map(transaction => {
                 const isTransactionRead = isRead(transaction.broadcast_id);
                 return (
                   <div
@@ -122,13 +124,26 @@ export default function ActivityLogDrawer() {
                       isTransactionRead ? "bg-gray-50" : "bg-blue-50 border-l-4 border-blue-400"
                     }`}
                     onClick={() => markAsRead(transaction.broadcast_id)}
+                    onKeyDown={e => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        markAsRead(transaction.broadcast_id);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
                   >
                     <div className="flex-shrink-0 mt-1">{getTypeIcon(transaction.type)}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex gap-2 items-center mb-1">
-                        <span className={`font-medium ${getTypeColor(transaction.type)}`}>{getTypeLabel(transaction.type)}</span>
+                        <span className={`font-medium ${getTypeColor(transaction.type)}`}>
+                          {getTypeLabel(transaction.type)}
+                        </span>
                         <span className="text-xs text-gray-500">
-                          {formatDistanceToNow(new Date(transaction.created_at), { addSuffix: true, locale: ko })}
+                          {formatDistanceToNow(new Date(transaction.created_at), {
+                            addSuffix: true,
+                            locale: ko,
+                          })}
                         </span>
                       </div>
                       <p className="mb-1 text-sm text-gray-700">{formatLogMessage(transaction)}</p>

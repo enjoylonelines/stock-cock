@@ -1,18 +1,18 @@
 "use client";
 
+import { logout } from "@/app/auth/actions";
+import ManageView from "@/components/receipts/ManageView";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useSuppliers } from "@/hooks/useSuppliers";
+import { useLocations } from "@/hooks/useWarehouses";
+import type { TeamInfo, UserInfo } from "@/types/database";
 import { Camera, ChevronRight, LogOut } from "lucide-react";
 import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { logout } from "@/app/auth/actions";
-import { TeamInfo, UserInfo } from "@/types/database";
 import { useState } from "react";
-import SettingsDrawer from "./SettingsDrawer";
-import ManageView from "@/components/receipts/ManageView";
-import { useLocations } from "@/hooks/useWarehouses";
-import { useSuppliers } from "@/hooks/useSuppliers";
 import PushNotificationSettings from "./PushNotificationSettings";
+import SettingsDrawer from "./SettingsDrawer";
 
 interface InfoData {
   productCount: number;
@@ -54,7 +54,11 @@ export default function SettingsPage({ user, _team, info }: { user: UserInfo; _t
           </div>
           {/* 설정 버튼 */}
           <div className="absolute top-4 left-4">
-            <Button size="icon" variant="outline" className="w-8 h-8 backdrop-blur-sm bg-white/10 border-white/20 hover:bg-white/20">
+            <Button
+              size="icon"
+              variant="outline"
+              className="w-8 h-8 backdrop-blur-sm bg-white/10 border-white/20 hover:bg-white/20"
+            >
               <Camera className="w-4 h-4 text-white" />
             </Button>
           </div>
@@ -175,7 +179,11 @@ export default function SettingsPage({ user, _team, info }: { user: UserInfo; _t
       </form>
 
       {/* 입고처 관리 드로어 */}
-      <SettingsDrawer isOpen={isWarehousesDrawerOpen} onClose={() => setIsWarehousesDrawerOpen(false)} title="입고처 관리">
+      <SettingsDrawer
+        isOpen={isWarehousesDrawerOpen}
+        onClose={() => setIsWarehousesDrawerOpen(false)}
+        title="입고처 관리"
+      >
         <ManageView
           onBack={() => setIsWarehousesDrawerOpen(false)}
           onSelect={() => {}} // 선택 기능은 필요 없음
@@ -188,7 +196,11 @@ export default function SettingsPage({ user, _team, info }: { user: UserInfo; _t
       </SettingsDrawer>
 
       {/* 출고처 관리 드로어 */}
-      <SettingsDrawer isOpen={isSuppliersDrawerOpen} onClose={() => setIsSuppliersDrawerOpen(false)} title="출고처 관리">
+      <SettingsDrawer
+        isOpen={isSuppliersDrawerOpen}
+        onClose={() => setIsSuppliersDrawerOpen(false)}
+        title="출고처 관리"
+      >
         <ManageView
           onBack={() => setIsSuppliersDrawerOpen(false)}
           onSelect={() => {}} // 선택 기능은 필요 없음
