@@ -1,8 +1,8 @@
+import type { ProductOptionView } from "@/types/product_option_view";
 import { create } from "zustand";
-import { ProductOptionView } from "@/types/product_option_view";
 
 export type ReceiptMode = "in" | "out";
-
+const initialWeight = 1200;
 // localStorage 키
 const STORAGE_KEYS = {
   PRODUCT_FORM: "formState:productForm",
@@ -21,7 +21,7 @@ const loadFromStorage = <T>(key: string, defaultState: T): T => {
     const parsed = JSON.parse(stored);
     // Date 필드 복원
     if (parsed && typeof parsed === "object") {
-      Object.keys(parsed).forEach((k) => {
+      Object.keys(parsed).forEach(k => {
         if (k.includes("Date") && typeof parsed[k] === "string") {
           parsed[k] = new Date(parsed[k]);
         }
@@ -40,10 +40,10 @@ const saveToStorage = <T extends Record<string, unknown>>(key: string, state: T)
     // File 객체는 저장하지 않음
     const stateToSave: Record<string, unknown> = { ...state };
     if ("imageFile" in stateToSave) {
-      delete stateToSave.imageFile;
+      stateToSave.imageFile = undefined;
     }
     if ("localPreviewUrl" in stateToSave) {
-      delete stateToSave.localPreviewUrl;
+      stateToSave.localPreviewUrl = undefined;
     }
     localStorage.setItem(key, JSON.stringify(stateToSave));
   } catch (error) {
@@ -65,7 +65,10 @@ export interface ProductFormState {
   boxUnit: string;
   initLocation: string;
   weight: number;
+  weightUnit: "g" | "kg";
   sku: string;
+  editingProductId?: string;
+  editingProductOptionId?: string;
 }
 
 const createDefaultProductFormState = (): ProductFormState => ({
@@ -81,7 +84,8 @@ const createDefaultProductFormState = (): ProductFormState => ({
   initQuantity: "",
   boxUnit: "",
   initLocation: "",
-  weight: 350,
+  weight: initialWeight,
+  weightUnit: "g" as const,
   sku: "",
 });
 
@@ -146,7 +150,7 @@ interface FormStateStore {
   resetAdjustForm: () => void;
 }
 
-export const useFormStateStore = create<FormStateStore>((set) => {
+export const useFormStateStore = create<FormStateStore>(set => {
   // 초기 상태를 localStorage에서 복원
   const loadedProductForm = loadFromStorage(STORAGE_KEYS.PRODUCT_FORM, createDefaultProductFormState());
   // imageFile과 localPreviewUrl은 항상 기본값으로 설정 (저장 불가능한 타입)
@@ -164,8 +168,8 @@ export const useFormStateStore = create<FormStateStore>((set) => {
     },
     moveForm: loadFromStorage(STORAGE_KEYS.MOVE_FORM, createDefaultMoveFormState()),
     adjustForm: loadFromStorage(STORAGE_KEYS.ADJUST_FORM, createDefaultAdjustFormState()),
-    updateProductForm: (payload) =>
-      set((state) => {
+    updateProductForm: payload =>
+      set(state => {
         const newState = { productForm: { ...state.productForm, ...payload } };
         saveToStorage(STORAGE_KEYS.PRODUCT_FORM, newState.productForm);
         return newState;
@@ -176,7 +180,7 @@ export const useFormStateStore = create<FormStateStore>((set) => {
       set({ productForm: defaultState });
     },
     updateReceiptForm: (mode, payload) =>
-      set((state) => {
+      set(state => {
         const newReceiptForm = { ...state.receiptForms[mode], ...payload };
         const newState = {
           receiptForms: {
@@ -188,19 +192,19 @@ export const useFormStateStore = create<FormStateStore>((set) => {
         saveToStorage(storageKey, newReceiptForm);
         return newState;
       }),
-    resetReceiptForm: (mode) => {
+    resetReceiptForm: mode => {
       const defaultState = createDefaultReceiptFormState();
       const storageKey = mode === "in" ? STORAGE_KEYS.RECEIPT_FORM_IN : STORAGE_KEYS.RECEIPT_FORM_OUT;
       localStorage.removeItem(storageKey);
-      set((state) => ({
+      set(state => ({
         receiptForms: {
           ...state.receiptForms,
           [mode]: defaultState,
         },
       }));
     },
-    updateMoveForm: (payload) =>
-      set((state) => {
+    updateMoveForm: payload =>
+      set(state => {
         const newState = { moveForm: { ...state.moveForm, ...payload } };
         saveToStorage(STORAGE_KEYS.MOVE_FORM, newState.moveForm);
         return newState;
@@ -210,8 +214,8 @@ export const useFormStateStore = create<FormStateStore>((set) => {
       localStorage.removeItem(STORAGE_KEYS.MOVE_FORM);
       set({ moveForm: defaultState });
     },
-    updateAdjustForm: (payload) =>
-      set((state) => {
+    updateAdjustForm: payload =>
+      set(state => {
         const newState = { adjustForm: { ...state.adjustForm, ...payload } };
         saveToStorage(STORAGE_KEYS.ADJUST_FORM, newState.adjustForm);
         return newState;

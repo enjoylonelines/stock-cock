@@ -1,12 +1,13 @@
 "use client";
 
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
-import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { useDrawerStore } from "@/store/drawerStore";
+import { X } from "lucide-react";
 
-import { useRef, Suspense } from "react";
+import { useFormStateStore } from "@/store/formStateStore";
 import dynamic from "next/dynamic";
+import { Suspense, useRef } from "react";
 
 // 동적 임포트로 코드 스플리팅
 const ReceiptForm = dynamic(() => import("../receipts/ReceiptForm"), {
@@ -22,19 +23,20 @@ const AdjustForm = dynamic(() => import("../receipts/AdjustForm"), {
   loading: () => <div className="p-4">로딩 중...</div>,
 });
 
-
 export default function CommonDrawer({ children }: { children?: React.ReactNode }) {
   const { isOpen, currentForm, closeDrawer } = useDrawerStore();
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const resetProductForm = useFormStateStore((state) => state.resetProductForm);
-  const resetReceiptForm = useFormStateStore((state) => state.resetReceiptForm);
-  const resetMoveForm = useFormStateStore((state) => state.resetMoveForm);
-  const resetAdjustForm = useFormStateStore((state) => state.resetAdjustForm);
+  const resetProductForm = useFormStateStore(state => state.resetProductForm);
+  const resetReceiptForm = useFormStateStore(state => state.resetReceiptForm);
+  const resetMoveForm = useFormStateStore(state => state.resetMoveForm);
+  const resetAdjustForm = useFormStateStore(state => state.resetAdjustForm);
 
   const getFormTitle = () => {
     switch (currentForm) {
       case "product":
         return "제품 등록";
+      case "product-edit":
+        return "제품 수정";
       case "excel":
         return "엑셀 파일로 등록";
       case "receipt":
@@ -79,6 +81,8 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
         return "새로운 팀원을 추가합니다.";
       case "product":
         return "새로운 제품을 등록합니다.";
+      case "product-edit":
+        return "제품 정보를 수정합니다.";
       case "excel":
         return "엑셀 파일을 업로드하여 여러 제품을 한 번에 등록합니다.";
       default:
@@ -149,7 +153,13 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
       case "product":
         return (
           <Suspense fallback={<div className="p-4">로딩 중...</div>}>
-            <ProductCreateForm scrollRef={scrollRef} closeDrawer={closeDrawer} />
+            <ProductCreateForm scrollRef={scrollRef} closeDrawer={closeDrawer} mode="create" />
+          </Suspense>
+        );
+      case "product-edit":
+        return (
+          <Suspense fallback={<div className="p-4">로딩 중...</div>}>
+            <ProductCreateForm scrollRef={scrollRef} closeDrawer={closeDrawer} mode="edit" />
           </Suspense>
         );
       case "excel":
@@ -160,12 +170,12 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={(open) => !open && closeDrawer()}>
+    <Drawer open={isOpen} onOpenChange={open => !open && closeDrawer()}>
       <DrawerContent className="h-[90vh] flex flex-col max-w-3xl mx-auto" role="dialog" aria-modal="true">
         <DrawerHeader className="flex-shrink-0 py-0">
-          <div className="flex items-center justify-between py-2">
+          <div className="flex justify-between items-center py-2">
             {shouldShowResetButton() ? (
-              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs text-gray-500" onClick={handleReset}>
+              <Button variant="ghost" size="sm" className="px-2 h-7 text-xs text-gray-500" onClick={handleReset}>
                 초기화
               </Button>
             ) : (
@@ -178,13 +188,21 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
 
           <div
             className={`flex items-center py-2 border-b-2 ${
-              currentForm === "receipt" ? "border-blue-400" : currentForm === "issue" ? "border-red-400" : "border-orange-400"
+              currentForm === "receipt"
+                ? "border-blue-400"
+                : currentForm === "issue"
+                  ? "border-red-400"
+                  : "border-orange-400"
             }`}
           >
             <div>
               <DrawerTitle
                 className={`text-lg font-medium ${
-                  currentForm === "receipt" ? "text-blue-400" : currentForm === "issue" ? "text-red-400" : "text-orange-400"
+                  currentForm === "receipt"
+                    ? "text-blue-400"
+                    : currentForm === "issue"
+                      ? "text-red-400"
+                      : "text-orange-400"
                 }`}
               >
                 {getFormTitle()}

@@ -1,6 +1,6 @@
-import useSWR from "swr";
 import { supabase } from "@/lib/supabase";
-import { Inventory } from "@/types/database";
+import type { Inventory } from "@/types/database";
+import useSWR from "swr";
 
 const fetcher = async () => {
   const { data, error } = await supabase.from("inventory").select("*");

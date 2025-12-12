@@ -1,22 +1,22 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { type FormType, useDrawerStore } from "@/store/drawerStore";
 import {
-  FileSpreadsheet,
-  PackagePlus,
   ArrowDownToLine,
-  ArrowUpFromLine,
-  ArrowLeftRight,
-  Settings2,
   ArrowDownWideNarrow,
-  History,
+  ArrowLeftRight,
+  ArrowUpFromLine,
   FileDigit,
-  UserRoundPlus,
+  FileSpreadsheet,
+  History,
+  PackagePlus,
   Plus,
+  Settings2,
+  UserRoundPlus,
 } from "lucide-react";
 import ActionButton from "./ActionButton";
-import { FormType, useDrawerStore } from "@/store/drawerStore";
 
 // 액션 카드 데이터 정의
 const actionCards = [
@@ -133,13 +133,13 @@ export default function ActionCards() {
   return (
     <div className="overflow-y-auto pb-16 h-full">
       <div className="grid gap-4">
-        {actionCards.map((card) => (
+        {actionCards.map(card => (
           <Card key={card.id} className="shadow-sm bg-slate-50">
             <CardHeader>
               <CardTitle className="text-lg font-extrabold">{card.title}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2">
-              {card.buttons.map((button) => (
+              {card.buttons.map(button => (
                 <ActionButton
                   key={button.formType}
                   icon={button.icon}

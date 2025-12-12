@@ -1,6 +1,6 @@
 "use client";
 
-import { HomeIcon, CubeIcon, ArrowsRightLeftIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
+import { ArrowsRightLeftIcon, Cog6ToothIcon, CubeIcon, HomeIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -17,7 +17,7 @@ const Footer = () => {
   return (
     <footer className="fixed right-0 bottom-0 left-0 z-10 pb-4 bg-white border-t border-gray-200">
       <nav className="flex justify-center items-center mx-auto max-w-3xl h-16">
-        {menus.map((menu) => {
+        {menus.map(menu => {
           const Icon = menu.icon;
           const isActive = pathname.includes(menu.href);
 

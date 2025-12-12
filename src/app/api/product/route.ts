@@ -1,13 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { ProductOption } from "@/types/database";
+import type { ProductOption } from "@/types/database";
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const { product, options } = body; // product: { name, ... }, options: [{ option_value }, ...]
 
   // 1. products 테이블에 insert
-  const { data: productData, error: productError } = await supabase.from("products").insert([product]).select().single();
+  const { data: productData, error: productError } = await supabase
+    .from("products")
+    .insert([product])
+    .select()
+    .single();
 
   if (productError) {
     return NextResponse.json({ error: productError.message }, { status: 500 });

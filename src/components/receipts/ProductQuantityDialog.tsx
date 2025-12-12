@@ -1,10 +1,11 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Minus, Plus } from "lucide-react";
-import { formatNumber } from "@/lib/utils";
-import { ProductOptionView } from "@/types/product_option_view";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useInventories } from "@/hooks/useInventories";
 import { useLocations } from "@/hooks/useWarehouses";
+import { formatNumber } from "@/lib/utils";
+import type { ProductOptionView } from "@/types/product_option_view";
+import { Minus, Plus } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 interface ProductQuantityDialogProps {
   open: boolean;
@@ -29,19 +30,48 @@ export default function ProductQuantityDialog({
 }: ProductQuantityDialogProps) {
   const { inventories } = useInventories();
   const { locations } = useLocations();
+  const prevProductIdRef = useRef<string | null>(null);
+  const prevOpenRef = useRef<boolean>(false);
+
+  // 제품이 변경될 때만 추가할 수량을 0으로 초기화
+  useEffect(() => {
+    if (open && product) {
+      const currentProductId = product.product_option_id;
+      const wasClosed = prevOpenRef.current === false;
+
+      // 다이얼로그가 방금 열렸을 때
+      if (wasClosed) {
+        // 제품이 변경되었으면 0으로 초기화
+        // 같은 제품으로 다시 열 때는 부모에서 전달한 quantity prop을 그대로 사용 (setQuantity 호출 안 함)
+        if (prevProductIdRef.current !== currentProductId) {
+          setQuantity(0);
+        }
+        // 제품 ID 업데이트는 항상 수행
+        prevProductIdRef.current = currentProductId;
+      }
+
+      prevOpenRef.current = true;
+    } else {
+      prevOpenRef.current = false;
+    }
+  }, [open, product, setQuantity]);
 
   // 현재 재고 계산
-  const currentStock =
-    product && selectedLocationId
-      ? inventories.find((inv) => inv.product_option_id === product.product_option_id && inv.warehouse_id === selectedLocationId)
-          ?.quantity ?? 0
-      : 0;
+  const currentStock = product
+    ? selectedLocationId
+      ? (inventories.find(
+          inv => inv.product_option_id === product.product_option_id && inv.warehouse_id === selectedLocationId
+        )?.quantity ?? 0)
+      : inventories
+          .filter(inv => inv.product_option_id === product.product_option_id)
+          .reduce((sum, inv) => sum + inv.quantity, 0)
+    : 0;
 
-  // 조정 후 재고는 입력한 수량 그대로
-  const adjustedStock = quantity;
+  // 추가 후 재고 (현재 재고 + 추가 수량)
+  const finalStock = currentStock + quantity;
 
-  // 변화량 계산 (목표 재고 - 현재 재고)
-  const changeAmount = quantity - currentStock;
+  // 변화량 계산 (추가 수량)
+  const changeAmount = quantity;
 
   const handleQuantityChange = (delta: number) => {
     const newQuantity = allowNegative ? quantity + delta : Math.max(0, quantity + delta);
@@ -85,7 +115,7 @@ export default function ProductQuantityDialog({
                 max={2147483647}
                 className="w-20 text-2xl font-semibold text-center bg-transparent border-none focus:ring-0 focus:outline-none"
                 value={quantity === 0 ? "" : quantity}
-                onChange={(e) => {
+                onChange={e => {
                   const val = e.target.value;
                   if (val === "") {
                     setQuantity(0);
@@ -96,23 +126,26 @@ export default function ProductQuantityDialog({
                     setQuantity(num);
                   }
                 }}
-                autoFocus
               />
-              {allowNegative && selectedLocationId ? (
-                <div className="text-sm text-center text-gray-500">
-                  <div>
-                    {formatNumber(currentStock)} → {formatNumber(adjustedStock)}
-                  </div>
+              <div className="text-sm text-center text-gray-500">
+                <div>
+                  {formatNumber(currentStock)} → {formatNumber(finalStock)}
+                </div>
+                {allowNegative && (
                   <div className="text-xs text-gray-400">
                     ({changeAmount > 0 ? "+" : ""}
                     {formatNumber(changeAmount)})
                   </div>
-                </div>
-              ) : (
-                <span className="text-sm text-gray-500">→ {formatNumber(quantity)}</span>
-              )}
+                )}
+              </div>
             </div>
-            <Button type="button" variant="outline" size="icon" className="w-10 h-10 rounded-full" onClick={() => handleQuantityChange(1)}>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="w-10 h-10 rounded-full"
+              onClick={() => handleQuantityChange(1)}
+            >
               <Plus className="w-4 h-4" />
             </Button>
           </div>

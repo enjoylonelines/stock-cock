@@ -25,19 +25,21 @@ export default async function Settings() {
     );
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+  // 병렬로 모든 데이터 가져오기
+  const [profileResult, productsCountResult, membersCountResult, warehousesCountResult, suppliersCountResult] =
+    await Promise.all([
+      supabase.from("profiles").select("*").eq("id", user.id).single(),
+      supabase.from("products").select("*", { count: "exact", head: true }),
+      supabase.from("profiles").select("*", { count: "exact", head: true }),
+      supabase.from("warehouses").select("*", { count: "exact", head: true }),
+      supabase.from("suppliers").select("*", { count: "exact", head: true }),
+    ]);
 
-  // 품목(products) 개수 조회
-  const { count: productsCount } = await supabase.from("products").select("*", { count: "exact", head: true });
-
-  // 멤버(profiles) 개수 조회
-  const { count: membersCount } = await supabase.from("profiles").select("*", { count: "exact", head: true });
-
-  // 입고처(warehouses) 개수 조회
-  const { count: warehousesCount } = await supabase.from("warehouses").select("*", { count: "exact", head: true });
-
-  // 출고처(suppliers) 개수 조회
-  const { count: suppliersCount } = await supabase.from("suppliers").select("*", { count: "exact", head: true });
+  const { data: profile } = profileResult;
+  const { count: productsCount } = productsCountResult;
+  const { count: membersCount } = membersCountResult;
+  const { count: warehousesCount } = warehousesCountResult;
+  const { count: suppliersCount } = suppliersCountResult;
 
   const info = {
     productCount: productsCount || 0,

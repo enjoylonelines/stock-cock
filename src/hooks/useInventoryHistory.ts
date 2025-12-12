@@ -1,9 +1,9 @@
 "use client";
-import { useEffect, useCallback } from "react";
-import useSWR, { mutate } from "swr";
 import { supabase } from "@/lib/supabase";
+import type { TransactionHistoryView } from "@/types/database";
+import { useCallback, useEffect } from "react";
+import useSWR, { mutate } from "swr";
 import { useInventories } from "./useInventories";
-import { TransactionHistoryView } from "@/types/database";
 
 export interface InventoryTransaction extends TransactionHistoryView {
   date: string;
@@ -20,12 +20,18 @@ export interface GroupedTransactions {
   transactions: InventoryTransaction[];
 }
 
-const processTransactionData = (data: TransactionHistoryView[], inventories: { product_option_id: string; quantity: number }[]) => {
-  const mergedInventories: Record<string, number> = inventories.reduce((acc, inv) => {
-    if (!acc[inv.product_option_id]) acc[inv.product_option_id] = 0;
-    acc[inv.product_option_id] += inv.quantity;
-    return acc;
-  }, {} as Record<string, number>);
+const processTransactionData = (
+  data: TransactionHistoryView[],
+  inventories: { product_option_id: string; quantity: number }[]
+) => {
+  const mergedInventories: Record<string, number> = inventories.reduce(
+    (acc, inv) => {
+      if (!acc[inv.product_option_id]) acc[inv.product_option_id] = 0;
+      acc[inv.product_option_id] += inv.quantity;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   // [1] inventories 기준으로 현재고 세팅
   const stockMap: Record<string, number> = { ...mergedInventories };
@@ -76,7 +82,7 @@ const processTransactionData = (data: TransactionHistoryView[], inventories: { p
 
   // 최신순 → 날짜별 그룹화
   const groupedObj: { [date: string]: InventoryTransaction[] } = {};
-  logs.forEach((tx) => {
+  logs.forEach(tx => {
     if (!groupedObj[tx.date]) groupedObj[tx.date] = [];
     groupedObj[tx.date].push(tx);
   });
@@ -91,21 +97,23 @@ const processTransactionData = (data: TransactionHistoryView[], inventories: { p
 
 export function useInventoryHistory() {
   const { inventories } = useInventories();
-  
+
   const fetcher = useCallback(async () => {
-    const { data, error } = await supabase.from("transaction_history_view").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("transaction_history_view")
+      .select("*")
+      .order("created_at", { ascending: false });
     if (error) throw error;
     return processTransactionData(data || [], inventories);
   }, [inventories]);
-  
-  const { data, isLoading, error } = useSWR<{ grouped: GroupedTransactions[]; transactions: InventoryTransaction[] }>(
-    inventories.length > 0 ? ["inventory-history", inventories.length] : null,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-    }
-  );
+
+  const { data, isLoading, error } = useSWR<{
+    grouped: GroupedTransactions[];
+    transactions: InventoryTransaction[];
+  }>(inventories.length > 0 ? ["inventory-history", inventories.length] : null, fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+  });
 
   // 실시간 구독 설정
   useEffect(() => {
