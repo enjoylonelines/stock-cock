@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
-import { supabase } from "@/lib/supabase";
 import { useUser } from "@/contexts/UserContext";
+import { supabase } from "@/lib/supabase";
+import { useCallback, useEffect, useState } from "react";
 
 export function usePushNotifications() {
   const [isSupported, setIsSupported] = useState(false);
@@ -57,7 +57,7 @@ export function usePushNotifications() {
   }, [isSupported, user?.id, getSubscription]);
 
   // ArrayBuffer -> base64url 문자열로 변환
-  const arrayBufferToBase64Url = (buffer: ArrayBuffer | null): string | null => {
+  const arrayBufferToBase64Url = useCallback((buffer: ArrayBuffer | null): string | null => {
     if (!buffer) return null;
     const bytes = new Uint8Array(buffer);
     let binary = "";
@@ -68,7 +68,7 @@ export function usePushNotifications() {
     const base64 = typeof window !== "undefined" ? btoa(binary) : Buffer.from(binary, "binary").toString("base64");
     // base64url 로 변환(+/ -> -_, 제거=)
     return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-  };
+  }, []);
 
   // base64url 문자열 -> Uint8Array (VAPID 공개키용)
   const urlBase64ToUint8Array = (base64String: string): Uint8Array => {
@@ -139,7 +139,7 @@ export function usePushNotifications() {
         // 오류를 throw하지 않고 로그만 출력
       }
     },
-    [user?.id]
+    [user?.id, arrayBufferToBase64Url]
   );
 
   // 푸시 알림 권한 요청
@@ -186,14 +186,14 @@ export function usePushNotifications() {
         return false;
       }
 
-      console.log("VAPID 공개키 확인됨:", vapidPublicKey.substring(0, 20) + "...");
+      console.log("VAPID 공개키 확인됨:", `${vapidPublicKey.substring(0, 20)}...`);
 
       const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
       console.log("구독 생성 시작...");
 
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey,
+        applicationServerKey: applicationServerKey as BufferSource,
       });
 
       console.log("구독 생성 성공:", subscription.endpoint);

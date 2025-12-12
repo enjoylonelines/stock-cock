@@ -1,7 +1,7 @@
 "use client";
 
-import useSWR, { mutate } from "swr";
 import { createClient } from "@/utils/supabase/client";
+import useSWR, { mutate } from "swr";
 
 interface Profile {
   id: string;
@@ -17,7 +17,11 @@ const fetcher = async () => {
 };
 
 export function useProfiles() {
-  const { data: profiles = [], isLoading: loading, error } = useSWR<Profile[]>("profiles", fetcher, {
+  const {
+    data: profiles = [],
+    isLoading: loading,
+    error,
+  } = useSWR<Profile[]>("profiles", fetcher, {
     revalidateOnFocus: false,
   });
 
@@ -33,7 +37,11 @@ export function useProfiles() {
     const supabase = createClient();
     const { data, error } = await supabase.from("profiles").update({ name, email }).eq("id", id).select().single();
     if (error) throw error;
-    await mutate("profiles", (current: Profile[] = []) => current.map((profile) => (profile.id === id ? data : profile)), false);
+    await mutate(
+      "profiles",
+      (current: Profile[] = []) => current.map(profile => (profile.id === id ? data : profile)),
+      false
+    );
     return data;
   };
 
@@ -41,7 +49,7 @@ export function useProfiles() {
     const supabase = createClient();
     const { error } = await supabase.from("profiles").delete().eq("id", id);
     if (error) throw error;
-    await mutate("profiles", (current: Profile[] = []) => current.filter((profile) => profile.id !== id), false);
+    await mutate("profiles", (current: Profile[] = []) => current.filter(profile => profile.id !== id), false);
   };
 
   return {

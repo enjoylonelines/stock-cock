@@ -1,19 +1,19 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { ArrowDownUp, Settings, Filter, Bell, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useBroadcastReadStatus } from "@/hooks/useBroadcastReadStatus";
+import { useInventoryHistory } from "@/hooks/useInventoryHistory";
+import { useInventoryFilterDrawerStore } from "@/store/InventoryFilterDrawer";
+import { useActivityLogStore } from "@/store/activityLogStore";
+import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
+import { ArrowDownUp, ArrowLeft, Bell, Filter, Settings } from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import ActivityLogDrawer from "../home/ActivityLogDrawer";
 import FilterDrawer from "../inventory/FilterDrawer";
 import ProductFilterDrawer from "../products/ProductFilterDrawer";
 import ProductSortDialog from "../products/ProductSortDialog";
-import ActivityLogDrawer from "../home/ActivityLogDrawer";
-import { useInventoryFilterDrawerStore } from "@/store/InventoryFilterDrawer";
-import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
-import { useActivityLogStore } from "@/store/activityLogStore";
-import { useBroadcastReadStatus } from "@/hooks/useBroadcastReadStatus";
-import { useInventoryHistory } from "@/hooks/useInventoryHistory";
-import { useState } from "react";
-import Link from "next/link";
 
 export default function Header() {
   const { isOpen, close, open, setFilters } = useInventoryFilterDrawerStore();
@@ -146,7 +146,7 @@ export default function Header() {
         <div className="flex justify-between items-center px-4 h-14">
           <div className="flex gap-2 items-center">
             {leftButton}
-            <h1 className={`text-lg font-bold`}>{title}</h1>
+            <h1 className={"text-lg font-bold"}>{title}</h1>
           </div>
           {rightButton}
         </div>

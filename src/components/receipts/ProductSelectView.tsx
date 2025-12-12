@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { ArrowLeft, Filter, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formatNumber } from "@/lib/utils";
-import ProductQuantityDialog from "./ProductQuantityDialog";
-import ProductListItem from "./ProductListItem";
-import { ProductOptionView } from "@/types/product_option_view";
 import { useInventories } from "@/hooks/useInventories";
+import { formatNumber } from "@/lib/utils";
+import type { ProductOptionView } from "@/types/product_option_view";
+import { ArrowLeft, Filter, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import ProductListItem from "./ProductListItem";
+import ProductQuantityDialog from "./ProductQuantityDialog";
 
 interface ProductSelectViewProps {
   onBack: () => void;
@@ -14,6 +14,7 @@ interface ProductSelectViewProps {
   products: ProductOptionView[];
   allowNegative?: boolean; // 조정 모드에서 음수 허용
   selectedLocationId?: string; // 조정 모드에서 현재 재고 확인용
+  initialSelectedProducts?: ProductOptionView[]; // 초기 선택된 제품 목록
 }
 
 export default function ProductSelectView({
@@ -22,50 +23,85 @@ export default function ProductSelectView({
   products,
   allowNegative = false,
   selectedLocationId,
+  initialSelectedProducts = [],
 }: ProductSelectViewProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProducts, setSelectedProducts] = useState<ProductOptionView[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<ProductOptionView[]>(initialSelectedProducts);
   const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductOptionView | null>(null);
   const [currentQuantity, setCurrentQuantity] = useState(0);
+  const [initialQuantity, setInitialQuantity] = useState(0); // 모달이 열릴 때의 초기 수량 저장
   const { inventories } = useInventories();
 
-  const filteredProducts = products.filter((product) => product.product_name.toLowerCase().includes(searchTerm.toLowerCase()));
+  // initialSelectedProducts가 변경되면 로컬 state 업데이트
+  useEffect(() => {
+    setSelectedProducts(initialSelectedProducts);
+  }, [initialSelectedProducts]);
+
+  const filteredProducts = products.filter(product =>
+    product.product_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // 제품별 현재 재고 계산
   const getCurrentStock = (productOptionId: string) => {
-    if (!selectedLocationId) return 0;
-    return inventories.find((inv) => inv.product_option_id === productOptionId && inv.warehouse_id === selectedLocationId)?.quantity ?? 0;
+    if (selectedLocationId) {
+      // 특정 위치의 재고
+      return (
+        inventories.find(inv => inv.product_option_id === productOptionId && inv.warehouse_id === selectedLocationId)
+          ?.quantity ?? 0
+      );
+    }
+    // 전체 재고 (product.quantity는 모든 위치의 재고 합계)
+    const product = products.find(p => p.product_option_id === productOptionId);
+    return product?.quantity ?? 0;
   };
+
   const handleProductClick = (product: ProductOptionView) => {
     setSelectedProduct(product);
-    const existing = selectedProducts.find((p) => p.product_option_id === product.product_option_id);
-    setCurrentQuantity(existing ? existing.quantity ?? 0 : 0);
+    const existing = selectedProducts.find(p => p.product_option_id === product.product_option_id);
+    let initialQty = 0;
+    if (existing) {
+      // 이미 선택된 제품이 있으면 기존 수량 사용
+      initialQty = existing.quantity ?? 0;
+    } else {
+      // 선택되지 않은 제품이면 0으로 초기화 (추가할 수량)
+      initialQty = 0;
+    }
+    setCurrentQuantity(initialQty);
+    setInitialQuantity(initialQty); // 초기 수량 저장
     setQuantityDialogOpen(true);
   };
 
   const handleQuantityConfirm = (product: ProductOptionView, quantity: number) => {
     if (!quantity) {
-      setSelectedProducts((prev) => prev.filter((p) => p.product_option_id !== product.product_option_id));
+      setSelectedProducts(prev => prev.filter(p => p.product_option_id !== product.product_option_id));
       return;
     }
 
-    setSelectedProducts((prev) => {
-      const existing = prev.find((p) => p.product_option_id === product.product_option_id);
+    setSelectedProducts(prev => {
+      const existing = prev.find(p => p.product_option_id === product.product_option_id);
       if (existing) {
-        return prev.map((p) => (p.product_option_id === product.product_option_id ? { ...p, quantity } : p));
+        return prev.map(p => (p.product_option_id === product.product_option_id ? { ...p, quantity } : p));
       }
       return [...prev, { ...product, quantity }];
     });
   };
 
+  const handleDialogOpenChange = (open: boolean) => {
+    if (!open) {
+      // 모달이 닫힐 때 적용하지 않았으면 원래 수량으로 되돌리기
+      setCurrentQuantity(initialQuantity);
+    }
+    setQuantityDialogOpen(open);
+  };
+
   const isSelected = (productOptionId: string) => {
-    return selectedProducts.some((p) => p.product_option_id === productOptionId);
+    return selectedProducts.some(p => p.product_option_id === productOptionId);
   };
 
   const getSelectedQuantity = (productOptionId: string) => {
-    const selected = selectedProducts.find((p) => p.product_option_id === productOptionId);
-    return selected ? selected.quantity ?? 0 : 0;
+    const selected = selectedProducts.find(p => p.product_option_id === productOptionId);
+    return selected ? (selected.quantity ?? 0) : 0;
   };
 
   const getTotalQuantity = (products: ProductOptionView[]) => {
@@ -92,7 +128,7 @@ export default function ProductSelectView({
           <Input
             placeholder="제품 이름, 바코드, 속성 검색"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="pl-9"
           />
         </div>
@@ -101,14 +137,18 @@ export default function ProductSelectView({
       {/* 제품 목록 */}
       <div className="overflow-y-auto flex-1">
         <div className="p-4 space-y-2">
-          {filteredProducts.map((product) => (
+          {filteredProducts.map(product => (
             <ProductListItem
               key={product.product_option_id}
               product={product}
-              quantity={isSelected(product.product_option_id) ? getSelectedQuantity(product.product_option_id) : undefined}
+              quantity={
+                isSelected(product.product_option_id) ? getSelectedQuantity(product.product_option_id) : undefined
+              }
               selected={isSelected(product.product_option_id)}
               onClick={() => handleProductClick(product)}
-              currentStock={allowNegative && selectedLocationId ? getCurrentStock(product.product_option_id) : undefined}
+              currentStock={
+                allowNegative && selectedLocationId ? getCurrentStock(product.product_option_id) : undefined
+              }
             />
           ))}
         </div>
@@ -133,7 +173,7 @@ export default function ProductSelectView({
         quantity={currentQuantity}
         setQuantity={setCurrentQuantity}
         open={quantityDialogOpen}
-        onOpenChange={setQuantityDialogOpen}
+        onOpenChange={handleDialogOpenChange}
         product={selectedProduct}
         onConfirm={handleQuantityConfirm}
         allowNegative={allowNegative}

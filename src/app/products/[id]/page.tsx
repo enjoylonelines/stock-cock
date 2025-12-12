@@ -1,23 +1,20 @@
 "use client";
 
 import ProductDetail from "@/components/products/ProductDetail";
-import { useProducts } from "@/hooks/useProducts";
-import { ProductOptionView } from "@/types/product_option_view";
+import ProductDetailSkeleton from "@/components/products/ProductDetailSkeleton";
+import { useProduct } from "@/hooks/useProducts";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const { products } = useProducts();
-  const [product, setProduct] = useState<ProductOptionView | null>(null);
+  const { product, isLoading } = useProduct(params.id as string);
 
-  useEffect(() => {
-    const productDetail = products.find((p) => p.product_option_id === params.id);
-    setProduct(productDetail || null);
-  }, [params.id, products]);
+  if (isLoading) {
+    return <ProductDetailSkeleton />;
+  }
 
   if (!product) {
-    return <div>Loading...</div>;
+    return <div className="container p-4 mx-auto max-w-3xl">제품을 찾을 수 없습니다.</div>;
   }
 
   return <ProductDetail product={product} />;

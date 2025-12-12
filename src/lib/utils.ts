@@ -49,6 +49,33 @@ export function formatBoxBreakdown(quantity?: number | null, boxUnit?: number | 
   return parts.join(" + ");
 }
 
+// 중량을 읽기 쉽게 표시하는 함수 (그램 단위를 입력받아 g 또는 kg으로 표시)
+export function formatWeightDisplay(weightInGrams: number | null | undefined, preferredUnit?: "g" | "kg"): string {
+  if (!weightInGrams || weightInGrams <= 0) return "중량 선택";
+
+  // 선호하는 단위가 있으면 그것을 사용
+  if (preferredUnit === "kg") {
+    const kgValue = weightInGrams / 1000;
+    if (kgValue % 1 === 0) {
+      return `${kgValue}kg`;
+    }
+    return `${Number.parseFloat(kgValue.toFixed(2))}kg`;
+  }
+  if (preferredUnit === "g") {
+    return `${weightInGrams}g`;
+  }
+
+  // 선호하는 단위가 없으면 기본 규칙 사용: 1000g 이상이면 kg로 표시
+  if (weightInGrams >= 1000) {
+    const kgValue = weightInGrams / 1000;
+    if (kgValue % 1 === 0) {
+      return `${kgValue}kg`;
+    }
+    return `${Number.parseFloat(kgValue.toFixed(2))}kg`;
+  }
+  return `${weightInGrams}g`;
+}
+
 // SKU 생성 함수
 function getInitials(str: string) {
   const CHO = [

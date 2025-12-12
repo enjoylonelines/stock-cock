@@ -12,8 +12,8 @@ const initialSort: { sortOption: SortOption } = {
   sortOption: "name-asc",
 };
 
-export const useProductSortStore = create<ProductSortState>((set) => ({
+export const useProductSortStore = create<ProductSortState>(set => ({
   ...initialSort,
-  setSort: (option) => set({ sortOption: option }),
+  setSort: option => set({ sortOption: option }),
   resetSort: () => set(initialSort),
 }));

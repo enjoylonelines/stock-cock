@@ -6,7 +6,7 @@ interface ActivityLogState {
   close: () => void;
 }
 
-export const useActivityLogStore = create<ActivityLogState>((set) => ({
+export const useActivityLogStore = create<ActivityLogState>(set => ({
   isOpen: false,
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),

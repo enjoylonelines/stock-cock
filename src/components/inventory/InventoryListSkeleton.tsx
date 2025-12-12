@@ -4,7 +4,7 @@ export default function InventoryListSkeleton() {
   return (
     <div className="space-y-4">
       {Array.from({ length: 6 }).map((_, index) => (
-        <div key={index} className="p-4 bg-white rounded-lg border border-gray-200">
+        <div key={`inventory-skeleton-${index}`} className="p-4 bg-white rounded-lg border border-gray-200">
           <div className="flex gap-4">
             {/* 제품 이미지 스켈레톤 - 실제 크기에 맞춤 */}
             <Skeleton className="w-16 h-16 rounded-lg" />

@@ -1,12 +1,13 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/layout/Header";
+import CommonDrawer from "@/components/home/CommonDrawer";
 import Footer from "@/components/layout/Footer";
-import { Metadata } from "next";
-import { createClient } from "@/utils/supabase/server";
-import { UserProvider } from "@/contexts/UserContext";
-import PushPermissionPrompt from "@/components/setting/PushPermissionPrompt";
+import Header from "@/components/layout/Header";
 import { SWRProvider } from "@/components/providers/SWRProvider";
+import PushPermissionPrompt from "@/components/setting/PushPermissionPrompt";
+import { UserProvider } from "@/contexts/UserContext";
+import { createClient } from "@/utils/supabase/server";
+import type { Metadata } from "next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -39,7 +40,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <main className="pt-14 pb-16 min-h-screen">{children}</main>
             <Footer />
             {/* 초기 접속 시 푸시 권한 요청 팝업 */}
-            <PushPermissionPrompt />
+            {/* <PushPermissionPrompt /> */}
+            {/* 전역 드로어 - 모든 페이지에서 사용 가능 */}
+            <CommonDrawer />
           </body>
         </SWRProvider>
       </UserProvider>

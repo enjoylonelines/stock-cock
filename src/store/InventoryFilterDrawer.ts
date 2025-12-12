@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { createFilterStore } from "./createFilterStore";
 
 export type TransactionType = "전체" | "입고" | "출고" | "조정" | "이동";
 
@@ -10,6 +10,7 @@ export interface FilterState {
   product: string;
   supplier: string;
   member: string;
+  [key: string]: unknown;
 }
 
 export const defaultFilterState: FilterState = {
@@ -22,24 +23,4 @@ export const defaultFilterState: FilterState = {
   member: "",
 };
 
-interface FilterDrawerStore {
-  isOpen: boolean;
-  filters: FilterState;
-  open: (initial?: Partial<FilterState>) => void;
-  close: () => void;
-  reset: () => void;
-  setFilters: (next: Partial<FilterState> | ((prev: FilterState) => Partial<FilterState>)) => void;
-}
-
-export const useInventoryFilterDrawerStore = create<FilterDrawerStore>((set, get) => ({
-  isOpen: false,
-  filters: defaultFilterState,
-  open: (initial) => set({ isOpen: true, filters: { ...defaultFilterState, ...initial } }),
-  close: () => set({ isOpen: false }),
-  reset: () => set({ filters: defaultFilterState }),
-  setFilters: (next) => {
-    const prev = get().filters;
-    const patch = typeof next === "function" ? next(prev) : next;
-    set({ filters: { ...prev, ...patch } });
-  },
-}));
+export const useInventoryFilterDrawerStore = createFilterStore<FilterState>("inventoryFilter", defaultFilterState);

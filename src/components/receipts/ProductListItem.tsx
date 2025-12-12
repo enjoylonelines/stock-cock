@@ -1,7 +1,7 @@
 "use client";
+import { formatNumber, formatWeightDisplay } from "@/lib/utils";
+import type { ProductOptionView } from "@/types/product_option_view";
 import Image from "next/image";
-import { formatNumber } from "@/lib/utils";
-import { ProductOptionView } from "@/types/product_option_view";
 
 interface ProductListItemProps {
   product: ProductOptionView;
@@ -12,6 +12,8 @@ interface ProductListItemProps {
 }
 
 export default function ProductListItem({ product, quantity, selected, onClick, currentStock }: ProductListItemProps) {
+  const hasImage = product.image_url && product.image_url.trim() !== "";
+
   return (
     <button
       type="button"
@@ -21,25 +23,42 @@ export default function ProductListItem({ product, quantity, selected, onClick, 
       onClick={onClick}
     >
       {/* 제품 이미지 */}
-      <div className="overflow-hidden relative w-12 h-12 bg-gray-100 rounded-lg shrink-0">
-        <Image
-          src={product.image_url}
-          alt={product.product_name}
-          fill
-          className="object-cover"
-          loading="lazy"
-          sizes="48px"
-        />
+      <div className="flex overflow-hidden relative justify-center items-center w-12 h-12 bg-gray-100 rounded-lg shrink-0">
+        {hasImage ? (
+          <Image
+            src={product.image_url}
+            alt={product.product_name}
+            fill
+            className="object-cover"
+            loading="lazy"
+            sizes="48px"
+          />
+        ) : (
+          <div className="flex justify-center items-center w-full h-full text-xs font-medium text-gray-400">
+            {product.product_name.charAt(0).toUpperCase()}
+          </div>
+        )}
       </div>
       {/* 제품 정보 */}
       <div className="flex-1 min-w-0">
         <div className="flex gap-2 justify-between items-center">
-          <h3 className="font-medium truncate">{product.product_name}</h3>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium truncate">
+              {product.product_name}
+              {product.weight > 0 && <span className="ml-2 text-gray-500">{formatWeightDisplay(product.weight)}</span>}
+            </h3>
+          </div>
           <div className="text-center shrink-0">
             {quantity !== undefined ? (
               <p
                 className={`text-sm font-medium ${
-                  selected ? (quantity < 0 ? "text-red-500" : "text-orange-500") : quantity < 0 ? "text-red-500" : "text-blue-500"
+                  selected
+                    ? quantity < 0
+                      ? "text-red-500"
+                      : "text-orange-500"
+                    : quantity < 0
+                      ? "text-red-500"
+                      : "text-blue-500"
                 }`}
               >
                 {quantity < 0 ? "-" : ""}

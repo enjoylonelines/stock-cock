@@ -1,11 +1,11 @@
 "use client";
 
-import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import type * as React from "react";
 import { DayPicker } from "react-day-picker";
 
-import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 function Calendar({ className, classNames, showOutsideDays = true, ...props }: React.ComponentProps<typeof DayPicker>) {
   return (
@@ -18,7 +18,10 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: R
         caption: "flex justify-center pt-1 relative items-center w-full",
         caption_label: "text-sm font-medium",
         nav: "flex items-center gap-1",
-        nav_button: cn(buttonVariants({ variant: "outline" }), "size-7 bg-transparent p-0 opacity-50 hover:opacity-100"),
+        nav_button: cn(
+          buttonVariants({ variant: "outline" }),
+          "size-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+        ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         table: "border-collapse mx-auto",

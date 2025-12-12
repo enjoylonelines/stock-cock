@@ -27,7 +27,7 @@ export default function MemoView({ value, onChange, onBack, onDone }: MemoViewPr
           className="w-full h-32 p-3 text-base border rounded resize-none focus:outline-none focus:ring-2 focus:ring-orange-400"
           placeholder="메모 입력"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value)}
         />
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { createFilterStore } from "./createFilterStore";
 
 export interface ProductFilterState {
   category?: string;
@@ -9,24 +9,9 @@ export interface ProductFilterState {
   };
   inStock?: boolean;
   searchQuery?: string;
-}
-
-interface ProductFilterDrawerStore {
-  isOpen: boolean;
-  filters: ProductFilterState;
-  open: () => void;
-  close: () => void;
-  setFilters: (filters: ProductFilterState) => void;
-  resetFilters: () => void;
+  [key: string]: unknown;
 }
 
 const initialFilters: ProductFilterState = {};
 
-export const useProductFilterDrawerStore = create<ProductFilterDrawerStore>((set) => ({
-  isOpen: false,
-  filters: initialFilters,
-  open: () => set({ isOpen: true }),
-  close: () => set({ isOpen: false }),
-  setFilters: (filters) => set({ filters }),
-  resetFilters: () => set({ filters: initialFilters }),
-}));
+export const useProductFilterDrawerStore = createFilterStore<ProductFilterState>("productFilter", initialFilters);

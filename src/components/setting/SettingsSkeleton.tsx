@@ -43,7 +43,7 @@ export default function SettingsSkeleton() {
 
       {/* 기타 설정 옵션들 스켈레톤 */}
       {Array.from({ length: 3 }).map((_, index) => (
-        <div key={index} className="bg-white rounded-lg border border-gray-200 p-6">
+        <div key={`settings-skeleton-${index}`} className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Skeleton className="w-6 h-6 rounded-full" />
