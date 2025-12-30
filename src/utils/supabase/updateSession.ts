@@ -16,7 +16,21 @@ export async function updateSession(request: NextRequest) {
         supabaseResponse = NextResponse.next({
           request,
         });
-        cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options));
+        // PWA 환경에서 세션 지속성을 위해 쿠키 옵션 개선
+        cookiesToSet.forEach(({ name, value, options }) => {
+          const cookieOptions = {
+            ...options,
+            // 쿠키가 최소 30일 동안 유지되도록 설정 (refresh token의 기본 만료 시간에 맞춤)
+            maxAge: options?.maxAge ?? 60 * 60 * 24 * 30, // 30일
+            // PWA 환경에서도 쿠키가 작동하도록 SameSite 설정
+            sameSite: options?.sameSite ?? ("lax" as const),
+            // HTTPS 환경에서는 secure 플래그 설정 (개발 환경에서는 false)
+            secure: options?.secure ?? process.env.NODE_ENV === "production",
+            // 쿠키가 모든 경로에서 접근 가능하도록 설정
+            path: options?.path ?? "/",
+          };
+          supabaseResponse.cookies.set(name, value, cookieOptions);
+        });
       },
     },
   });
