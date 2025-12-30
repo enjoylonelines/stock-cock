@@ -4,6 +4,7 @@ import CommonDrawer from "@/components/home/CommonDrawer";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import { SWRProvider } from "@/components/providers/SWRProvider";
+import { SessionRestore } from "@/components/providers/SessionRestore";
 import PushPermissionPrompt from "@/components/setting/PushPermissionPrompt";
 import { UserProvider } from "@/contexts/UserContext";
 import { createClient } from "@/utils/supabase/server";
@@ -36,6 +37,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <UserProvider user={profile}>
         <SWRProvider>
           <body className={`${inter.className} antialiased bg-slate-200`}>
+            {/* iOS PWA 세션 복원 - localStorage의 세션을 서버 쿠키로 복원 */}
+            <SessionRestore />
             <Header />
             <main className="pt-14 pb-16 min-h-screen">{children}</main>
             <Footer />
