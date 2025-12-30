@@ -56,6 +56,77 @@ export function usePushNotifications() {
     }
   }, [isSupported, user?.id, getSubscription]);
 
+  // 디바이스 ID 가져오기 또는 생성 (localStorage 기반)
+  const getOrCreateDeviceId = useCallback((): string => {
+    if (typeof window === "undefined") return "";
+
+    const STORAGE_KEY = "device_id";
+    let deviceId = localStorage.getItem(STORAGE_KEY);
+
+    if (!deviceId) {
+      // 새로운 디바이스 ID 생성 (UUID v4 형식)
+      deviceId = `device_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+      localStorage.setItem(STORAGE_KEY, deviceId);
+    }
+
+    return deviceId;
+  }, []);
+
+  // 디바이스 정보 수집
+  const getDeviceInfo = useCallback(() => {
+    if (typeof window === "undefined") {
+      return {
+        device_id: "",
+        device_name: "Unknown",
+        user_agent: "",
+        platform: "Unknown",
+      };
+    }
+
+    const deviceId = getOrCreateDeviceId();
+    const userAgent = navigator.userAgent;
+
+    // 디바이스 이름 생성 (브라우저 + OS 정보)
+    let deviceName = "Unknown Device";
+    let platform = "Unknown";
+
+    // OS 감지
+    if (userAgent.includes("Windows")) {
+      platform = "Windows";
+      deviceName = "Windows PC";
+    } else if (userAgent.includes("Mac OS X") || userAgent.includes("Macintosh")) {
+      platform = "macOS";
+      deviceName = "Mac";
+    } else if (userAgent.includes("Linux")) {
+      platform = "Linux";
+      deviceName = "Linux PC";
+    } else if (userAgent.includes("Android")) {
+      platform = "Android";
+      deviceName = "Android Device";
+    } else if (userAgent.includes("iPhone") || userAgent.includes("iPad")) {
+      platform = "iOS";
+      deviceName = userAgent.includes("iPad") ? "iPad" : "iPhone";
+    }
+
+    // 브라우저 정보 추가
+    if (userAgent.includes("Chrome") && !userAgent.includes("Edg")) {
+      deviceName += " (Chrome)";
+    } else if (userAgent.includes("Firefox")) {
+      deviceName += " (Firefox)";
+    } else if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) {
+      deviceName += " (Safari)";
+    } else if (userAgent.includes("Edg")) {
+      deviceName += " (Edge)";
+    }
+
+    return {
+      device_id: deviceId,
+      device_name: deviceName,
+      user_agent: userAgent,
+      platform: platform,
+    };
+  }, [getOrCreateDeviceId]);
+
   // ArrayBuffer -> base64url 문자열로 변환
   const arrayBufferToBase64Url = useCallback((buffer: ArrayBuffer | null): string | null => {
     if (!buffer) return null;
@@ -90,13 +161,38 @@ export function usePushNotifications() {
       try {
         const p256dh = arrayBufferToBase64Url(subscription.getKey("p256dh"));
         const auth = arrayBufferToBase64Url(subscription.getKey("auth"));
+        const deviceInfo = getDeviceInfo();
 
         console.log("구독 정보 저장 시도:", {
           userId: user.id,
           endpoint: subscription.endpoint,
+          deviceId: deviceInfo.device_id,
+          deviceName: deviceInfo.device_name,
           p256dh: p256dh ? "있음" : "없음",
           auth: auth ? "있음" : "없음",
         });
+
+        // 먼저 기존 구독 확인 (같은 디바이스의 다른 endpoint가 있을 수 있음)
+        const { data: existingSubscriptions } = await supabase
+          .from("push_subscriptions")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("device_id", deviceInfo.device_id);
+
+        // 같은 디바이스의 기존 구독이 있으면 삭제 (디바이스당 하나의 구독만 유지)
+        if (existingSubscriptions && existingSubscriptions.length > 0) {
+          const oldEndpoints = existingSubscriptions.map((sub) => sub.endpoint).filter((endpoint) => endpoint !== subscription.endpoint);
+
+          if (oldEndpoints.length > 0) {
+            await supabase
+              .from("push_subscriptions")
+              .delete()
+              .eq("user_id", user.id)
+              .eq("device_id", deviceInfo.device_id)
+              .in("endpoint", oldEndpoints);
+            console.log(`기존 구독 ${oldEndpoints.length}개 삭제 (같은 디바이스)`);
+          }
+        }
 
         const { error } = await supabase.from("push_subscriptions").upsert(
           {
@@ -104,7 +200,12 @@ export function usePushNotifications() {
             endpoint: subscription.endpoint,
             p256dh_key: p256dh ?? undefined,
             auth_key: auth ?? undefined,
+            device_id: deviceInfo.device_id,
+            device_name: deviceInfo.device_name,
+            user_agent: deviceInfo.user_agent,
+            platform: deviceInfo.platform,
             created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           },
           {
             onConflict: "user_id,endpoint",
@@ -133,13 +234,13 @@ export function usePushNotifications() {
           return;
         }
 
-        console.log("구독 정보 저장 성공");
+        console.log("구독 정보 저장 성공 (디바이스 정보 포함)");
       } catch (error) {
         console.error("구독 정보 저장 중 오류:", error);
         // 오류를 throw하지 않고 로그만 출력
       }
     },
-    [user?.id, arrayBufferToBase64Url]
+    [user?.id, arrayBufferToBase64Url, getDeviceInfo]
   );
 
   // 푸시 알림 권한 요청
@@ -228,8 +329,28 @@ export function usePushNotifications() {
       await subscription.unsubscribe();
       setSubscription(null);
 
-      // 서버에서 현재 엔드포인트만 삭제 (다른 기기 구독 보존)
-      if (subscription.endpoint) {
+      // 서버에서 현재 디바이스의 구독 삭제 (디바이스당 구독 관리)
+      const deviceInfo = getDeviceInfo();
+      if (subscription.endpoint && deviceInfo.device_id) {
+        // device_id로 삭제 (더 정확한 디바이스별 관리)
+        const { error: deviceError } = await supabase
+          .from("push_subscriptions")
+          .delete()
+          .eq("user_id", user?.id)
+          .eq("device_id", deviceInfo.device_id);
+
+        if (deviceError) {
+          console.error("구독 정보 삭제 오류 (device_id):", deviceError);
+          // fallback: endpoint로 삭제 시도
+          const { error: endpointError } = await supabase.from("push_subscriptions").delete().eq("endpoint", subscription.endpoint);
+          if (endpointError) {
+            console.error("구독 정보 삭제 오류 (endpoint):", endpointError);
+          }
+        } else {
+          console.log("디바이스 구독 정보 삭제 성공");
+        }
+      } else if (subscription.endpoint) {
+        // device_id가 없는 경우 endpoint로 삭제 (기존 방식)
         const { error } = await supabase.from("push_subscriptions").delete().eq("endpoint", subscription.endpoint);
         if (error) {
           console.error("구독 정보 삭제 오류:", error);
