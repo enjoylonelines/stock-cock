@@ -2,46 +2,80 @@
 import { Switch } from "@/components/ui/switch";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { Bell, BellOff, CheckCircle, RefreshCw, XCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+const MANUALLY_DISABLED_KEY = "push-notification-manually-disabled";
 
 export default function PushNotificationSettings() {
   const { isSupported, permission, isSubscribed, loading, subscribe, unsubscribe, getSubscription } = usePushNotifications();
 
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
+  const [isManuallyDisabled, setIsManuallyDisabled] = useState(false);
+  const isInitialMount = useRef(true);
 
   // isEnabled는 isSubscribed와 동일하게 사용
   const isEnabled = isSubscribed;
 
+  // localStorage에서 수동으로 비활성화했는지 확인
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const manuallyDisabled = localStorage.getItem(MANUALLY_DISABLED_KEY) === "true";
+      setIsManuallyDisabled(manuallyDisabled);
+    }
+  }, []);
+
   // 일정 시간마다 구독 상태 자동 확인 (5분마다)
   useEffect(() => {
     const checkInterval = setInterval(async () => {
-      if (isSupported && permission === "granted") {
+      if (isSupported && permission === "granted" && !isManuallyDisabled) {
         await getSubscription();
         setLastChecked(new Date());
       }
     }, 5 * 60 * 1000); // 5분
 
     return () => clearInterval(checkInterval);
-  }, [isSupported, permission, getSubscription]);
+  }, [isSupported, permission, getSubscription, isManuallyDisabled]);
 
   // 권한이 허용되었는데 구독이 안 되어 있으면 자동 구독 시도
+  // 단, 사용자가 명시적으로 구독을 해제한 경우는 제외
   useEffect(() => {
+    // 초기 마운트 시에는 실행하지 않음 (사용자 액션 없이 자동 구독 방지)
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     const autoSubscribe = async () => {
+      // 사용자가 명시적으로 구독을 해제한 경우 자동 구독하지 않음
+      if (isManuallyDisabled) {
+        return;
+      }
+
       if (isSupported && permission === "granted" && !isSubscribed && !loading) {
         await subscribe();
       }
     };
 
     autoSubscribe();
-  }, [isSupported, permission, isSubscribed, loading, subscribe]);
+  }, [isSupported, permission, isSubscribed, loading, subscribe, isManuallyDisabled]);
 
   const handleToggle = async () => {
     console.log("토글 클릭:", { isSubscribed, loading, permission });
     if (isSubscribed) {
       console.log("구독 해제 시도...");
       await unsubscribe();
+      // 사용자가 명시적으로 구독을 해제했음을 표시
+      if (typeof window !== "undefined") {
+        localStorage.setItem(MANUALLY_DISABLED_KEY, "true");
+        setIsManuallyDisabled(true);
+      }
     } else {
       console.log("구독 시도...");
+      // 사용자가 다시 구독을 켰으므로 플래그 제거
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(MANUALLY_DISABLED_KEY);
+        setIsManuallyDisabled(false);
+      }
       await subscribe();
     }
   };
@@ -103,7 +137,7 @@ export default function PushNotificationSettings() {
             <p className="text-sm text-gray-500">입출고, 제품 등록 시 알림을 받습니다</p>
           </div>
         </div>
-        <Switch checked={isEnabled} onCheckedChange={handleToggle} disabled={!loading || permission === "denied"} />
+        <Switch checked={isEnabled} onCheckedChange={handleToggle} disabled={loading} />
       </div>
 
       <div className="p-4 bg-gray-50 rounded-lg">
