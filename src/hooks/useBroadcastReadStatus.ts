@@ -1,10 +1,11 @@
 "use client";
 import { useUser } from "@/contexts/UserContext";
 import { supabase } from "@/lib/supabase";
+import { useBroadcastReadStatusStore } from "@/store/broadcastReadStatusStore";
 import { useCallback, useEffect, useState } from "react";
 
 export function useBroadcastReadStatus() {
-  const [lastReadBroadcastId, setLastReadBroadcastId] = useState<number>(0);
+  const { lastReadBroadcastId, setLastReadBroadcastId } = useBroadcastReadStatusStore();
   const [loading, setLoading] = useState(true);
   const user = useUser();
 
@@ -32,7 +33,7 @@ export function useBroadcastReadStatus() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, setLastReadBroadcastId]);
 
   useEffect(() => {
     fetchReadStatus();
@@ -58,7 +59,7 @@ export function useBroadcastReadStatus() {
         return;
       }
 
-      // 로컬 상태 업데이트
+      // 전역 상태 업데이트
       setLastReadBroadcastId(broadcastId);
     } catch (error) {
       console.error("읽음 처리 중 오류:", error);
@@ -85,7 +86,7 @@ export function useBroadcastReadStatus() {
         return;
       }
 
-      // 로컬 상태 업데이트
+      // 전역 상태 업데이트
       setLastReadBroadcastId(latestBroadcastId);
     } catch (error) {
       console.error("전체 읽음 처리 중 오류:", error);
