@@ -87,7 +87,10 @@ export default function PushNotificationSettings() {
           <BellOff className="w-5 h-5" />
           <span className="font-medium">푸시 알림을 지원하지 않는 브라우저입니다</span>
         </div>
-        <p className="mt-2 text-sm text-yellow-700">Chrome, Firefox, Safari 등 최신 브라우저를 사용해주세요.</p>
+        <p className="mt-2 text-sm text-yellow-700">
+          안드로이드에서는 Chrome, Firefox, Edge, 삼성 인터넷 등의 최신 브라우저를 사용해주세요. 구형 브라우저나 일부 제조사 기본 브라우저는
+          지원하지 않을 수 있습니다.
+        </p>
       </div>
     );
   }
