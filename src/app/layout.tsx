@@ -13,7 +13,7 @@ import type { Metadata } from "next";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Stock Cock",
+  title: "한끼재고",
   description: "재고 관리 시스템",
   manifest: "/manifest.json",
 };
