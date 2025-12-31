@@ -38,27 +38,22 @@ export default function ProductSelectView({
     setSelectedProducts(initialSelectedProducts);
   }, [initialSelectedProducts]);
 
-  const filteredProducts = products.filter(product =>
-    product.product_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products.filter((product) => product.product_name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   // 제품별 현재 재고 계산
   const getCurrentStock = (productOptionId: string) => {
     if (selectedLocationId) {
       // 특정 위치의 재고
-      return (
-        inventories.find(inv => inv.product_option_id === productOptionId && inv.warehouse_id === selectedLocationId)
-          ?.quantity ?? 0
-      );
+      return inventories.find((inv) => inv.product_option_id === productOptionId && inv.warehouse_id === selectedLocationId)?.quantity ?? 0;
     }
     // 전체 재고 (product.quantity는 모든 위치의 재고 합계)
-    const product = products.find(p => p.product_option_id === productOptionId);
+    const product = products.find((p) => p.product_option_id === productOptionId);
     return product?.quantity ?? 0;
   };
 
   const handleProductClick = (product: ProductOptionView) => {
     setSelectedProduct(product);
-    const existing = selectedProducts.find(p => p.product_option_id === product.product_option_id);
+    const existing = selectedProducts.find((p) => p.product_option_id === product.product_option_id);
     let initialQty = 0;
     if (existing) {
       // 이미 선택된 제품이 있으면 기존 수량 사용
@@ -74,14 +69,14 @@ export default function ProductSelectView({
 
   const handleQuantityConfirm = (product: ProductOptionView, quantity: number) => {
     if (!quantity) {
-      setSelectedProducts(prev => prev.filter(p => p.product_option_id !== product.product_option_id));
+      setSelectedProducts((prev) => prev.filter((p) => p.product_option_id !== product.product_option_id));
       return;
     }
 
-    setSelectedProducts(prev => {
-      const existing = prev.find(p => p.product_option_id === product.product_option_id);
+    setSelectedProducts((prev) => {
+      const existing = prev.find((p) => p.product_option_id === product.product_option_id);
       if (existing) {
-        return prev.map(p => (p.product_option_id === product.product_option_id ? { ...p, quantity } : p));
+        return prev.map((p) => (p.product_option_id === product.product_option_id ? { ...p, quantity } : p));
       }
       return [...prev, { ...product, quantity }];
     });
@@ -91,17 +86,25 @@ export default function ProductSelectView({
     if (!open) {
       // 모달이 닫힐 때 적용하지 않았으면 원래 수량으로 되돌리기
       setCurrentQuantity(initialQuantity);
+
+      // 안드로이드에서 키보드가 닫힌 후 drawer 높이 복원
+      setTimeout(() => {
+        const drawerContent = document.querySelector('[data-slot="drawer-content"]') as HTMLElement;
+        if (drawerContent) {
+          drawerContent.style.height = "90vh";
+        }
+      }, 150);
     }
     setQuantityDialogOpen(open);
   };
 
   const isSelected = (productOptionId: string) => {
-    return selectedProducts.some(p => p.product_option_id === productOptionId);
+    return selectedProducts.some((p) => p.product_option_id === productOptionId);
   };
 
   const getSelectedQuantity = (productOptionId: string) => {
-    const selected = selectedProducts.find(p => p.product_option_id === productOptionId);
-    return selected ? (selected.quantity ?? 0) : 0;
+    const selected = selectedProducts.find((p) => p.product_option_id === productOptionId);
+    return selected ? selected.quantity ?? 0 : 0;
   };
 
   const getTotalQuantity = (products: ProductOptionView[]) => {
@@ -128,7 +131,7 @@ export default function ProductSelectView({
           <Input
             placeholder="제품 이름, 바코드, 속성 검색"
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
           />
         </div>
@@ -137,18 +140,14 @@ export default function ProductSelectView({
       {/* 제품 목록 */}
       <div className="overflow-y-auto flex-1">
         <div className="p-4 space-y-2">
-          {filteredProducts.map(product => (
+          {filteredProducts.map((product) => (
             <ProductListItem
               key={product.product_option_id}
               product={product}
-              quantity={
-                isSelected(product.product_option_id) ? getSelectedQuantity(product.product_option_id) : undefined
-              }
+              quantity={isSelected(product.product_option_id) ? getSelectedQuantity(product.product_option_id) : undefined}
               selected={isSelected(product.product_option_id)}
               onClick={() => handleProductClick(product)}
-              currentStock={
-                allowNegative && selectedLocationId ? getCurrentStock(product.product_option_id) : undefined
-              }
+              currentStock={allowNegative && selectedLocationId ? getCurrentStock(product.product_option_id) : undefined}
             />
           ))}
         </div>
