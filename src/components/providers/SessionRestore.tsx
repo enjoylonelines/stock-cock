@@ -1,8 +1,10 @@
 "use client";
 
 import { createClient } from "@/utils/supabase/client";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
+
+const SESSION_RESTORE_KEY = "session-restore-completed";
 
 /**
  * iOS PWA 환경에서 localStorage의 세션을 확인하고
@@ -13,7 +15,6 @@ import { useEffect, useRef } from "react";
  * 클라이언트에서 세션을 확인하고 API를 통해 서버 쿠키를 복원합니다.
  */
 export function SessionRestore() {
-  const router = useRouter();
   const pathname = usePathname();
   const hasRestored = useRef(false);
   const isRestoring = useRef(false);
@@ -22,8 +23,13 @@ export function SessionRestore() {
     // 이미 복원했거나 복원 중이면 건너뛰기
     if (hasRestored.current || isRestoring.current) return;
 
-    // auth 페이지에서는 실행하지 않음
-    if (pathname.startsWith("/auth")) return;
+    // 이미 복원이 완료되었는지 확인 (URL 쿼리 파라미터로도 확인)
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("sessionRestored") === "true" || sessionStorage.getItem(SESSION_RESTORE_KEY) === "true") {
+        return;
+      }
+    }
 
     const restoreSession = async () => {
       isRestoring.current = true;
@@ -52,12 +58,21 @@ export function SessionRestore() {
           });
 
           if (response.ok) {
-            // 세션 복원 성공 - 페이지를 새로고침하여 서버 쿠키가 적용되도록 함
-            // 주의: 무한 루프를 방지하기 위해 한 번만 실행
+            // 세션 복원 성공 - 플래그 설정 후 페이지 이동 (새로고침 대신)
             if (!hasRestored.current) {
               hasRestored.current = true;
-              // 페이지를 새로고침하여 middleware가 새 쿠키를 확인하도록 함
-              window.location.reload();
+
+              if (typeof window !== "undefined") {
+                // sessionStorage에 플래그 설정
+                sessionStorage.setItem(SESSION_RESTORE_KEY, "true");
+
+                // URL에 쿼리 파라미터 추가하여 새로고침 (플래그 포함)
+                const url = new URL(window.location.href);
+                url.searchParams.set("sessionRestored", "true");
+
+                // 페이지 이동 (새로고침)
+                window.location.href = url.toString();
+              }
             }
           }
         }
@@ -71,7 +86,8 @@ export function SessionRestore() {
     // 약간의 지연 후 실행 (페이지 로드 완료 후)
     const timer = setTimeout(restoreSession, 100);
     return () => clearTimeout(timer);
-  }, [pathname, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   return null;
 }
