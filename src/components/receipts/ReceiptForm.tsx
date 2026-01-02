@@ -36,6 +36,9 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
   const resetReceiptForm = useFormStateStore((state) => state.resetReceiptForm);
   const { selectedLocation, selectedSupplier, selectedProducts, selectedDate, memo } = receiptFormState;
 
+  // 필수 필드 검증: 위치(입고처/출고처), 거래처, 제품이 모두 선택되어야 활성화
+  const isFormValid = selectedLocation && selectedSupplier && selectedProducts.length > 0;
+
   const handleWarehouseSelect = (warehouse: { id: string; name: string }) => {
     updateReceiptForm(mode, { selectedLocation: warehouse.id });
     setIsWarehouseViewVisible(false);
@@ -192,11 +195,13 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
           </Button> */}
           <Button
             onClick={handleSubmit}
-            disabled={isLoading}
+            disabled={isLoading || !isFormValid}
             className={`flex-1 ${
-              mode === "in"
-                ? "bg-blue-300 hover:bg-blue-500 active:bg-blue-500 text-gray-800"
-                : "bg-red-300 text-white hover:bg-red-500 active:bg-red-500"
+              isFormValid
+                ? mode === "in"
+                  ? "bg-blue-500 hover:bg-blue-600 active:bg-blue-600 text-white"
+                  : "bg-red-500 text-white hover:bg-red-600 active:bg-red-600"
+                : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >
             {isLoading ? "처리 중..." : mode === "in" ? "입고완료" : "출고완료"}
