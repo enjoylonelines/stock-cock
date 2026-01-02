@@ -22,7 +22,15 @@ export function useSuppliers() {
   };
 
   const deleteSupplier = async (id: string) => {
-    return await deleteItem(id);
+    try {
+      return await deleteItem(id);
+    } catch (error: unknown) {
+      // 외래 키 제약 조건 위반 에러 처리
+      if (error && typeof error === "object" && "code" in error && error.code === "23503") {
+        throw new Error("이 출고처는 재고 내역에 사용되어 삭제할 수 없습니다.");
+      }
+      throw error;
+    }
   };
 
   return {
