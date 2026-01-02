@@ -35,7 +35,7 @@ const ManageView = <T extends { id: string; name: string }>({
   };
 
   const handleEdit = (id: string) => {
-    const item = items.find(item => item.id === id);
+    const item = items.find((item) => item.id === id);
     if (item) {
       setEditingItem(item);
     }
@@ -66,7 +66,7 @@ const ManageView = <T extends { id: string; name: string }>({
       {/* 리스트 */}
       <div className="overflow-y-auto flex-1">
         <div className="p-4 space-y-2">
-          {items.map(item => (
+          {items.map((item) => (
             <div
               key={item.id}
               className="flex justify-between items-center p-3 rounded-lg border hover:bg-accent hover:text-accent-foreground"
@@ -76,9 +76,14 @@ const ManageView = <T extends { id: string; name: string }>({
               </button>
               <LocationItemMenu
                 onEdit={() => handleEdit(item.id)}
-                onDelete={() => {
+                onDelete={async () => {
                   if (!onDelete) return;
-                  onDelete(item.id);
+                  try {
+                    await onDelete(item.id);
+                  } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : "삭제 중 오류가 발생했습니다.";
+                    alert(errorMessage);
+                  }
                 }}
               />
             </div>
@@ -90,7 +95,7 @@ const ManageView = <T extends { id: string; name: string }>({
       <LocationFormDialog open={isFormOpen} onOpenChange={setIsFormOpen} onSubmit={handleAdd} mode="add" />
       <LocationFormDialog
         open={!!editingItem}
-        onOpenChange={open => !open && setEditingItem(null)}
+        onOpenChange={(open) => !open && setEditingItem(null)}
         onSubmit={handleUpdate}
         initialValue={editingItem?.name}
         mode="edit"

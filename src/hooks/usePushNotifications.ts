@@ -266,8 +266,9 @@ export function usePushNotifications() {
 
     setLoading(true);
     try {
-      // 권한 확인
-      if (permission !== "granted") {
+      // 권한 확인 (항상 최신 상태 확인)
+      const currentPermission = typeof window !== "undefined" ? Notification.permission : permission;
+      if (currentPermission !== "granted") {
         console.log("권한 요청 시작...");
         const granted = await requestPermission();
         if (!granted) {
@@ -322,38 +323,71 @@ export function usePushNotifications() {
 
   // 푸시 구독 해제
   const unsubscribe = async (): Promise<boolean> => {
-    if (!subscription) return false;
-
     setLoading(true);
     try {
-      await subscription.unsubscribe();
-      setSubscription(null);
+      // 브라우저에서 구독 해제 (subscription이 있는 경우)
+      if (subscription) {
+        try {
+          await subscription.unsubscribe();
+          console.log("브라우저 구독 해제 완료");
+        } catch (error) {
+          console.error("브라우저 구독 해제 오류:", error);
+          // 브라우저 구독 해제 실패해도 서버에서 삭제는 진행
+        }
+        setSubscription(null);
+      }
 
-      // 서버에서 현재 디바이스의 구독 삭제 (디바이스당 구독 관리)
+      // 서버에서 현재 디바이스의 구독 삭제 (subscription 유무와 관계없이 항상 실행)
       const deviceInfo = getDeviceInfo();
-      if (subscription.endpoint && deviceInfo.device_id) {
-        // device_id로 삭제 (더 정확한 디바이스별 관리)
-        const { error: deviceError } = await supabase
+      if (!user?.id) {
+        console.log("사용자 ID가 없어 서버 삭제를 건너뜁니다");
+        setLoading(false);
+        return true;
+      }
+
+      // device_id로 삭제 (더 정확한 디바이스별 관리)
+      if (deviceInfo.device_id) {
+        const { error: deviceError, data } = await supabase
           .from("push_subscriptions")
           .delete()
-          .eq("user_id", user?.id)
-          .eq("device_id", deviceInfo.device_id);
+          .eq("user_id", user.id)
+          .eq("device_id", deviceInfo.device_id)
+          .select();
 
         if (deviceError) {
           console.error("구독 정보 삭제 오류 (device_id):", deviceError);
-          // fallback: endpoint로 삭제 시도
-          const { error: endpointError } = await supabase.from("push_subscriptions").delete().eq("endpoint", subscription.endpoint);
-          if (endpointError) {
-            console.error("구독 정보 삭제 오류 (endpoint):", endpointError);
+          // fallback: endpoint로 삭제 시도 (subscription이 있는 경우)
+          if (subscription?.endpoint) {
+            const { error: endpointError } = await supabase
+              .from("push_subscriptions")
+              .delete()
+              .eq("user_id", user.id)
+              .eq("endpoint", subscription.endpoint);
+            if (endpointError) {
+              console.error("구독 정보 삭제 오류 (endpoint):", endpointError);
+            } else {
+              console.log("구독 정보 삭제 성공 (endpoint)");
+            }
           }
         } else {
-          console.log("디바이스 구독 정보 삭제 성공");
+          const deletedCount = data?.length || 0;
+          console.log(`디바이스 구독 정보 삭제 성공 (${deletedCount}개)`);
         }
-      } else if (subscription.endpoint) {
+      } else if (subscription?.endpoint) {
         // device_id가 없는 경우 endpoint로 삭제 (기존 방식)
-        const { error } = await supabase.from("push_subscriptions").delete().eq("endpoint", subscription.endpoint);
+        const { error } = await supabase.from("push_subscriptions").delete().eq("user_id", user.id).eq("endpoint", subscription.endpoint);
         if (error) {
-          console.error("구독 정보 삭제 오류:", error);
+          console.error("구독 정보 삭제 오류 (endpoint):", error);
+        } else {
+          console.log("구독 정보 삭제 성공 (endpoint)");
+        }
+      } else {
+        // subscription도 없고 device_id도 없는 경우, 사용자의 모든 구독 삭제 시도
+        const { error } = await supabase.from("push_subscriptions").delete().eq("user_id", user.id);
+        if (error) {
+          console.error("구독 정보 삭제 오류 (user_id):", error);
+        } else {
+          console.log("사용자 구독 정보 삭제 성공");
         }
       }
 

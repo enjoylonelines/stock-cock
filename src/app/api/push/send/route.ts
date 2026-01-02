@@ -75,7 +75,7 @@ export async function POST(request: Request) {
           body: message,
           icon: icon || "/icons/icon-192x192.png",
           badge: badge || "/icons/icon-192x192.png",
-          tag: tag || "stock-cock-notification",
+          tag: tag || "hankki-stock-notification",
           data: data || {},
         });
 

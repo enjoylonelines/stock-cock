@@ -20,7 +20,7 @@ import ProductListItem from "./ProductListItem";
 import ProductSelectView from "./ProductSelectView";
 
 export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out"; closeDrawer: () => void }) {
-  const [isLocationViewVisible, setIsLocationViewVisible] = useState(false);
+  const [isWarehouseViewVisible, setIsWarehouseViewVisible] = useState(false);
   const [isSupplierViewVisible, setIsSupplierViewVisible] = useState(false);
   const [isProductViewVisible, setIsProductViewVisible] = useState(false);
   const [isMemoViewVisible, setIsMemoViewVisible] = useState(false);
@@ -31,14 +31,14 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
   const { products } = useProducts();
   const router = useRouter();
   const user = useUser();
-  const receiptFormState = useFormStateStore(state => state.receiptForms[mode]);
-  const updateReceiptForm = useFormStateStore(state => state.updateReceiptForm);
-  const resetReceiptForm = useFormStateStore(state => state.resetReceiptForm);
+  const receiptFormState = useFormStateStore((state) => state.receiptForms[mode]);
+  const updateReceiptForm = useFormStateStore((state) => state.updateReceiptForm);
+  const resetReceiptForm = useFormStateStore((state) => state.resetReceiptForm);
   const { selectedLocation, selectedSupplier, selectedProducts, selectedDate, memo } = receiptFormState;
 
-  const handleLocationSelect = (location: { id: string; name: string }) => {
-    updateReceiptForm(mode, { selectedLocation: location.id });
-    setIsLocationViewVisible(false);
+  const handleWarehouseSelect = (warehouse: { id: string; name: string }) => {
+    updateReceiptForm(mode, { selectedLocation: warehouse.id });
+    setIsWarehouseViewVisible(false);
   };
 
   const handleSupplierSelect = (supplier: { id: string; name: string }) => {
@@ -61,7 +61,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
 
   const handleSubmit = async () => {
     if (!selectedLocation || !selectedSupplier || selectedProducts.length === 0) {
-      alert("위치, 공급처, 제품을 모두 선택해주세요.");
+      alert(`${mode === "in" ? "입고처" : "출고처"}, 거래처, 제품을 모두 선택해주세요.`);
       return;
     }
     try {
@@ -78,7 +78,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
           memo,
           user_id: user?.id,
           created_at: format(selectedDate, "yyyy-MM-dd HH:mm:ss"),
-          items: selectedProducts.map(product => ({
+          items: selectedProducts.map((product) => ({
             option_id: product.product_option_id,
             quantity: product.quantity || 1,
             unit_price: product.sell_price || null,
@@ -122,16 +122,14 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
           </Button>
 
           <Button
-            onClick={() => setIsLocationViewVisible(true)}
+            onClick={() => setIsWarehouseViewVisible(true)}
             variant="ghost"
             className="flex justify-between items-center py-2 w-full"
             size="none"
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">위치</h3>
-              <p className="text-sm text-gray-500">
-                {locations.find(loc => loc.id === selectedLocation)?.name || "선택"}
-              </p>
+              <p className="text-sm text-gray-500">{locations.find((loc) => loc.id === selectedLocation)?.name || "선택"}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -143,10 +141,8 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
             size="none"
           >
             <div className="flex justify-between w-full">
-              <h3 className="font-medium">{mode === "in" ? "입고처" : "출고처"}</h3>
-              <p className="text-sm text-gray-500">
-                {suppliers.find(sup => sup.id === selectedSupplier)?.name || "선택"}
-              </p>
+              <h3 className="font-medium">거래처</h3>
+              <p className="text-sm text-gray-500">{suppliers.find((sup) => sup.id === selectedSupplier)?.name || "선택"}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -167,13 +163,8 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
           {/* 선택된 제품 리스트 */}
           {selectedProducts.length > 0 && (
             <div className="mt-2 space-y-2">
-              {selectedProducts.map(product => (
-                <ProductListItem
-                  key={product.product_option_id}
-                  product={product}
-                  quantity={product.quantity}
-                  selected={false}
-                />
+              {selectedProducts.map((product) => (
+                <ProductListItem key={product.product_option_id} product={product} quantity={product.quantity} selected={false} />
               ))}
             </div>
           )}
@@ -221,12 +212,12 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
         onSelect={handleDateSelect}
       />
 
-      {/* 위치 관리 드로어 */}
-      <DrawerView isVisible={isLocationViewVisible}>
+      {/* 입고처/출고처 관리 드로어 */}
+      <DrawerView isVisible={isWarehouseViewVisible}>
         <ManageView
-          onBack={() => setIsLocationViewVisible(false)}
-          onSelect={handleLocationSelect}
-          title="위치 선택"
+          onBack={() => setIsWarehouseViewVisible(false)}
+          onSelect={handleWarehouseSelect}
+          title={mode === "in" ? "입고처 선택" : "출고처 선택"}
           items={locations}
           onAdd={addLocation}
           onEdit={editLocation}
@@ -234,12 +225,12 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
         />
       </DrawerView>
 
-      {/* 공급처 관리 드로어 */}
+      {/* 거래처 관리 드로어 */}
       <DrawerView isVisible={isSupplierViewVisible}>
         <ManageView
           onBack={() => setIsSupplierViewVisible(false)}
           onSelect={handleSupplierSelect}
-          title={mode === "in" ? "입고처 선택" : "출고처 선택"}
+          title="거래처 선택"
           items={suppliers}
           onAdd={addSupplier}
           onEdit={editSupplier}
@@ -261,7 +252,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
       <DrawerView isVisible={isMemoViewVisible}>
         <MemoView
           value={memo}
-          onChange={value => updateReceiptForm(mode, { memo: value })}
+          onChange={(value) => updateReceiptForm(mode, { memo: value })}
           onBack={() => setIsMemoViewVisible(false)}
           onDone={handleMemoDone}
         />
