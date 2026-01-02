@@ -40,7 +40,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {/* iOS PWA 세션 복원 - localStorage의 세션을 서버 쿠키로 복원 */}
             <SessionRestore />
             <Header />
-            <main className="pt-14 pb-16 min-h-screen">{children}</main>
+            <main className="pt-14 pb-20 min-h-screen">{children}</main>
             <Footer />
             {/* 초기 접속 시 푸시 권한 요청 팝업 */}
             {/* <PushPermissionPrompt /> */}
