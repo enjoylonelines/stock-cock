@@ -22,7 +22,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
     if (filters.searchQuery) {
       const query = filters.searchQuery.toLowerCase();
       filtered = filtered.filter(
-        product =>
+        (product) =>
           product.product_name.toLowerCase().includes(query) ||
           product.category_name?.toLowerCase().includes(query) ||
           product.brand_name?.toLowerCase().includes(query)
@@ -31,7 +31,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
 
     // 재고 상태 필터
     if (filters.inStock !== undefined) {
-      filtered = filtered.filter(product => {
+      filtered = filtered.filter((product) => {
         if (filters.inStock === true) {
           return product.quantity > 0;
         }
@@ -63,7 +63,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      {filteredAndSortedProducts.map(product => {
+      {filteredAndSortedProducts.map((product) => {
         const boxSummary = formatBoxBreakdown(product.quantity, product.box_unit);
         const hasImage = product.image_url && product.image_url.trim() !== "";
 
@@ -74,14 +74,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
                 <div className="flex gap-4 items-center">
                   <div className="flex overflow-hidden relative flex-shrink-0 justify-center items-center w-14 h-14 rounded-md bg-slate-200">
                     {hasImage ? (
-                      <Image
-                        src={product.image_url}
-                        alt={product.product_name}
-                        fill
-                        className="object-cover"
-                        loading="lazy"
-                        sizes="56px"
-                      />
+                      <Image src={product.image_url} alt={product.product_name} fill className="object-cover" loading="lazy" sizes="56px" />
                     ) : (
                       <div className="flex justify-center items-center w-full h-full text-sm font-medium text-gray-400">
                         {product.product_name.charAt(0).toUpperCase()}
@@ -95,11 +88,9 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
                     <div className="flex flex-wrap mt-1 text-xs text-gray-600">
                       <span>{formatNumber(product.sell_price)}원</span>
                       <span className="mx-1">·</span>
-                      <span>{formatNumber(product.buy_price)}원</span>
-                      <span className="mx-1">·</span>
-                      <span>{product.category_name}</span>
-                      <span className="mx-1">·</span>
                       <span>{product.brand_name}</span>
+                      <span className="mx-1">·</span>
+                      <span>{product.warehouse_name}</span>
                     </div>
                   </div>
                   <div className="text-right">
