@@ -54,11 +54,7 @@ export default function SettingsPage({ user, _team, info }: { user: UserInfo; _t
           </div>
           {/* 설정 버튼 */}
           <div className="absolute top-4 left-4">
-            <Button
-              size="icon"
-              variant="outline"
-              className="w-8 h-8 backdrop-blur-sm bg-white/10 border-white/20 hover:bg-white/20"
-            >
+            <Button size="icon" variant="outline" className="w-8 h-8 backdrop-blur-sm bg-white/10 border-white/20 hover:bg-white/20">
               <Camera className="w-4 h-4 text-white" />
             </Button>
           </div>
@@ -179,11 +175,7 @@ export default function SettingsPage({ user, _team, info }: { user: UserInfo; _t
       </form>
 
       {/* 입고처 관리 드로어 */}
-      <SettingsDrawer
-        isOpen={isWarehousesDrawerOpen}
-        onClose={() => setIsWarehousesDrawerOpen(false)}
-        title="입고처 관리"
-      >
+      <SettingsDrawer isOpen={isWarehousesDrawerOpen} onClose={() => setIsWarehousesDrawerOpen(false)} title="입고처 관리">
         <ManageView
           onBack={() => setIsWarehousesDrawerOpen(false)}
           onSelect={() => {}} // 선택 기능은 필요 없음
@@ -196,11 +188,7 @@ export default function SettingsPage({ user, _team, info }: { user: UserInfo; _t
       </SettingsDrawer>
 
       {/* 출고처 관리 드로어 */}
-      <SettingsDrawer
-        isOpen={isSuppliersDrawerOpen}
-        onClose={() => setIsSuppliersDrawerOpen(false)}
-        title="출고처 관리"
-      >
+      <SettingsDrawer isOpen={isSuppliersDrawerOpen} onClose={() => setIsSuppliersDrawerOpen(false)} title="출고처 관리">
         <ManageView
           onBack={() => setIsSuppliersDrawerOpen(false)}
           onSelect={() => {}} // 선택 기능은 필요 없음
