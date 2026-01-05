@@ -9,4 +9,3 @@ export const useBroadcastReadStatusStore = create<BroadcastReadStatusState>(set 
   lastReadBroadcastId: 0,
   setLastReadBroadcastId: (id: number) => set({ lastReadBroadcastId: id }),
 }));
-
