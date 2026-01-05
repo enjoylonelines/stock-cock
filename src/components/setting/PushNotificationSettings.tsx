@@ -7,7 +7,8 @@ import { useEffect, useRef, useState } from "react";
 const MANUALLY_DISABLED_KEY = "push-notification-manually-disabled";
 
 export default function PushNotificationSettings() {
-  const { isSupported, permission, isSubscribed, loading, subscribe, unsubscribe, getSubscription } = usePushNotifications();
+  const { isSupported, permission, isSubscribed, loading, subscribe, unsubscribe, getSubscription } =
+    usePushNotifications();
 
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const [isManuallyDisabled, setIsManuallyDisabled] = useState(false);
@@ -26,12 +27,15 @@ export default function PushNotificationSettings() {
 
   // 일정 시간마다 구독 상태 자동 확인 (5분마다)
   useEffect(() => {
-    const checkInterval = setInterval(async () => {
-      if (isSupported && permission === "granted" && !isManuallyDisabled) {
-        await getSubscription();
-        setLastChecked(new Date());
-      }
-    }, 5 * 60 * 1000); // 5분
+    const checkInterval = setInterval(
+      async () => {
+        if (isSupported && permission === "granted" && !isManuallyDisabled) {
+          await getSubscription();
+          setLastChecked(new Date());
+        }
+      },
+      5 * 60 * 1000
+    ); // 5분
 
     return () => clearInterval(checkInterval);
   }, [isSupported, permission, getSubscription, isManuallyDisabled]);
@@ -88,8 +92,8 @@ export default function PushNotificationSettings() {
           <span className="font-medium">푸시 알림을 지원하지 않는 브라우저입니다</span>
         </div>
         <p className="mt-2 text-sm text-yellow-700">
-          안드로이드에서는 Chrome, Firefox, Edge, 삼성 인터넷 등의 최신 브라우저를 사용해주세요. 구형 브라우저나 일부 제조사 기본 브라우저는
-          지원하지 않을 수 있습니다.
+          안드로이드에서는 Chrome, Firefox, Edge, 삼성 인터넷 등의 최신 브라우저를 사용해주세요. 구형 브라우저나 일부
+          제조사 기본 브라우저는 지원하지 않을 수 있습니다.
         </p>
       </div>
     );
@@ -163,7 +167,9 @@ export default function PushNotificationSettings() {
           </div>
         </div>
 
-        {lastChecked && <div className="mb-2 text-xs text-gray-500">마지막 확인: {lastChecked.toLocaleTimeString()}</div>}
+        {lastChecked && (
+          <div className="mb-2 text-xs text-gray-500">마지막 확인: {lastChecked.toLocaleTimeString()}</div>
+        )}
 
         {permission === "denied" && (
           <div className="p-3 mt-3 bg-red-50 rounded-md border border-red-200">
@@ -179,7 +185,9 @@ export default function PushNotificationSettings() {
 
         {isEnabled && (
           <div className="p-3 mt-3 bg-green-50 rounded-md border border-green-200">
-            <p className="text-sm text-green-700">푸시 알림이 활성화되었습니다. 입출고 및 제품 등록 시 알림을 받을 수 있습니다.</p>
+            <p className="text-sm text-green-700">
+              푸시 알림이 활성화되었습니다. 입출고 및 제품 등록 시 알림을 받을 수 있습니다.
+            </p>
           </div>
         )}
       </div>
