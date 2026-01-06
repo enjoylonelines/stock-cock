@@ -1,19 +1,33 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useBroadcastReadStatus } from "@/hooks/useBroadcastReadStatus";
-import { useInventoryHistory } from "@/hooks/useInventoryHistory";
 import { useInventoryFilterDrawerStore } from "@/store/InventoryFilterDrawer";
 import { useActivityLogStore } from "@/store/activityLogStore";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
 import { ArrowDownUp, ArrowLeft, Bell, Filter, Settings } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
-import ActivityLogDrawer from "../home/ActivityLogDrawer";
-import FilterDrawer from "../inventory/FilterDrawer";
-import ProductFilterDrawer from "../products/ProductFilterDrawer";
-import ProductSortDialog from "../products/ProductSortDialog";
+
+// 알림 배지는 home 페이지에서만 필요하므로 동적 임포트로 지연 로딩
+const NotificationBadge = dynamic(() => import("./NotificationBadge"), {
+  ssr: false,
+});
+
+// 드로어 컴포넌트를 동적 임포트로 지연 로딩
+const ActivityLogDrawer = dynamic(() => import("../home/ActivityLogDrawer"), {
+  ssr: false,
+});
+const FilterDrawer = dynamic(() => import("../inventory/FilterDrawer"), {
+  ssr: false,
+});
+const ProductFilterDrawer = dynamic(() => import("../products/ProductFilterDrawer"), {
+  ssr: false,
+});
+const ProductSortDialog = dynamic(() => import("../products/ProductSortDialog"), {
+  ssr: false,
+});
 
 export default function Header() {
   const { isOpen, close, open, setFilters } = useInventoryFilterDrawerStore();
@@ -24,13 +38,8 @@ export default function Header() {
     setFilters: setProductFilters,
   } = useProductFilterDrawerStore();
   const { open: openActivityLog } = useActivityLogStore();
-  const { getUnreadCount } = useBroadcastReadStatus();
-  const { transactions } = useInventoryHistory();
-
-  // 읽지 않은 알람 개수 계산
-  const unreadCount = getUnreadCount(transactions);
-  const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
   const pathname = usePathname();
+  const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
 
   const handleInventoryFilterClick = () => {
     if (isOpen) {
@@ -64,7 +73,7 @@ export default function Header() {
           rightButton: (
             <Button variant="ghost" className="relative p-0 w-10 h-10" onClick={handleBellClick}>
               <Bell className="p-0 w-5 h-5" />
-              {unreadCount > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />}
+              {pathname === "/home" && <NotificationBadge />}
             </Button>
           ),
         };

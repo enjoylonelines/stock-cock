@@ -181,7 +181,9 @@ export function usePushNotifications() {
 
         // 같은 디바이스의 기존 구독이 있으면 삭제 (디바이스당 하나의 구독만 유지)
         if (existingSubscriptions && existingSubscriptions.length > 0) {
-          const oldEndpoints = existingSubscriptions.map((sub) => sub.endpoint).filter((endpoint) => endpoint !== subscription.endpoint);
+          const oldEndpoints = existingSubscriptions
+            .map(sub => sub.endpoint)
+            .filter(endpoint => endpoint !== subscription.endpoint);
 
           if (oldEndpoints.length > 0) {
             await supabase
@@ -375,7 +377,11 @@ export function usePushNotifications() {
         }
       } else if (subscription?.endpoint) {
         // device_id가 없는 경우 endpoint로 삭제 (기존 방식)
-        const { error } = await supabase.from("push_subscriptions").delete().eq("user_id", user.id).eq("endpoint", subscription.endpoint);
+        const { error } = await supabase
+          .from("push_subscriptions")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("endpoint", subscription.endpoint);
         if (error) {
           console.error("구독 정보 삭제 오류 (endpoint):", error);
         } else {
