@@ -30,7 +30,10 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const { data, error } = await supabase.from("transaction_history_view").select("*").eq("transaction_id", transactionId);
+      const { data, error } = await supabase
+        .from("transaction_history_view")
+        .select("*")
+        .eq("transaction_id", transactionId);
       setLoading(false);
       setData(data);
       console.log(data);
@@ -64,7 +67,9 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
     <div className="p-4 mx-auto w-full max-w-3xl bg-white">
       {/* 헤더: 뒤로가기 + 제목 + 타입 뱃지 */}
       <div className="flex justify-start items-center mb-4">
-        <span className={`px-3 py-1 rounded-full border text-sm font-semibold ${typeInfo.color} ${typeInfo.bg} ${typeInfo.border}`}>
+        <span
+          className={`px-3 py-1 rounded-full border text-sm font-semibold ${typeInfo.color} ${typeInfo.bg} ${typeInfo.border}`}
+        >
           {typeInfo.label}
         </span>
       </div>
@@ -74,7 +79,13 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
         <div className="flex gap-2 items-center">
           <span className="text-sm text-gray-500">{data[0].user_name}</span>
           {data[0].user_image_url && (
-            <Image src={data[0].user_image_url} alt={data[0].user_name || "알 수 없음"} width={32} height={32} className="rounded-full" />
+            <Image
+              src={data[0].user_image_url}
+              alt={data[0].user_name || "알 수 없음"}
+              width={32}
+              height={32}
+              className="rounded-full"
+            />
           )}
         </div>
       </div>
@@ -109,7 +120,7 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
       <div className="mb-2">
         <div className="mb-2 text-sm font-medium text-gray-700">{data.length}품목</div>
         <div className="space-y-3">
-          {data.map((item) => (
+          {data.map(item => (
             <div key={item.transaction_id + item.product_name} className="flex gap-3 items-center">
               <div className="overflow-hidden relative w-12 h-12 bg-gray-100 rounded-lg">
                 {item.product_image_url ? (
