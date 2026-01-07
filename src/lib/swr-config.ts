@@ -7,4 +7,8 @@ export const swrConfig: SWRConfiguration = {
   focusThrottleInterval: 5000, // 포커스 시 5초마다 한 번만 재검증
   errorRetryCount: 3,
   errorRetryInterval: 5000,
+  // 캐시 최적화
+  keepPreviousData: true,
+  // 초기 로딩 최적화
+  fallbackData: undefined,
 };

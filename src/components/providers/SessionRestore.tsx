@@ -1,7 +1,6 @@
 "use client";
 
 import { createClient } from "@/utils/supabase/client";
-import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 const SESSION_RESTORE_KEY = "session-restore-completed";
@@ -15,7 +14,6 @@ const SESSION_RESTORE_KEY = "session-restore-completed";
  * 클라이언트에서 세션을 확인하고 API를 통해 서버 쿠키를 복원합니다.
  */
 export function SessionRestore() {
-  const pathname = usePathname();
   const hasRestored = useRef(false);
   const isRestoring = useRef(false);
 
@@ -86,8 +84,7 @@ export function SessionRestore() {
     // 약간의 지연 후 실행 (페이지 로드 완료 후)
     const timer = setTimeout(restoreSession, 100);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, []);
 
   return null;
 }

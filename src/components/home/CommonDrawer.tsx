@@ -26,10 +26,10 @@ const AdjustForm = dynamic(() => import("../receipts/AdjustForm"), {
 export default function CommonDrawer({ children }: { children?: React.ReactNode }) {
   const { isOpen, currentForm, closeDrawer } = useDrawerStore();
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const resetProductForm = useFormStateStore((state) => state.resetProductForm);
-  const resetReceiptForm = useFormStateStore((state) => state.resetReceiptForm);
-  const resetMoveForm = useFormStateStore((state) => state.resetMoveForm);
-  const resetAdjustForm = useFormStateStore((state) => state.resetAdjustForm);
+  const resetProductForm = useFormStateStore(state => state.resetProductForm);
+  const resetReceiptForm = useFormStateStore(state => state.resetReceiptForm);
+  const resetMoveForm = useFormStateStore(state => state.resetMoveForm);
+  const resetAdjustForm = useFormStateStore(state => state.resetAdjustForm);
 
   // 안드로이드에서 키보드가 닫힐 때 drawer 높이 복원
   useEffect(() => {
@@ -198,7 +198,7 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={(open) => !open && closeDrawer()}>
+    <Drawer open={isOpen} onOpenChange={open => !open && closeDrawer()}>
       <DrawerContent className="h-[90vh] flex flex-col max-w-3xl mx-auto" role="dialog" aria-modal="true">
         <DrawerHeader className="flex-shrink-0 py-0">
           <div className="flex justify-between items-center py-2">
@@ -216,13 +216,21 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
 
           <div
             className={`flex items-center py-2 border-b-2 ${
-              currentForm === "receipt" ? "border-blue-400" : currentForm === "issue" ? "border-red-400" : "border-orange-400"
+              currentForm === "receipt"
+                ? "border-blue-400"
+                : currentForm === "issue"
+                  ? "border-red-400"
+                  : "border-orange-400"
             }`}
           >
             <div>
               <DrawerTitle
                 className={`text-lg font-medium ${
-                  currentForm === "receipt" ? "text-blue-400" : currentForm === "issue" ? "text-red-400" : "text-orange-400"
+                  currentForm === "receipt"
+                    ? "text-blue-400"
+                    : currentForm === "issue"
+                      ? "text-red-400"
+                      : "text-orange-400"
                 }`}
               >
                 {getFormTitle()}
