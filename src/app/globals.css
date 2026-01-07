@@ -118,9 +118,18 @@
   }
   html {
     background-color: white;
+    /* 모바일 스크롤 활성화 */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    height: 100%;
   }
   body {
     @apply bg-background text-foreground;
+    /* 모바일 스크롤 활성화 */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 100%;
+    position: relative;
   }
 }
 
