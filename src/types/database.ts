@@ -24,6 +24,7 @@ export type Product = {
   name: string;
   category_id: string;
   brand_id: string;
+  product_type?: "company" | "franchise" | "pb";
   image_url?: string;
   created_at: string;
   updated_at: string;

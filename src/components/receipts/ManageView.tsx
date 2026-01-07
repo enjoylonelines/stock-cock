@@ -78,6 +78,15 @@ const ManageView = <T extends { id: string; name: string }>({
                 onEdit={() => handleEdit(item.id)}
                 onDelete={async () => {
                   if (!onDelete) return;
+                  
+                  // 입고처 삭제 시 경고 팝업 (title이 "입고처 관리"인 경우)
+                  if (title.includes("입고처") || title.includes("위치")) {
+                    const confirmed = window.confirm(
+                      `"${item.name}" 입고처를 삭제하시겠습니까?\n\n⚠️ 주의: 이 입고처의 모든 재고 내역, 트랜잭션 기록이 함께 삭제됩니다.\n삭제된 데이터는 복구할 수 없습니다.`
+                    );
+                    if (!confirmed) return;
+                  }
+
                   try {
                     await onDelete(item.id);
                   } catch (error) {
