@@ -19,6 +19,19 @@ export default function DrawerView({ children, isVisible, className, scrollRef }
     }
   }, [isVisible, ref]);
 
+  // DrawerView가 열릴 때 부모 스크롤 컨테이너의 스크롤 막기
+  useEffect(() => {
+    if (isVisible && scrollRef?.current) {
+      const parent = scrollRef.current;
+      const originalOverflow = parent.style.overflow;
+      parent.style.overflow = "hidden";
+
+      return () => {
+        parent.style.overflow = originalOverflow;
+      };
+    }
+  }, [isVisible, scrollRef]);
+
   return (
     <AnimatePresence mode="wait">
       {isVisible && (
@@ -27,7 +40,15 @@ export default function DrawerView({ children, isVisible, className, scrollRef }
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ type: "tween", duration: 0.2 }}
-          className={cn("overflow-y-auto absolute inset-0 h-full bg-background", className)}
+          className={cn("overflow-y-auto absolute inset-0 z-10 w-full h-full bg-background", className)}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: "100%",
+          }}
         >
           {children}
         </motion.div>
