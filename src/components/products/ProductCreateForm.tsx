@@ -345,6 +345,7 @@ export default function ProductCreateForm({
   productOptionId,
 }: ProductCreateFormProps) {
   const [activeDrawer, setActiveDrawer] = useState<null | string>(null);
+  const [savedScrollPosition, setSavedScrollPosition] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
   const { locations, addLocation, editLocation, deleteLocation } = useLocations();
   const { categories, addCategory, editCategory, deleteCategory } = useCategories();
@@ -523,8 +524,25 @@ export default function ProductCreateForm({
     }
   };
 
-  // DrawerView 닫기
-  const closeDrawer = () => setActiveDrawer(null);
+  // DrawerView 닫기 (스크롤 위치 복원)
+  const closeDrawer = () => {
+    setActiveDrawer(null);
+    // 드로어가 닫힌 후 저장된 스크롤 위치로 복원
+    setTimeout(() => {
+      if (scrollRef?.current) {
+        scrollRef.current.scrollTop = savedScrollPosition;
+      }
+    }, 100);
+  };
+
+  // 드로어 열기 (스크롤 위치 저장)
+  const openDrawer = (drawerName: string) => {
+    // 현재 스크롤 위치 저장
+    if (scrollRef?.current) {
+      setSavedScrollPosition(scrollRef.current.scrollTop);
+    }
+    setActiveDrawer(drawerName);
+  };
 
   // localPreviewUrl 정리
   useEffect(() => {
@@ -581,6 +599,7 @@ export default function ProductCreateForm({
             <input
               value={name}
               onChange={(e) => updateProductForm({ name: e.target.value })}
+              onClick={() => openDrawer("name")}
               placeholder="제품명 입력"
               className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
             />
@@ -649,7 +668,7 @@ export default function ProductCreateForm({
           </div>
           <p className="text-xs text-gray-500">예: 박스당 12개면 12를 입력하세요.</p>
           <Button
-            onClick={() => setActiveDrawer("category")}
+            onClick={() => openDrawer("category")}
             variant="ghost"
             className="flex justify-between items-center py-2 w-full"
             size="none"
@@ -660,12 +679,7 @@ export default function ProductCreateForm({
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
-          <Button
-            onClick={() => setActiveDrawer("brand")}
-            variant="ghost"
-            className="flex justify-between items-center py-2 w-full"
-            size="none"
-          >
+          <Button onClick={() => openDrawer("brand")} variant="ghost" className="flex justify-between items-center py-2 w-full" size="none">
             <div className="flex justify-between w-full">
               <h3 className="font-medium">브랜드</h3>
               <p className="text-sm text-gray-500">{brands.find((b) => b.id === brandId)?.name || "브랜드 선택"}</p>
@@ -673,7 +687,7 @@ export default function ProductCreateForm({
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
           <Button
-            onClick={() => setActiveDrawer("productType")}
+            onClick={() => openDrawer("productType")}
             variant="ghost"
             className="flex justify-between items-center py-2 w-full"
             size="none"
@@ -693,7 +707,7 @@ export default function ProductCreateForm({
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
           <Button
-            onClick={() => setActiveDrawer("weight")}
+            onClick={() => openDrawer("weight")}
             variant="ghost"
             className="flex justify-between items-center py-2 w-full"
             size="none"
@@ -706,7 +720,7 @@ export default function ProductCreateForm({
           </Button>
           {mode === "create" && (
             <Button
-              onClick={() => setActiveDrawer("initLocation")}
+              onClick={() => openDrawer("initLocation")}
               variant="ghost"
               className="flex justify-between items-center py-2 w-full"
               size="none"
@@ -741,15 +755,6 @@ export default function ProductCreateForm({
           onClose={closeDrawer}
         />
       </DrawerView>
-      {/* <DrawerView isVisible={activeDrawer === "barcode"} scrollRef={scrollRef}>
-        <CommonInputView
-          title="바코드 입력"
-          value={barcode}
-          onChange={(e) => setBarcode(e.target.value)}
-          placeholder="바코드 입력"
-          onClose={closeDrawer}
-        />
-      </DrawerView> */}
 
       <DrawerView isVisible={activeDrawer === "category"} scrollRef={scrollRef}>
         <ManageView<Category>
