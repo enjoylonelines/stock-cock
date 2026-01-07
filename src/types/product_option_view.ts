@@ -10,6 +10,7 @@ export type ProductOptionView = {
   product_name: string;
   brand_name: string;
   category_name: string;
+  product_type?: "company" | "franchise" | "pb" | null;
   quantity: number;
   warehouse_id: string;
   warehouse_name: string;
