@@ -55,10 +55,10 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
   const handleEdit = async () => {
     try {
-      // products 테이블에서 brand_id, category_id 가져오기
+      // products 테이블에서 brand_id, category_id, product_type 가져오기
       const { data: productData, error } = await supabase
         .from("products")
-        .select("category_id, brand_id, image_url")
+        .select("category_id, brand_id, product_type, image_url")
         .eq("id", product.product_id)
         .single();
 
@@ -80,6 +80,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         name: product.product_name,
         categoryId: productData.category_id,
         brandId: productData.brand_id,
+        productType: (productData.product_type as "company" | "franchise" | "pb") || "company",
         buyPrice: product.buy_price.toString(),
         sellPrice: product.sell_price.toString(),
         weight: product.weight,
