@@ -5,12 +5,15 @@ import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import { SWRProvider } from "@/components/providers/SWRProvider";
 import { SessionRestore } from "@/components/providers/SessionRestore";
-import PushPermissionPrompt from "@/components/setting/PushPermissionPrompt";
 import { UserProvider } from "@/contexts/UserContext";
 import { createClient } from "@/utils/supabase/server";
 import type { Metadata } from "next";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  preload: true,
+});
 
 export const metadata: Metadata = {
   title: "한끼재고",
@@ -24,7 +27,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user?.id).single();
+  // user가 있을 때만 profile 조회 (초기 로딩 최적화)
+  let profile = null;
+  if (user?.id) {
+    const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+    profile = data;
+  }
 
   return (
     <html lang="ko" className="custom-scrollbar">
@@ -32,6 +40,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <meta name="theme-color" content="#ffffff" />
         <link rel="icon" href="/icons/logo.png" />
         <link rel="apple-touch-icon" href="/icons/logo-192x192.png" />
+        {/* DNS 프리페치 및 프리커넥트로 외부 리소스 로딩 최적화 */}
+        <link rel="dns-prefetch" href="https://kqkvgqbdgkgbhjcuwxei.supabase.co" />
+        <link rel="preconnect" href="https://kqkvgqbdgkgbhjcuwxei.supabase.co" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
 
       <UserProvider user={profile}>

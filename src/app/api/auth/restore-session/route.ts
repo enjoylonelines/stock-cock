@@ -17,22 +17,25 @@ export async function POST(request: Request) {
     const cookieStore = await cookies();
 
     // Supabase 클라이언트 생성
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options || {});
-            });
-          },
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return NextResponse.json({ error: "환경 변수가 설정되지 않았습니다." }, { status: 500 });
+    }
+
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
         },
-      }
-    );
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options || {});
+          });
+        },
+      },
+    });
 
     // 세션 설정 (Supabase가 자동으로 쿠키에 저장)
     const { data, error } = await supabase.auth.setSession({
@@ -50,4 +53,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "세션 복원 실패" }, { status: 500 });
   }
 }
-
