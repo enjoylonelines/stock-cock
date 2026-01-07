@@ -468,7 +468,7 @@ export default function ProductCreateForm({
           weight,
           buy_price: Number(buyPrice),
           sell_price: Number(sellPrice),
-          unit_label: "g",
+          unit_label: weightUnit, // 선택한 단위(g 또는 kg)로 저장
           box_unit: boxUnit ? Number(boxUnit) : null,
           sku,
           image_url: finalImageUrl,
@@ -497,7 +497,7 @@ export default function ProductCreateForm({
           weight,
           buy_price: Number(buyPrice),
           sell_price: Number(sellPrice),
-          unit_label: "g",
+          unit_label: weightUnit, // 선택한 단위(g 또는 kg)로 저장
           box_unit: boxUnit ? Number(boxUnit) : null,
           sku,
           image_url: finalImageUrl,
