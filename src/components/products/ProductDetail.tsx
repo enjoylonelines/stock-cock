@@ -10,6 +10,7 @@ import { useWarehouses } from "@/hooks/useWarehouses";
 import { supabase } from "@/lib/supabase";
 import { formatBoxBreakdown, formatNumber } from "@/lib/utils";
 import { useDrawerStore } from "@/store/drawerStore";
+import { clientLogger } from "@/utils/client-logger";
 import { useFormStateStore } from "@/store/formStateStore";
 import type { ProductOptionView } from "@/types/product_option_view";
 import { Edit } from "lucide-react";
@@ -96,7 +97,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
       // 수정 모드로 드로어 열기
       openDrawer("product-edit");
     } catch (error) {
-      console.error("제품 수정 오류:", error);
+      clientLogger.error("제품 수정 오류", error);
       alert("제품 정보를 불러오는데 실패했습니다.");
     }
   };

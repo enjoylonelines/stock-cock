@@ -6,6 +6,7 @@ import { useInventories } from "@/hooks/useInventories";
 import { useProducts } from "@/hooks/useProducts";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useFormStateStore } from "@/store/formStateStore";
+import { clientLogger } from "@/utils/client-logger";
 import type { ProductOptionView } from "@/types/product_option_view";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -101,7 +102,7 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
       // /inventory로 replace
       router.replace("/inventory");
     } catch (error) {
-      console.error("Error submitting move:", error);
+      clientLogger.error("재고 이동 처리 실패", error);
       alert("처리 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);

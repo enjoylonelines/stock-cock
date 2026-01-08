@@ -47,7 +47,10 @@ const saveToStorage = <T extends Record<string, unknown>>(key: string, state: T)
     }
     localStorage.setItem(key, JSON.stringify(stateToSave));
   } catch (error) {
-    console.error("Failed to save to localStorage:", error);
+    // localStorage 저장 실패는 사용자에게 알릴 필요 없음 (에러만 로깅)
+    if (process.env.NODE_ENV === "development") {
+      console.error("Failed to save to localStorage:", error);
+    }
   }
 };
 

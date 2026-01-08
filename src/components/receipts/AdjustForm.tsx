@@ -5,6 +5,7 @@ import { useUser } from "@/contexts/UserContext";
 import { useProducts } from "@/hooks/useProducts";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useFormStateStore } from "@/store/formStateStore";
+import { clientLogger } from "@/utils/client-logger";
 import type { ProductOptionView } from "@/types/product_option_view";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -87,7 +88,7 @@ export default function AdjustForm({ closeDrawer }: { closeDrawer: () => void })
       // /inventory로 replace
       router.replace("/inventory");
     } catch (error) {
-      console.error("Error submitting adjustment:", error);
+      clientLogger.error("재고 조정 처리 실패", error);
       alert("처리 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);

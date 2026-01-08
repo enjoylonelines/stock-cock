@@ -9,15 +9,17 @@ import { useWarehouses } from "@/hooks/useWarehouses";
 import { supabase } from "@/lib/supabase";
 import { formatWeightDisplay, generateSKU, generateUniqueFileName } from "@/lib/utils";
 import { useFormStateStore, type ProductType } from "@/store/formStateStore";
+import { clientLogger } from "@/utils/client-logger";
 import type { Product, ProductOption } from "@/types/database";
 import type { Brand, Category, Warehouse } from "@/types/database";
 import type { Insertable } from "@/types/util";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { type RefObject, useCallback, useEffect, useMemo, useState } from "react";
+import { type RefObject, useCallback, useEffect, useMemo, useState, memo } from "react";
 import { mutate } from "swr";
 import ManageView from "../receipts/ManageView";
+import { ProductImageUpload } from "./ProductImageUpload";
 interface ProductCreateFormProps {
   scrollRef?: RefObject<HTMLDivElement | null>;
   closeDrawer: () => void;
@@ -391,31 +393,34 @@ export default function ProductCreateForm({
     }
   }, [name, weight, sku, updateProductForm]);
 
-  // 이미지 업로드 핸들러
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!user) {
-      alert("이미지를 업로드하려면 로그인이 필요합니다.");
-      return;
-    }
+  // 이미지 업로드 핸들러 (메모이제이션)
+  const handleImageChange = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!user) {
+        alert("이미지를 업로드하려면 로그인이 필요합니다.");
+        return;
+      }
 
-    const file = e.target.files;
-    if (!file || !file[0]) return;
+      const file = e.target.files;
+      if (!file || !file[0]) return;
 
-    // 고유한 파일명 생성
-    const newFileName = generateUniqueFileName(file[0].name);
+      // 고유한 파일명 생성
+      const newFileName = generateUniqueFileName(file[0].name);
 
-    if (localPreviewUrl) {
-      URL.revokeObjectURL(localPreviewUrl);
-    }
+      if (localPreviewUrl) {
+        URL.revokeObjectURL(localPreviewUrl);
+      }
 
-    // 로컬 미리보기 URL 생성
-    const localUrl = URL.createObjectURL(file[0]);
-    updateProductForm({
-      imageFile: file[0],
-      imagePath: newFileName,
-      localPreviewUrl: localUrl,
-    });
-  };
+      // 로컬 미리보기 URL 생성
+      const localUrl = URL.createObjectURL(file[0]);
+      updateProductForm({
+        imageFile: file[0],
+        imagePath: newFileName,
+        localPreviewUrl: localUrl,
+      });
+    },
+    [user, localPreviewUrl, updateProductForm]
+  );
 
   // 저장 핸들러
   const handleSave = async () => {
@@ -448,7 +453,7 @@ export default function ProductCreateForm({
         });
 
         if (error) {
-          console.error("이미지 업로드 실패:", error);
+          clientLogger.error("이미지 업로드 실패", error);
           alert("이미지 업로드에 실패했습니다.");
           return;
         }
@@ -524,8 +529,8 @@ export default function ProductCreateForm({
     }
   };
 
-  // DrawerView 닫기 (스크롤 위치 복원)
-  const closeDrawer = () => {
+  // DrawerView 닫기 (스크롤 위치 복원) - 메모이제이션
+  const closeDrawer = useCallback(() => {
     setActiveDrawer(null);
     // 드로어가 닫힌 후 저장된 스크롤 위치로 복원
     setTimeout(() => {
@@ -533,16 +538,24 @@ export default function ProductCreateForm({
         scrollRef.current.scrollTop = savedScrollPosition;
       }
     }, 100);
-  };
+  }, [savedScrollPosition]);
 
-  // 드로어 열기 (스크롤 위치 저장)
-  const openDrawer = (drawerName: string) => {
-    // 현재 스크롤 위치 저장
-    if (scrollRef?.current) {
-      setSavedScrollPosition(scrollRef.current.scrollTop);
-    }
-    setActiveDrawer(drawerName);
-  };
+  // 드로어 열기 (스크롤 위치 저장) - 메모이제이션
+  const openDrawer = useCallback(
+    (drawerName: string) => {
+      // 현재 스크롤 위치 저장
+      if (scrollRef?.current) {
+        setSavedScrollPosition(scrollRef.current.scrollTop);
+      }
+      setActiveDrawer(drawerName);
+    },
+    [scrollRef]
+  );
+
+  // 폼 유효성 검사 - 메모이제이션
+  const isFormValid = useMemo(() => {
+    return !!(name && buyPrice && sellPrice && categoryId && brandId && productType && (mode === "create" ? initLocation : true));
+  }, [name, buyPrice, sellPrice, categoryId, brandId, productType, mode, initLocation]);
 
   // localPreviewUrl 정리
   useEffect(() => {
@@ -556,37 +569,7 @@ export default function ProductCreateForm({
   return (
     <div className="flex relative flex-col self-stretch h-full">
       {/* 제품 이미지 */}
-      <div className="flex flex-col items-center pt-6 pb-2">
-        <label className="flex overflow-hidden relative justify-center items-center w-24 h-24 bg-gray-100 rounded-md cursor-pointer">
-          {localPreviewUrl ? (
-            <Image src={localPreviewUrl} alt="제품 이미지" width={96} height={96} className="object-cover w-full h-full" />
-          ) : (
-            <span className="text-sm text-center text-gray-400">
-              {user ? (
-                <>
-                  사진
-                  <br />
-                  추가
-                </>
-              ) : (
-                <>
-                  로그인이
-                  <br />
-                  필요합니다
-                </>
-              )}
-            </span>
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            className="absolute inset-0 opacity-0 cursor-pointer"
-            onChange={handleImageChange}
-            disabled={isUploading || !user}
-          />
-        </label>
-        {isUploading && <span className="mt-2 text-sm text-gray-500">업로드 중...</span>}
-      </div>
+      <ProductImageUpload localPreviewUrl={localPreviewUrl} isUploading={isUploading} user={user} onImageChange={handleImageChange} />
       {/* 제품 등록 정보 */}
       <div className="flex-1 p-4">
         <div className="space-y-2">

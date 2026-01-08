@@ -3,6 +3,7 @@ import { useActionState, useEffect, useRef } from "react";
 
 import { signup } from "@/app/auth/actions";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { clientLogger } from "@/utils/client-logger";
 import { useRouter } from "next/navigation";
 
 export default function SignUpForm() {
@@ -30,7 +31,7 @@ export default function SignUpForm() {
           await subscribe();
         }
       } catch (e) {
-        console.warn("푸시 권한/구독 시도 중 경고:", e);
+        clientLogger.warn("푸시 권한/구독 시도 중 경고", e);
       }
     })();
     // 의존성은 성공 플래그만 사용하여 재실행 방지
