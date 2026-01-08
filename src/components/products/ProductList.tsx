@@ -12,11 +12,18 @@ type ProductListProps = {
 };
 
 // 우선순위 제품 목록 (상위에 배치할 제품명)
-const PRIORITY_PRODUCTS = ["수제 고기왕만두", "수제 김치왕만두", "수제 고기만두", "수제 김치만두", "호떡쌀군만두", "호떡쌀김치군만두"];
+const PRIORITY_PRODUCTS = [
+  "수제 고기왕만두",
+  "수제 김치왕만두",
+  "수제 고기만두",
+  "수제 김치만두",
+  "호떡쌀군만두",
+  "호떡쌀김치군만두",
+];
 
 // 제품의 우선순위를 반환하는 함수
 function getProductPriority(productName: string): number {
-  const index = PRIORITY_PRODUCTS.findIndex((priorityName) => productName.includes(priorityName));
+  const index = PRIORITY_PRODUCTS.findIndex(priorityName => productName.includes(priorityName));
   return index === -1 ? PRIORITY_PRODUCTS.length : index; // 우선순위 제품이 아니면 가장 낮은 우선순위
 }
 
@@ -31,7 +38,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
     if (filters.searchQuery) {
       const query = filters.searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (product) =>
+        product =>
           product.product_name.toLowerCase().includes(query) ||
           product.category_name?.toLowerCase().includes(query) ||
           product.brand_name?.toLowerCase().includes(query)
@@ -40,7 +47,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
 
     // 재고 상태 필터
     if (filters.inStock !== undefined) {
-      filtered = filtered.filter((product) => {
+      filtered = filtered.filter(product => {
         if (filters.inStock === true) {
           return product.quantity > 0;
         }
@@ -83,7 +90,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
   const groupedByCategory = useMemo(() => {
     const groups: Record<string, ProductOptionView[]> = {};
 
-    filteredAndSortedProducts.forEach((product) => {
+    filteredAndSortedProducts.forEach(product => {
       const categoryName = product.category_name || "기타";
       if (!groups[categoryName]) {
         groups[categoryName] = [];
@@ -104,7 +111,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
             <h2 className="text-sm font-semibold text-gray-600">{categoryName}</h2>
           </div>
           {/* 카테고리별 제품 리스트 */}
-          {categoryProducts.map((product) => {
+          {categoryProducts.map(product => {
             const boxSummary = formatBoxBreakdown(product.quantity, product.box_unit);
             const hasImage = product.image_url && product.image_url.trim() !== "";
 
@@ -131,7 +138,8 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-medium">
-                          {product.product_name} {formatWeightDisplay(product.weight, product.unit_label as "g" | "kg" | undefined)}
+                          {product.product_name}{" "}
+                          {formatWeightDisplay(product.weight, product.unit_label as "g" | "kg" | undefined)}
                         </h3>
                         <div className="flex flex-wrap mt-1 text-xs text-gray-600">
                           <span>{formatNumber(product.sell_price)}원</span>

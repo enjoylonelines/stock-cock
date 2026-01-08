@@ -1,10 +1,10 @@
-import { createClient } from "@/utils/supabase/server";
+import type { PushNotificationInput } from "@/types/api";
 import { APIError } from "@/utils/api-error";
 import { handleAPIError } from "@/utils/api-handler";
 import { apiLogger } from "@/utils/logger";
+import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
 import webpush from "web-push";
-import type { PushNotificationInput } from "@/types/api";
 
 const subject = "https://stock-cock.vercel.app";
 const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -64,7 +64,13 @@ export async function POST(request: Request) {
 
     if (!subscriptions || subscriptions.length === 0) {
       apiLogger.info(`[API] ${endpoint} 전송할 구독이 없습니다`);
-      return NextResponse.json({ success: true, message: "전송할 구독이 없습니다", total: 0, successful: 0, failed: 0 });
+      return NextResponse.json({
+        success: true,
+        message: "전송할 구독이 없습니다",
+        total: 0,
+        successful: 0,
+        failed: 0,
+      });
     }
 
     // 푸시 알림 전송

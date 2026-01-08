@@ -10,7 +10,7 @@ import { endOfDay, startOfDay } from "date-fns";
 import { ArrowDownToLine, ArrowLeftRight, ArrowUpDown, ArrowUpToLine } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useMemo, memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 
 const InventoryList = memo(function InventoryList({ grouped }: { grouped: GroupedTransactions[] }) {
   const router = useRouter();

@@ -5,8 +5,8 @@ import { useInventoryFilterDrawerStore } from "@/store/InventoryFilterDrawer";
 import { useActivityLogStore } from "@/store/activityLogStore";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
 import { ArrowDownUp, ArrowLeft, Bell, Filter, Settings } from "lucide-react";
-import Link from "next/link";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 

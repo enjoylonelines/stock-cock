@@ -7,19 +7,21 @@ import { useBrands } from "@/hooks/useBrands";
 import { useCategories } from "@/hooks/useCategories";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { supabase } from "@/lib/supabase";
-import { formatWeightDisplay, generateSKU, generateUniqueFileName } from "@/lib/utils";
-import { useFormStateStore, type ProductType } from "@/store/formStateStore";
-import { clientLogger } from "@/utils/client-logger";
-import type { Product, ProductOption } from "@/types/database";
+import { generateSKU, generateUniqueFileName } from "@/lib/utils";
+import { registerProduct, updateProduct } from "@/services/product-api";
+import { useFormStateStore } from "@/store/formStateStore";
 import type { Brand, Category, Warehouse } from "@/types/database";
-import type { Insertable } from "@/types/util";
-import { ArrowLeft, ChevronRight } from "lucide-react";
-import Image from "next/image";
+import { clientLogger } from "@/utils/client-logger";
+import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type RefObject, useCallback, useEffect, useMemo, useState, memo } from "react";
+import { type RefObject, useCallback, useEffect, useMemo, useState } from "react";
 import { mutate } from "swr";
 import ManageView from "../receipts/ManageView";
+import { CommonInputView } from "./CommonInputView";
+import { ProductFormFields } from "./ProductFormFields";
 import { ProductImageUpload } from "./ProductImageUpload";
+import { ProductTypeSelectView } from "./ProductTypeSelectView";
+import { WeightPickerView } from "./WeightPickerView";
 interface ProductCreateFormProps {
   scrollRef?: RefObject<HTMLDivElement | null>;
   closeDrawer: () => void;
@@ -27,317 +29,6 @@ interface ProductCreateFormProps {
   productId?: string;
   productOptionId?: string;
 }
-
-type ProductFormInput = Insertable<Product> & Insertable<ProductOption> & { warehouse_id: string; quantity: number };
-
-async function registerProduct(form: ProductFormInput) {
-  // 필수 필드 검증
-  if (!form.name || !form.category_id || !form.brand_id || !form.product_type) {
-    throw new Error("필수 정보가 누락되었습니다.");
-  }
-
-  // 1. products 테이블에 insert
-  const { data: product, error: productError } = await supabase
-    .from("products")
-    .insert([
-      {
-        name: form.name,
-        category_id: form.category_id,
-        brand_id: form.brand_id,
-        product_type: form.product_type,
-        image_url: form.image_url || null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-    ])
-    .select()
-    .single();
-
-  if (productError) {
-    throw new Error(`제품 등록 실패: ${productError.message}`);
-  }
-
-  if (!product || !product.id) {
-    throw new Error("제품 등록 후 데이터를 가져오지 못했습니다.");
-  }
-
-  // 2. product_options 테이블에 insert
-  const { data: option, error: optionError } = await supabase
-    .from("product_options")
-    .insert([
-      {
-        product_id: product.id,
-        weight: form.weight,
-        buy_price: form.buy_price,
-        sell_price: form.sell_price,
-        unit_label: form.unit_label,
-        box_unit: form.box_unit,
-        sku: form.sku,
-      },
-    ])
-    .select()
-    .single();
-
-  if (optionError) {
-    throw new Error(`옵션 등록 실패: ${optionError.message}`);
-  }
-
-  if (!option || !option.id) {
-    throw new Error("제품 옵션 등록 후 데이터를 가져오지 못했습니다.");
-  }
-
-  // 3. inventory 테이블에 insert (warehouse_id가 있는 경우만)
-  let inventory = null;
-  if (form.warehouse_id) {
-    const { data: inventoryData, error: inventoryError } = await supabase
-      .from("inventory")
-      .insert([
-        {
-          product_option_id: option.id,
-          warehouse_id: form.warehouse_id,
-          quantity: form.quantity || 0,
-          updated_at: new Date().toISOString(),
-        },
-      ])
-      .select()
-      .single();
-
-    if (inventoryError) {
-      throw new Error(`인벤토리 등록 실패: ${inventoryError.message}`);
-    }
-
-    if (!inventoryData) {
-      throw new Error("인벤토리 등록 후 데이터를 가져오지 못했습니다.");
-    }
-
-    inventory = inventoryData;
-  }
-
-  return { product, option, inventory };
-}
-
-async function updateProduct(productId: string, productOptionId: string, form: Omit<ProductFormInput, "warehouse_id" | "quantity">) {
-  // 1. products 테이블 업데이트
-  const { error: productError } = await supabase
-    .from("products")
-    .update({
-      name: form.name,
-      category_id: form.category_id,
-      brand_id: form.brand_id,
-      product_type: form.product_type,
-      image_url: form.image_url,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", productId);
-
-  if (productError) {
-    throw new Error(`제품 업데이트 실패: ${productError.message}`);
-  }
-
-  // 2. product_options 테이블 업데이트
-  const { error: optionError } = await supabase
-    .from("product_options")
-    .update({
-      weight: form.weight,
-      buy_price: form.buy_price,
-      sell_price: form.sell_price,
-      unit_label: form.unit_label,
-      box_unit: form.box_unit,
-      sku: form.sku,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", productOptionId);
-
-  if (optionError) {
-    throw new Error(`옵션 업데이트 실패: ${optionError.message}`);
-  }
-}
-
-// 중량 선택 컴포넌트
-const WeightPickerView = ({
-  currentWeight,
-  currentWeightUnit,
-  onSelect,
-  onClose,
-}: {
-  currentWeight: number;
-  currentWeightUnit?: "g" | "kg";
-  onSelect: (weightInGrams: number, unit: "g" | "kg") => void;
-  onClose: () => void;
-}) => {
-  // 현재 중량을 kg/g로 변환
-  const getDisplayWeight = useCallback((weightInGrams: number, preferredUnit?: "g" | "kg") => {
-    // 선호하는 단위가 있으면 그것을 사용
-    if (preferredUnit === "kg") {
-      const kgValue = weightInGrams / 1000;
-      const formattedValue = kgValue % 1 === 0 ? kgValue.toString() : Number.parseFloat(kgValue.toFixed(2)).toString();
-      return { value: formattedValue, unit: "kg" as const };
-    }
-    if (preferredUnit === "g") {
-      return { value: weightInGrams.toString(), unit: "g" as const };
-    }
-
-    // 선호하는 단위가 없으면 기본 규칙: 1000g 이상이면 kg로 표시
-    if (weightInGrams >= 1000) {
-      const kgValue = weightInGrams / 1000;
-      const formattedValue = kgValue % 1 === 0 ? kgValue.toString() : Number.parseFloat(kgValue.toFixed(2)).toString();
-      return { value: formattedValue, unit: "kg" as const };
-    }
-    return { value: weightInGrams.toString(), unit: "g" as const };
-  }, []);
-
-  const displayWeight = getDisplayWeight(currentWeight, currentWeightUnit);
-  const [selectedValue, setSelectedValue] = useState<string>(displayWeight.value);
-  const [selectedUnit, setSelectedUnit] = useState<"g" | "kg">(displayWeight.unit);
-
-  // currentWeight나 currentWeightUnit이 변경되면 상태 업데이트
-  useEffect(() => {
-    const newDisplayWeight = getDisplayWeight(currentWeight, currentWeightUnit);
-    setSelectedValue(newDisplayWeight.value);
-    setSelectedUnit(newDisplayWeight.unit);
-  }, [currentWeight, currentWeightUnit, getDisplayWeight]);
-
-  // 단위 변경 핸들러
-  const handleUnitChange = (newUnit: "g" | "kg") => {
-    const oldUnit = selectedUnit;
-    const currentNumValue = Number(selectedValue);
-
-    if (!selectedValue || Number.isNaN(currentNumValue) || currentNumValue <= 0) {
-      setSelectedUnit(newUnit);
-      return;
-    }
-
-    // 단위 변경 시 값 조정
-    if (oldUnit === "g" && newUnit === "kg") {
-      // g -> kg: 1000으로 나누기 (소수점 보존)
-      const newValue = currentNumValue / 1000;
-      const formattedValue = newValue % 1 === 0 ? newValue.toString() : Number.parseFloat(newValue.toFixed(2)).toString();
-      setSelectedValue(formattedValue);
-    } else if (oldUnit === "kg" && newUnit === "g") {
-      // kg -> g: 1000 곱하기 (정수로 변환)
-      const newValue = Math.round(currentNumValue * 1000);
-      setSelectedValue(newValue.toString());
-    }
-
-    setSelectedUnit(newUnit);
-  };
-
-  // 완료 버튼 클릭 시 그램으로 변환해서 전달
-  const handleDone = () => {
-    const numValue = Number(selectedValue);
-    if (!selectedValue || Number.isNaN(numValue) || numValue <= 0) {
-      alert("올바른 중량을 입력해주세요.");
-      return;
-    }
-
-    // 최종 검증: 그램 단위로 변환한 값으로 검증
-    const weightInGrams = selectedUnit === "kg" ? numValue * 1000 : numValue;
-    const minGrams = 1;
-    const maxGrams = 50000; // 50kg까지 허용
-
-    if (weightInGrams < minGrams || weightInGrams > maxGrams) {
-      alert(`중량은 ${minGrams}g부터 ${maxGrams}g(50kg)까지 입력 가능합니다.`);
-      return;
-    }
-
-    onSelect(weightInGrams, selectedUnit);
-  };
-
-  // 숫자 포맷팅
-  const formatDisplayValue = (value: string): string => {
-    if (!value) return "";
-    const num = Number(value);
-    if (Number.isNaN(num)) return "";
-    if (selectedUnit === "kg") {
-      // 정수면 정수로, 소수면 최대 2자리까지 표시 (불필요한 0 제거)
-      if (num % 1 === 0) {
-        return `${num}kg`;
-      }
-      // 소수점이 있으면 최대 2자리까지 표시하되, 마지막 0은 제거
-      return `${Number.parseFloat(num.toFixed(2))}kg`;
-    }
-    return `${num}g`;
-  };
-
-  return (
-    <div className="flex flex-col h-full bg-white">
-      <div className="flex items-center px-4 py-3 border-b">
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <h2 className="ml-2 text-lg font-semibold">중량 선택</h2>
-      </div>
-      <div className="flex flex-col flex-1 gap-6 justify-center px-6 py-8">
-        {/* 중량 입력 및 단위 선택 */}
-        <div className="flex gap-4 justify-center items-center">
-          {/* 중량 입력 필드 */}
-          <div className="flex-1 max-w-xs">
-            <input
-              type="number"
-              value={selectedValue}
-              onChange={(e) => {
-                const value = e.target.value;
-                // 숫자만 입력 가능
-                if (value === "" || (!Number.isNaN(Number(value)) && Number(value) >= 0)) {
-                  setSelectedValue(value);
-                }
-              }}
-              placeholder={selectedUnit === "kg" ? "0.1" : "1"}
-              step={selectedUnit === "kg" ? "0.01" : "1"}
-              min={selectedUnit === "kg" ? "0.1" : "1"}
-              max={selectedUnit === "kg" ? "50" : "50000"}
-              className="p-4 w-full text-2xl text-center rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
-            />
-          </div>
-
-          {/* 단위 선택 버튼 */}
-          <div className="flex gap-2">
-            <Button
-              variant={selectedUnit === "g" ? "default" : "outline"}
-              size="lg"
-              onClick={() => handleUnitChange("g")}
-              className={`min-w-[60px] h-12 text-lg font-semibold ${
-                selectedUnit === "g"
-                  ? "bg-orange-500 text-white hover:bg-orange-600"
-                  : "border-2 border-gray-300 text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              g
-            </Button>
-            <Button
-              variant={selectedUnit === "kg" ? "default" : "outline"}
-              size="lg"
-              onClick={() => handleUnitChange("kg")}
-              className={`min-w-[60px] h-12 text-lg font-semibold ${
-                selectedUnit === "kg"
-                  ? "bg-orange-500 text-white hover:bg-orange-600"
-                  : "border-2 border-gray-300 text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              kg
-            </Button>
-          </div>
-        </div>
-
-        {/* 선택된 값 미리보기 */}
-        <div className="text-center">
-          <p className="text-sm text-gray-500">선택된 중량</p>
-          <p className="text-2xl font-bold text-orange-500">{formatDisplayValue(selectedValue) || "입력 필요"}</p>
-          {selectedValue && !Number.isNaN(Number(selectedValue)) && (
-            <p className="mt-1 text-xs text-gray-400">
-              ({selectedUnit === "kg" ? Math.round(Number(selectedValue) * 1000) : selectedValue}g로 저장됨)
-            </p>
-          )}
-        </div>
-
-        {/* 완료 버튼 */}
-        <Button onClick={handleDone} className="w-full h-12 text-lg font-semibold text-white bg-orange-500 hover:bg-orange-600">
-          완료
-        </Button>
-      </div>
-    </div>
-  );
-};
 
 export default function ProductCreateForm({
   scrollRef,
@@ -530,6 +221,7 @@ export default function ProductCreateForm({
   };
 
   // DrawerView 닫기 (스크롤 위치 복원) - 메모이제이션
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scrollRef는 ref 객체이므로 의존성 배열에 포함하지 않음
   const closeDrawer = useCallback(() => {
     setActiveDrawer(null);
     // 드로어가 닫힌 후 저장된 스크롤 위치로 복원
@@ -572,150 +264,34 @@ export default function ProductCreateForm({
       <ProductImageUpload localPreviewUrl={localPreviewUrl} isUploading={isUploading} user={user} onImageChange={handleImageChange} />
       {/* 제품 등록 정보 */}
       <div className="flex-1 p-4">
-        <div className="space-y-2">
-          <div className="flex gap-2 items-center py-2 w-full">
-            <h3 className="font-medium">SKU:</h3>
-            <p className="text-sm text-gray-400">{sku ? sku : "-"}</p>
-          </div>
-          <div className="flex gap-2 items-center py-2 w-full">
-            <h3 className="w-20 font-medium">제품명</h3>
-            <input
-              value={name}
-              onChange={(e) => updateProductForm({ name: e.target.value })}
-              onClick={() => openDrawer("name")}
-              placeholder="제품명 입력"
-              className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
-            />
-          </div>
-          <div className="flex gap-2 items-center py-2 w-full">
-            <h3 className="w-20 font-medium">구매가</h3>
-            <input
-              value={buyPrice}
-              onChange={(e) => {
-                const val = e.target.value.replace(/[^0-9]/g, "");
-                updateProductForm({ buyPrice: val });
-              }}
-              placeholder="구매가 입력"
-              type="number"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
-            />
-          </div>
-          <div className="flex gap-2 items-center py-2 w-full">
-            <h3 className="w-20 font-medium">판매가</h3>
-            <input
-              value={sellPrice}
-              onChange={(e) => {
-                const val = e.target.value.replace(/[^0-9]/g, "");
-                updateProductForm({ sellPrice: val });
-              }}
-              placeholder="판매가 입력"
-              type="number"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
-            />
-          </div>
-          {mode === "create" && (
-            <div className="flex gap-2 items-center py-2 w-full">
-              <h3 className="w-20 font-medium">초기수량</h3>
-              <input
-                value={initQuantity}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/[^0-9]/g, "");
-                  updateProductForm({ initQuantity: val });
-                }}
-                placeholder="초기 수량 입력"
-                type="number"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
-              />
-            </div>
-          )}
-          <div className="flex gap-2 items-center py-2 w-full">
-            <h3 className="w-20 font-medium">박스 단위</h3>
-            <input
-              value={boxUnit}
-              onChange={(e) => {
-                const val = e.target.value.replace(/[^0-9]/g, "");
-                updateProductForm({ boxUnit: val });
-              }}
-              placeholder="박스 1개당 수량"
-              type="number"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
-            />
-          </div>
-          <p className="text-xs text-gray-500">예: 박스당 12개면 12를 입력하세요.</p>
-          <Button
-            onClick={() => openDrawer("category")}
-            variant="ghost"
-            className="flex justify-between items-center py-2 w-full"
-            size="none"
-          >
-            <div className="flex justify-between w-full">
-              <h3 className="font-medium">카테고리</h3>
-              <p className="text-sm text-gray-500">{categories.find((c) => c.id === categoryId)?.name || "카테고리 선택"}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </Button>
-          <Button onClick={() => openDrawer("brand")} variant="ghost" className="flex justify-between items-center py-2 w-full" size="none">
-            <div className="flex justify-between w-full">
-              <h3 className="font-medium">브랜드</h3>
-              <p className="text-sm text-gray-500">{brands.find((b) => b.id === brandId)?.name || "브랜드 선택"}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </Button>
-          <Button
-            onClick={() => openDrawer("productType")}
-            variant="ghost"
-            className="flex justify-between items-center py-2 w-full"
-            size="none"
-          >
-            <div className="flex justify-between w-full">
-              <h3 className="font-medium">제품 유형</h3>
-              <p className="text-sm text-gray-500">
-                {productType === "company"
-                  ? "자사"
-                  : productType === "franchise"
-                  ? "가맹점"
-                  : productType === "pb"
-                  ? "PB제품"
-                  : "제품 유형 선택"}
-              </p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </Button>
-          <Button
-            onClick={() => openDrawer("weight")}
-            variant="ghost"
-            className="flex justify-between items-center py-2 w-full"
-            size="none"
-          >
-            <div className="flex justify-between w-full">
-              <h3 className="font-medium">중량</h3>
-              <p className="text-sm text-gray-500">{formatWeightDisplay(weight, weightUnit)}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </Button>
-          {mode === "create" && (
-            <Button
-              onClick={() => openDrawer("initLocation")}
-              variant="ghost"
-              className="flex justify-between items-center py-2 w-full"
-              size="none"
-            >
-              <div className="flex justify-between w-full">
-                <h3 className="font-medium">위치</h3>
-                <p className="text-sm text-gray-500">{warehouses.find((l) => l.id === initLocation)?.name || "위치 선택"}</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </Button>
-          )}
-        </div>
+        <ProductFormFields
+          sku={sku}
+          name={name}
+          buyPrice={buyPrice}
+          sellPrice={sellPrice}
+          initQuantity={initQuantity}
+          boxUnit={boxUnit}
+          categoryId={categoryId}
+          brandId={brandId}
+          productType={productType}
+          weight={weight}
+          weightUnit={weightUnit}
+          initLocation={initLocation}
+          mode={mode}
+          categories={categories}
+          brands={brands}
+          warehouses={warehouses}
+          onNameChange={(value) => updateProductForm({ name: value })}
+          onBuyPriceChange={(value) => updateProductForm({ buyPrice: value })}
+          onSellPriceChange={(value) => updateProductForm({ sellPrice: value })}
+          onInitQuantityChange={(value) => updateProductForm({ initQuantity: value })}
+          onBoxUnitChange={(value) => updateProductForm({ boxUnit: value })}
+          onCategoryClick={() => openDrawer("category")}
+          onBrandClick={() => openDrawer("brand")}
+          onProductTypeClick={() => openDrawer("productType")}
+          onWeightClick={() => openDrawer("weight")}
+          onLocationClick={() => openDrawer("initLocation")}
+        />
       </div>
       {/* 하단 버튼 */}
       <div className="p-4 pb-8 border-t">
@@ -806,85 +382,3 @@ export default function ProductCreateForm({
     </div>
   );
 }
-
-// 제품 유형 선택 컴포넌트
-const ProductTypeSelectView = ({
-  currentType,
-  onSelect,
-  onClose,
-}: {
-  currentType: ProductType;
-  onSelect: (type: ProductType) => void;
-  onClose: () => void;
-}) => {
-  const productTypes: Array<{ value: ProductType; label: string }> = [
-    { value: "company", label: "자사" },
-    { value: "franchise", label: "가맹점" },
-    { value: "pb", label: "PB제품" },
-  ];
-
-  return (
-    <div className="flex flex-col h-full bg-white">
-      <div className="flex items-center px-4 py-3 border-b">
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <h2 className="ml-2 text-lg font-semibold">제품 유형 선택</h2>
-      </div>
-      <div className="flex flex-col flex-1 gap-2 px-4 py-4">
-        {productTypes.map((type) => (
-          <Button
-            key={type.value}
-            variant={currentType === type.value ? "default" : "ghost"}
-            className={`flex justify-start items-center py-3 w-full text-left ${
-              currentType === type.value ? "bg-orange-500 text-white hover:bg-orange-600" : "hover:bg-gray-50"
-            }`}
-            onClick={() => {
-              onSelect(type.value);
-              onClose();
-            }}
-          >
-            <span className="text-base font-medium">{type.label}</span>
-            {currentType === type.value && <ChevronRight className="ml-auto w-5 h-5 text-white" />}
-          </Button>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const CommonInputView = ({
-  title,
-  value,
-  onChange,
-  placeholder,
-  onClose,
-}: {
-  title: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder: string;
-  onClose: () => void;
-}) => {
-  return (
-    <div className="flex flex-col h-full bg-white">
-      <div className="flex items-center px-4 py-3 border-b">
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <h2 className="ml-2 text-lg font-semibold">{title}</h2>
-      </div>
-      <div className="flex flex-col flex-1 justify-center px-6">
-        <input
-          value={value}
-          onChange={(e) => onChange(e)}
-          placeholder={placeholder}
-          className="p-3 w-full text-lg rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
-        />
-        <Button className="mt-6 text-white bg-orange-500 hover:bg-orange-600" onClick={onClose}>
-          완료
-        </Button>
-      </div>
-    </div>
-  );
-};
