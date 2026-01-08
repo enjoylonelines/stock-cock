@@ -5,7 +5,7 @@ import DrawerView from "@/components/ui/drawer-view";
 import { useUser } from "@/contexts/UserContext";
 import { useBrands } from "@/hooks/useBrands";
 import { useCategories } from "@/hooks/useCategories";
-import { useLocations } from "@/hooks/useWarehouses";
+import { useWarehouses } from "@/hooks/useWarehouses";
 import { supabase } from "@/lib/supabase";
 import { formatWeightDisplay, generateSKU, generateUniqueFileName } from "@/lib/utils";
 import { useFormStateStore, type ProductType } from "@/store/formStateStore";
@@ -347,7 +347,7 @@ export default function ProductCreateForm({
   const [activeDrawer, setActiveDrawer] = useState<null | string>(null);
   const [savedScrollPosition, setSavedScrollPosition] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
-  const { locations, addLocation, editLocation, deleteLocation } = useLocations();
+  const { warehouses, addWarehouse, editWarehouse, deleteWarehouse } = useWarehouses();
   const { categories, addCategory, editCategory, deleteCategory } = useCategories();
   const { brands, addBrand, editBrand, deleteBrand } = useBrands();
   const router = useRouter();
@@ -727,7 +727,7 @@ export default function ProductCreateForm({
             >
               <div className="flex justify-between w-full">
                 <h3 className="font-medium">위치</h3>
-                <p className="text-sm text-gray-500">{locations.find((l) => l.id === initLocation)?.name || "위치 선택"}</p>
+                <p className="text-sm text-gray-500">{warehouses.find((l) => l.id === initLocation)?.name || "위치 선택"}</p>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </Button>
@@ -797,15 +797,15 @@ export default function ProductCreateForm({
       <DrawerView isVisible={activeDrawer === "initLocation"} scrollRef={scrollRef}>
         <ManageView<Warehouse>
           title="위치 선택"
-          items={locations}
+          items={warehouses}
           onBack={closeDrawer}
           onSelect={(item) => {
             updateProductForm({ initLocation: item.id });
             closeDrawer();
           }}
-          onAdd={addLocation}
-          onEdit={editLocation}
-          onDelete={deleteLocation}
+          onAdd={addWarehouse}
+          onEdit={editWarehouse}
+          onDelete={deleteWarehouse}
         />
       </DrawerView>
 

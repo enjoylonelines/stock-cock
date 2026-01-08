@@ -2,22 +2,22 @@ import type { Warehouse } from "@/types/database";
 import { supabase } from "@/lib/supabase";
 import { useCRUD } from "./useCRUD";
 
-export function useLocations() {
+export function useWarehouses() {
   const { items, isLoading, addItem, editItem, deleteItem, refetch } = useCRUD<Warehouse>({
     tableName: "warehouses",
     swrKey: "warehouses",
     orderBy: "name",
   });
 
-  const addLocation = async (name: string) => {
+  const addWarehouse = async (name: string) => {
     return await addItem({ name });
   };
 
-  const editLocation = async (id: string, name: string) => {
+  const editWarehouse = async (id: string, name: string) => {
     return await editItem(id, { name });
   };
 
-  const deleteLocation = async (id: string) => {
+  const deleteWarehouse = async (id: string) => {
     try {
       // 1. 해당 warehouse를 참조하는 transactions 찾기
       // from_warehouse_id 또는 to_warehouse_id가 해당 id인 경우
@@ -33,7 +33,8 @@ export function useLocations() {
       ); // 중복 제거
 
       if (fromTxSelectError || toTxSelectError) {
-        console.error("트랜잭션 조회 실패:", fromTxSelectError || toTxSelectError);
+        // 트랜잭션 조회 실패는 경고만 하고 계속 진행
+        // (트랜잭션이 없을 수도 있으므로)
       }
 
       // 2. transaction_items 삭제 (transactions를 참조하므로 먼저 삭제)
@@ -43,20 +44,20 @@ export function useLocations() {
         const { error: txItemsError } = await supabase.from("transaction_items").delete().in("transaction_id", transactionIds);
 
         if (txItemsError) {
-          console.error("트랜잭션 아이템 삭제 실패:", txItemsError);
+          throw new Error(`트랜잭션 아이템 삭제 실패: ${txItemsError.message}`);
         }
 
         // 3. transactions 삭제
         const { error: fromTxError } = await supabase.from("transactions").delete().eq("from_warehouse_id", id);
 
         if (fromTxError) {
-          console.error("트랜잭션 삭제 실패 (from_warehouse):", fromTxError);
+          throw new Error(`트랜잭션 삭제 실패 (from_warehouse): ${fromTxError.message}`);
         }
 
         const { error: toTxError } = await supabase.from("transactions").delete().eq("to_warehouse_id", id);
 
         if (toTxError) {
-          console.error("트랜잭션 삭제 실패 (to_warehouse):", toTxError);
+          throw new Error(`트랜잭션 삭제 실패 (to_warehouse): ${toTxError.message}`);
         }
       }
 
@@ -64,7 +65,7 @@ export function useLocations() {
       const { error: batchError } = await supabase.from("inventory_batches").delete().eq("warehouse_id", id);
 
       if (batchError) {
-        console.error("배치 삭제 실패:", batchError);
+        throw new Error(`배치 삭제 실패: ${batchError.message}`);
       }
 
       // 5. 해당 warehouse를 사용하는 inventory 레코드들 삭제
@@ -86,11 +87,11 @@ export function useLocations() {
   };
 
   return {
-    locations: items,
+    warehouses: items,
     isLoading,
-    addLocation,
-    editLocation,
-    deleteLocation,
+    addWarehouse,
+    editWarehouse,
+    deleteWarehouse,
     refetch,
   };
 }

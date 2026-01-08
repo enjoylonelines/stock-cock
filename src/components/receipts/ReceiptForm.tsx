@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
 import { useProducts } from "@/hooks/useProducts";
 import { useSuppliers } from "@/hooks/useSuppliers";
-import { useLocations } from "@/hooks/useWarehouses";
+import { useWarehouses } from "@/hooks/useWarehouses";
 import { useFormStateStore } from "@/store/formStateStore";
 import type { ProductOptionView } from "@/types/product_option_view";
 import { format } from "date-fns";
@@ -26,7 +26,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
   const [isMemoViewVisible, setIsMemoViewVisible] = useState(false);
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { locations, addLocation, editLocation, deleteLocation } = useLocations();
+  const { warehouses, addWarehouse, editWarehouse, deleteWarehouse } = useWarehouses();
   const { suppliers, addSupplier, editSupplier, deleteSupplier } = useSuppliers();
   const { products } = useProducts();
   const router = useRouter();
@@ -232,10 +232,10 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
           onBack={() => setIsWarehouseViewVisible(false)}
           onSelect={handleWarehouseSelect}
           title={mode === "in" ? "입고처 선택" : "출고처 선택"}
-          items={locations}
-          onAdd={addLocation}
-          onEdit={editLocation}
-          onDelete={deleteLocation}
+          items={warehouses}
+          onAdd={addWarehouse}
+          onEdit={editWarehouse}
+          onDelete={deleteWarehouse}
         />
       </DrawerView>
 

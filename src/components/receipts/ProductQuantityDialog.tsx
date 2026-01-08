@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useInventories } from "@/hooks/useInventories";
-import { useLocations } from "@/hooks/useWarehouses";
+import { useWarehouses } from "@/hooks/useWarehouses";
 import { formatNumber } from "@/lib/utils";
 import type { ProductOptionView } from "@/types/product_option_view";
 import { Minus, Plus } from "lucide-react";
@@ -29,7 +29,7 @@ export default function ProductQuantityDialog({
   selectedLocationId,
 }: ProductQuantityDialogProps) {
   const { inventories } = useInventories();
-  const { locations } = useLocations();
+  const { warehouses } = useWarehouses();
   const prevProductIdRef = useRef<string | null>(null);
   const prevOpenRef = useRef<boolean>(false);
 

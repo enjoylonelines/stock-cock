@@ -1,35 +1,23 @@
-import { sendPushNotification } from "@/services/push-notification";
-import { getProductIconUrl } from "@/utils/product-icon";
+import { sendTransactionNotification } from "@/utils/transaction-notification";
 import { createClient } from "@/utils/supabase/server";
-import { NextResponse } from "next/server";
-
-type ReceiptItemInput = {
-  quantity: number;
-  unit_price: number;
-  option_id: string;
-  expiration_date: string | null;
-};
-
-type ReceiptInput = {
-  type: "in" | "out";
-  warehouse_id: string;
-  supplier_id?: string;
-  memo?: string;
-  created_at?: string;
-  items: ReceiptItemInput[];
-  user_id: string;
-};
+import { APIError } from "@/utils/api-error";
+import { handleAPIError } from "@/utils/api-handler";
+import { apiLogger } from "@/utils/logger";
+import type { ReceiptInput } from "@/types/api";
 
 export async function POST(request: Request) {
+  const endpoint = "/api/receipts";
   const supabase = await createClient();
 
   try {
     const body: ReceiptInput = await request.json();
     const { type, warehouse_id, supplier_id, memo, created_at, items, user_id } = body;
 
-    console.log("[REQUEST BODY]", body);
+    apiLogger.requestStart(endpoint, body);
 
-    if (!items.length) throw new Error("Invalid request body: Missing items");
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      throw APIError.badRequest("제품 항목이 필요합니다.");
+    }
 
     // [1] 트랜잭션 기록
     const { data: transaction, error: txError } = await supabase
@@ -49,13 +37,12 @@ export async function POST(request: Request) {
       .single();
 
     if (txError) {
-      console.error("[TX ERROR]", txError);
-      throw txError;
+      apiLogger.dbError("트랜잭션 생성", txError);
+      throw APIError.fromSupabaseError(txError);
     }
 
     for (const item of items) {
-      console.log("[ITEM PROCESSING]", item);
-      console.log(item.option_id);
+      apiLogger.transaction("항목 처리 시작", item);
 
       // [2] 배치 insert (유통기한 기반)
       const { data: batch, error: batchError } = await supabase
@@ -73,8 +60,8 @@ export async function POST(request: Request) {
         .single();
 
       if (batchError) {
-        console.error("[BATCH ERROR]", batchError);
-        throw batchError;
+        apiLogger.dbError("배치 생성", batchError);
+        throw APIError.fromSupabaseError(batchError);
       }
 
       // [3] inventory upsert
@@ -86,8 +73,8 @@ export async function POST(request: Request) {
         .maybeSingle();
 
       if (invError) {
-        console.error("[INVENTORY SELECT ERROR]", invError);
-        throw invError;
+        apiLogger.dbError("재고 조회", invError);
+        throw APIError.fromSupabaseError(invError);
       }
 
       let signedQty = item.quantity;
@@ -102,8 +89,8 @@ export async function POST(request: Request) {
           .eq("id", inventory.id);
 
         if (updateError) {
-          console.error("[INVENTORY UPDATE ERROR]", updateError);
-          throw updateError;
+          apiLogger.dbError("재고 업데이트", updateError);
+          throw APIError.fromSupabaseError(updateError);
         }
       } else {
         const { error: insertError } = await supabase.from("inventory").insert([
@@ -115,8 +102,8 @@ export async function POST(request: Request) {
         ]);
 
         if (insertError) {
-          console.error("[INVENTORY INSERT ERROR]", insertError);
-          throw insertError;
+          apiLogger.dbError("재고 생성", insertError);
+          throw APIError.fromSupabaseError(insertError);
         }
       }
 
@@ -132,29 +119,22 @@ export async function POST(request: Request) {
       ]);
 
       if (itemError) {
-        console.error("[ITEM INSERT ERROR]", itemError);
-        throw itemError;
+        apiLogger.dbError("트랜잭션 항목 생성", itemError);
+        throw APIError.fromSupabaseError(itemError);
       }
     }
 
-    // 푸시 알림 전송
-    const firstOptionId = items[0]?.option_id;
-    const iconUrl = firstOptionId ? await getProductIconUrl(firstOptionId) : undefined;
-    await sendPushNotification({
-      title: type === "in" ? "입고 완료" : "출고 완료",
-      body: `${items.length}개 제품이 ${type === "in" ? "입고" : "출고"}되었습니다`,
-      icon: iconUrl,
-      tag: `receipt-${transaction.id}`,
-      data: {
-        type: "receipt",
-        transactionId: transaction.id,
-        receiptType: type,
-      },
+    // 푸시 알림 전송 (실패해도 전체 프로세스를 중단하지 않음)
+    await sendTransactionNotification({
+      type,
+      transactionId: transaction.id,
+      itemCount: items.length,
+      firstOptionId: items[0]?.option_id,
     });
 
+    apiLogger.requestSuccess(endpoint, { transaction_id: transaction.id });
     return NextResponse.json({ success: true, transaction_id: transaction.id });
   } catch (error) {
-    console.error("[UNHANDLED ERROR]", error);
-    return NextResponse.json({ error: "입고/출고 처리 실패", detail: String(error) }, { status: 500 });
+    return handleAPIError(error, endpoint);
   }
 }

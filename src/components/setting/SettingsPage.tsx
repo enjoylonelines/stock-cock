@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSuppliers } from "@/hooks/useSuppliers";
-import { useLocations } from "@/hooks/useWarehouses";
+import { useWarehouses } from "@/hooks/useWarehouses";
 import type { TeamInfo, UserInfo } from "@/types/database";
 import { Camera, ChevronRight, LogOut } from "lucide-react";
 import Image from "next/image";
@@ -25,7 +25,7 @@ export default function SettingsPage({ user, _team, info }: { user: UserInfo; _t
   const [isWarehousesDrawerOpen, setIsWarehousesDrawerOpen] = useState(false);
   const [isSuppliersDrawerOpen, setIsSuppliersDrawerOpen] = useState(false);
 
-  const { locations, addLocation, editLocation, deleteLocation } = useLocations();
+  const { warehouses, addWarehouse, editWarehouse, deleteWarehouse } = useWarehouses();
   const { suppliers, addSupplier, editSupplier, deleteSupplier } = useSuppliers();
 
   return (
@@ -188,10 +188,10 @@ export default function SettingsPage({ user, _team, info }: { user: UserInfo; _t
           onBack={() => setIsWarehousesDrawerOpen(false)}
           onSelect={() => {}} // 선택 기능은 필요 없음
           title="입고처 관리"
-          items={locations}
-          onAdd={addLocation}
-          onEdit={editLocation}
-          onDelete={deleteLocation}
+          items={warehouses}
+          onAdd={addWarehouse}
+          onEdit={editWarehouse}
+          onDelete={deleteWarehouse}
         />
       </SettingsDrawer>
 

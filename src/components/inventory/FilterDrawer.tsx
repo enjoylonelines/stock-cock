@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
 import { useProfiles } from "@/hooks/useProfiles";
 import { useSuppliers } from "@/hooks/useSuppliers";
-import { useLocations } from "@/hooks/useWarehouses";
+import { useWarehouses } from "@/hooks/useWarehouses";
 import type { FilterState, TransactionType } from "@/store/InventoryFilterDrawer";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -39,7 +39,7 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
   const [selectedSupplier, setSelectedSupplier] = useState<string>(initialFilters?.supplier || "");
   const [selectedMember, setSelectedMember] = useState<string>(initialFilters?.member || "");
 
-  const { locations, addLocation, editLocation, deleteLocation } = useLocations();
+  const { warehouses, addWarehouse, editWarehouse, deleteWarehouse } = useWarehouses();
   const { suppliers, addSupplier, editSupplier, deleteSupplier } = useSuppliers();
   const { products } = useProducts();
   const { profiles, addProfile, editProfile, deleteProfile } = useProfiles();
@@ -164,7 +164,7 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
           onClick={() => setIsLocationViewVisible(true)}
         >
           <span className="text-gray-500">
-            {selectedLocation ? locations.find(loc => loc.id === selectedLocation)?.name : "전체"}
+            {selectedLocation ? warehouses.find(loc => loc.id === selectedLocation)?.name : "전체"}
           </span>
           <ChevronRight className="w-5 h-5 text-gray-400" />
         </Button>
@@ -232,10 +232,10 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
           onBack={closeDrawer}
           onSelect={handleLocationSelect}
           title="위치 선택"
-          items={locations}
-          onAdd={addLocation}
-          onEdit={editLocation}
-          onDelete={deleteLocation}
+          items={warehouses}
+          onAdd={addWarehouse}
+          onEdit={editWarehouse}
+          onDelete={deleteWarehouse}
         />
       </DrawerView>
 

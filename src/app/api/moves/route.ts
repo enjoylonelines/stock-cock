@@ -1,36 +1,27 @@
-import { supabase } from "@/lib/supabase";
-import { sendPushNotification } from "@/services/push-notification";
+import { sendTransactionNotification } from "@/utils/transaction-notification";
 import { updateInventory } from "@/utils/inventory";
-import { getProductIconUrl } from "@/utils/product-icon";
 import { createClient } from "@/utils/supabase/server";
-import { NextResponse } from "next/server";
-
-type MoveItemInput = {
-  quantity: number;
-  unit_price: number;
-  option_id: string;
-};
-
-type MoveInput = {
-  from_warehouse_id: string;
-  to_warehouse_id: string;
-  memo?: string;
-  created_at?: string;
-  items: MoveItemInput[];
-  user_id: string;
-};
+import { APIError } from "@/utils/api-error";
+import { handleAPIError } from "@/utils/api-handler";
+import { apiLogger } from "@/utils/logger";
+import type { MoveInput } from "@/types/api";
 
 export async function POST(request: Request) {
+  const endpoint = "/api/moves";
   const supabase = await createClient();
 
   try {
     const body: MoveInput = await request.json();
     const { from_warehouse_id, to_warehouse_id, memo, created_at, items, user_id } = body;
 
-    console.log("[MOVE REQUEST BODY]", body);
+    apiLogger.requestStart(endpoint, body);
 
-    if (!items.length) throw new Error("Invalid request body: Missing items");
-    if (from_warehouse_id === to_warehouse_id) throw new Error("출발지와 도착지는 같을 수 없습니다");
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      throw APIError.badRequest("제품 항목이 필요합니다.");
+    }
+    if (from_warehouse_id === to_warehouse_id) {
+      throw APIError.badRequest("출발지와 도착지는 같을 수 없습니다.");
+    }
 
     // [1] 트랜잭션 기록
     const { data: transaction, error: txError } = await supabase
@@ -49,12 +40,12 @@ export async function POST(request: Request) {
       .single();
 
     if (txError) {
-      console.error("[TX ERROR]", txError);
-      throw txError;
+      apiLogger.dbError("트랜잭션 생성", txError);
+      throw APIError.fromSupabaseError(txError);
     }
 
     for (const item of items) {
-      console.log("[MOVE ITEM PROCESSING]", item);
+      apiLogger.transaction("이동 항목 처리 시작", item);
 
       // 출발지 재고 차감
       await updateInventory(item.option_id, from_warehouse_id, -item.quantity);
@@ -74,28 +65,22 @@ export async function POST(request: Request) {
       ]);
 
       if (itemError) {
-        console.error("[ITEM INSERT ERROR]", itemError);
-        throw itemError;
+        apiLogger.dbError("트랜잭션 항목 생성", itemError);
+        throw APIError.fromSupabaseError(itemError);
       }
     }
 
-    // 푸시 알림 전송
-    const firstOptionId = items[0]?.option_id;
-    const iconUrl = firstOptionId ? await getProductIconUrl(firstOptionId) : undefined;
-    await sendPushNotification({
-      title: "재고 이동 완료",
-      body: `${items.length}개 제품이 이동되었습니다`,
-      icon: iconUrl,
-      tag: `move-${transaction.id}`,
-      data: {
-        type: "move",
-        transactionId: transaction.id,
-      },
+    // 푸시 알림 전송 (실패해도 전체 프로세스를 중단하지 않음)
+    await sendTransactionNotification({
+      type: "move",
+      transactionId: transaction.id,
+      itemCount: items.length,
+      firstOptionId: items[0]?.option_id,
     });
 
+    apiLogger.requestSuccess(endpoint, { transaction_id: transaction.id });
     return NextResponse.json({ success: true, transaction_id: transaction.id });
   } catch (error) {
-    console.error("[MOVE UNHANDLED ERROR]", error);
-    return NextResponse.json({ error: "이동 처리 실패", detail: String(error) }, { status: 500 });
+    return handleAPIError(error, endpoint);
   }
 }
