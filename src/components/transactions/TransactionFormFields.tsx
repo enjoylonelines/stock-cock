@@ -6,7 +6,7 @@ import { ChevronRight } from "lucide-react";
 import { memo } from "react";
 import ProductListItem from "./ProductListItem";
 
-interface ReceiptFormFieldsProps {
+interface TransactionFormFieldsProps {
   formattedDate: string;
   selectedWarehouseName: string;
   selectedSupplierName: string;
@@ -23,7 +23,7 @@ interface ReceiptFormFieldsProps {
 /**
  * 입고/출고 폼 필드 컴포넌트
  */
-export const ReceiptFormFields = memo(function ReceiptFormFields({
+export const TransactionFormFields = memo(function TransactionFormFields({
   formattedDate,
   selectedWarehouseName,
   selectedSupplierName,
@@ -35,7 +35,7 @@ export const ReceiptFormFields = memo(function ReceiptFormFields({
   onSupplierClick,
   onProductClick,
   onMemoClick,
-}: ReceiptFormFieldsProps) {
+}: TransactionFormFieldsProps) {
   return (
     <div className="space-y-2">
       <Button

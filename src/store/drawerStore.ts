@@ -13,29 +13,29 @@ export type FormType =
   | "product-edit"
   | "excel"
   | null;
-type ReceiptStep = "main" | "location" | "supplier" | "products" | "memo" | null;
+type TransactionStep = "main" | "location" | "supplier" | "products" | "memo" | null;
 
 interface DrawerState {
   isOpen: boolean;
   currentForm: FormType;
-  receiptStep: ReceiptStep;
+  transactionStep: TransactionStep;
   openDrawer: (formType: FormType) => void;
   closeDrawer: () => void;
   setCurrentForm: (formType: FormType) => void;
-  setReceiptStep: (step: ReceiptStep) => void;
+  setTransactionStep: (step: TransactionStep) => void;
 }
 
 export const useDrawerStore = create<DrawerState>(set => ({
   isOpen: false,
   currentForm: null,
-  receiptStep: null,
+  transactionStep: null,
   openDrawer: (formType: FormType) =>
     set({
       isOpen: true,
       currentForm: formType,
-      receiptStep: formType === "receipt" ? "main" : null,
+      transactionStep: formType === "receipt" ? "main" : null,
     }),
-  closeDrawer: () => set({ isOpen: false, currentForm: null, receiptStep: null }),
+  closeDrawer: () => set({ isOpen: false, currentForm: null, transactionStep: null }),
   setCurrentForm: (formType: FormType) => set({ currentForm: formType }),
-  setReceiptStep: (step: ReceiptStep) => set({ receiptStep: step }),
+  setTransactionStep: (step: TransactionStep) => set({ transactionStep: step }),
 }));

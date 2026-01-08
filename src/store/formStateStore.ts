@@ -1,13 +1,13 @@
 import type { ProductOptionView } from "@/types/product_option_view";
 import { create } from "zustand";
 
-export type ReceiptMode = "in" | "out";
+export type TransactionMode = "in" | "out";
 const initialWeight = 1200;
 // localStorage 키
 const STORAGE_KEYS = {
   PRODUCT_FORM: "formState:productForm",
-  RECEIPT_FORM_IN: "formState:receiptForm:in",
-  RECEIPT_FORM_OUT: "formState:receiptForm:out",
+  TRANSACTION_FORM_IN: "formState:transactionForm:in",
+  TRANSACTION_FORM_OUT: "formState:transactionForm:out",
   MOVE_FORM: "formState:moveForm",
   ADJUST_FORM: "formState:adjustForm",
 };
@@ -96,7 +96,7 @@ const createDefaultProductFormState = (): ProductFormState => ({
   sku: "",
 });
 
-export interface ReceiptFormState {
+export interface TransactionFormState {
   selectedLocation: string;
   selectedSupplier: string;
   selectedProducts: ProductOptionView[];
@@ -104,7 +104,7 @@ export interface ReceiptFormState {
   memo: string;
 }
 
-const createDefaultReceiptFormState = (): ReceiptFormState => ({
+const createDefaultTransactionFormState = (): TransactionFormState => ({
   selectedLocation: "",
   selectedSupplier: "",
   selectedProducts: [],
@@ -144,13 +144,13 @@ const createDefaultAdjustFormState = (): AdjustFormState => ({
 
 interface FormStateStore {
   productForm: ProductFormState;
-  receiptForms: Record<ReceiptMode, ReceiptFormState>;
+  transactionForms: Record<TransactionMode, TransactionFormState>;
   moveForm: MoveFormState;
   adjustForm: AdjustFormState;
   updateProductForm: (payload: Partial<ProductFormState>) => void;
   resetProductForm: () => void;
-  updateReceiptForm: (mode: ReceiptMode, payload: Partial<ReceiptFormState>) => void;
-  resetReceiptForm: (mode: ReceiptMode) => void;
+  updateTransactionForm: (mode: TransactionMode, payload: Partial<TransactionFormState>) => void;
+  resetTransactionForm: (mode: TransactionMode) => void;
   updateMoveForm: (payload: Partial<MoveFormState>) => void;
   resetMoveForm: () => void;
   updateAdjustForm: (payload: Partial<AdjustFormState>) => void;
@@ -169,9 +169,9 @@ export const useFormStateStore = create<FormStateStore>(set => {
 
   const initialState: FormStateStore = {
     productForm,
-    receiptForms: {
-      in: loadFromStorage(STORAGE_KEYS.RECEIPT_FORM_IN, createDefaultReceiptFormState()),
-      out: loadFromStorage(STORAGE_KEYS.RECEIPT_FORM_OUT, createDefaultReceiptFormState()),
+    transactionForms: {
+      in: loadFromStorage(STORAGE_KEYS.TRANSACTION_FORM_IN, createDefaultTransactionFormState()),
+      out: loadFromStorage(STORAGE_KEYS.TRANSACTION_FORM_OUT, createDefaultTransactionFormState()),
     },
     moveForm: loadFromStorage(STORAGE_KEYS.MOVE_FORM, createDefaultMoveFormState()),
     adjustForm: loadFromStorage(STORAGE_KEYS.ADJUST_FORM, createDefaultAdjustFormState()),
@@ -186,26 +186,26 @@ export const useFormStateStore = create<FormStateStore>(set => {
       localStorage.removeItem(STORAGE_KEYS.PRODUCT_FORM);
       set({ productForm: defaultState });
     },
-    updateReceiptForm: (mode, payload) =>
+    updateTransactionForm: (mode, payload) =>
       set(state => {
-        const newReceiptForm = { ...state.receiptForms[mode], ...payload };
+        const newTransactionForm = { ...state.transactionForms[mode], ...payload };
         const newState = {
-          receiptForms: {
-            ...state.receiptForms,
-            [mode]: newReceiptForm,
+          transactionForms: {
+            ...state.transactionForms,
+            [mode]: newTransactionForm,
           },
         };
-        const storageKey = mode === "in" ? STORAGE_KEYS.RECEIPT_FORM_IN : STORAGE_KEYS.RECEIPT_FORM_OUT;
-        saveToStorage(storageKey, newReceiptForm);
+        const storageKey = mode === "in" ? STORAGE_KEYS.TRANSACTION_FORM_IN : STORAGE_KEYS.TRANSACTION_FORM_OUT;
+        saveToStorage(storageKey, newTransactionForm);
         return newState;
       }),
-    resetReceiptForm: mode => {
-      const defaultState = createDefaultReceiptFormState();
-      const storageKey = mode === "in" ? STORAGE_KEYS.RECEIPT_FORM_IN : STORAGE_KEYS.RECEIPT_FORM_OUT;
+    resetTransactionForm: mode => {
+      const defaultState = createDefaultTransactionFormState();
+      const storageKey = mode === "in" ? STORAGE_KEYS.TRANSACTION_FORM_IN : STORAGE_KEYS.TRANSACTION_FORM_OUT;
       localStorage.removeItem(storageKey);
       set(state => ({
-        receiptForms: {
-          ...state.receiptForms,
+        transactionForms: {
+          ...state.transactionForms,
           [mode]: defaultState,
         },
       }));

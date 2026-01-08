@@ -42,9 +42,9 @@ export interface TransactionItemInput {
 }
 
 /**
- * 입출고 요청 타입
+ * 입출고 요청 타입 (Transaction)
  */
-export interface ReceiptInput {
+export interface TransactionInput {
   type: "in" | "out";
   warehouse_id: string;
   supplier_id?: string;

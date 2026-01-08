@@ -17,9 +17,9 @@ import DatePickerDialog from "./DatePickerDialog";
 import ManageView from "./ManageView";
 import MemoView from "./MemoView";
 import ProductSelectView from "./ProductSelectView";
-import { ReceiptFormFields } from "./ReceiptFormFields";
+import { TransactionFormFields } from "./TransactionFormFields";
 
-export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out"; closeDrawer: () => void }) {
+export default function TransactionForm({ mode, closeDrawer }: { mode: "in" | "out"; closeDrawer: () => void }) {
   const [isWarehouseViewVisible, setIsWarehouseViewVisible] = useState(false);
   const [isSupplierViewVisible, setIsSupplierViewVisible] = useState(false);
   const [isProductViewVisible, setIsProductViewVisible] = useState(false);
@@ -31,10 +31,10 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
   const { products } = useProducts();
   const router = useRouter();
   const user = useUser();
-  const receiptFormState = useFormStateStore(state => state.receiptForms[mode]);
-  const updateReceiptForm = useFormStateStore(state => state.updateReceiptForm);
-  const resetReceiptForm = useFormStateStore(state => state.resetReceiptForm);
-  const { selectedLocation, selectedSupplier, selectedProducts, selectedDate, memo } = receiptFormState;
+  const transactionFormState = useFormStateStore(state => state.transactionForms[mode]);
+  const updateTransactionForm = useFormStateStore(state => state.updateTransactionForm);
+  const resetTransactionForm = useFormStateStore(state => state.resetTransactionForm);
+  const { selectedLocation, selectedSupplier, selectedProducts, selectedDate, memo } = transactionFormState;
 
   // 필수 필드 검증: 위치(입고처/출고처), 거래처, 제품이 모두 선택되어야 활성화 - 메모이제이션
   const isFormValid = useMemo(
@@ -59,26 +59,26 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
 
   const handleWarehouseSelect = useCallback(
     (warehouse: { id: string; name: string }) => {
-      updateReceiptForm(mode, { selectedLocation: warehouse.id });
+      updateTransactionForm(mode, { selectedLocation: warehouse.id });
       setIsWarehouseViewVisible(false);
     },
-    [mode, updateReceiptForm]
+    [mode, updateTransactionForm]
   );
 
   const handleSupplierSelect = useCallback(
     (supplier: { id: string; name: string }) => {
-      updateReceiptForm(mode, { selectedSupplier: supplier.id });
+      updateTransactionForm(mode, { selectedSupplier: supplier.id });
       setIsSupplierViewVisible(false);
     },
-    [mode, updateReceiptForm]
+    [mode, updateTransactionForm]
   );
 
   const handleProductSelect = useCallback(
     (list: ProductOptionView[]) => {
-      updateReceiptForm(mode, { selectedProducts: list });
+      updateTransactionForm(mode, { selectedProducts: list });
       setIsProductViewVisible(false);
     },
-    [mode, updateReceiptForm]
+    [mode, updateTransactionForm]
   );
 
   const handleMemoDone = useCallback(() => {
@@ -87,9 +87,9 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
 
   const handleDateSelect = useCallback(
     (date: Date) => {
-      updateReceiptForm(mode, { selectedDate: date });
+      updateTransactionForm(mode, { selectedDate: date });
     },
-    [mode, updateReceiptForm]
+    [mode, updateTransactionForm]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -99,7 +99,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
     }
     try {
       setIsLoading(true);
-      const response = await fetch("/api/receipts", {
+      const response = await fetch("/api/transactions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -123,7 +123,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
         throw new Error("입고 처리 중 오류가 발생했습니다.");
       }
 
-      resetReceiptForm(mode);
+      resetTransactionForm(mode);
       closeDrawer();
 
       // /inventory로 replace
@@ -142,7 +142,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
     mode,
     user?.id,
     selectedDate,
-    resetReceiptForm,
+    resetTransactionForm,
     closeDrawer,
     router,
   ]);
@@ -151,7 +151,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
     <div className="flex relative flex-col h-full">
       {/* 입고/출고 정보 */}
       <div className="flex-1 p-4">
-        <ReceiptFormFields
+        <TransactionFormFields
           formattedDate={formattedDate}
           selectedWarehouseName={selectedWarehouseName}
           selectedSupplierName={selectedSupplierName}
@@ -236,7 +236,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
       <DrawerView isVisible={isMemoViewVisible}>
         <MemoView
           value={memo}
-          onChange={value => updateReceiptForm(mode, { memo: value })}
+          onChange={value => updateTransactionForm(mode, { memo: value })}
           onBack={() => setIsMemoViewVisible(false)}
           onDone={handleMemoDone}
         />

@@ -11,8 +11,8 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { ChevronRight } from "lucide-react";
 import { useState } from "react";
-import DatePickerDialog from "../receipts/DatePickerDialog";
-import ManageView from "../receipts/ManageView";
+import DatePickerDialog from "../transactions/DatePickerDialog";
+import ManageView from "../transactions/ManageView";
 import DrawerView from "../ui/drawer-view";
 
 interface FilterDrawerProps {
