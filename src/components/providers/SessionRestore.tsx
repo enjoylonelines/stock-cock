@@ -1,7 +1,7 @@
 "use client";
 
-import { createClient } from "@/utils/supabase/client";
 import { clientLogger } from "@/utils/client-logger";
+import { createClient } from "@/utils/supabase/client";
 import { useEffect, useRef } from "react";
 
 const SESSION_RESTORE_KEY = "session-restore-completed";

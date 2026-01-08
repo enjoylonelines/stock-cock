@@ -1,5 +1,5 @@
-import type { Warehouse } from "@/types/database";
 import { supabase } from "@/lib/supabase";
+import type { Warehouse } from "@/types/database";
 import { useCRUD } from "./useCRUD";
 
 export function useWarehouses() {
@@ -26,10 +26,13 @@ export function useWarehouses() {
         .select("id")
         .eq("from_warehouse_id", id);
 
-      const { data: toTransactions, error: toTxSelectError } = await supabase.from("transactions").select("id").eq("to_warehouse_id", id);
+      const { data: toTransactions, error: toTxSelectError } = await supabase
+        .from("transactions")
+        .select("id")
+        .eq("to_warehouse_id", id);
 
       const transactions = [...(fromTransactions || []), ...(toTransactions || [])].filter(
-        (tx, index, self) => self.findIndex((t) => t.id === tx.id) === index
+        (tx, index, self) => self.findIndex(t => t.id === tx.id) === index
       ); // 중복 제거
 
       if (fromTxSelectError || toTxSelectError) {
@@ -39,9 +42,12 @@ export function useWarehouses() {
 
       // 2. transaction_items 삭제 (transactions를 참조하므로 먼저 삭제)
       if (transactions && transactions.length > 0) {
-        const transactionIds = transactions.map((tx) => tx.id);
+        const transactionIds = transactions.map(tx => tx.id);
 
-        const { error: txItemsError } = await supabase.from("transaction_items").delete().in("transaction_id", transactionIds);
+        const { error: txItemsError } = await supabase
+          .from("transaction_items")
+          .delete()
+          .in("transaction_id", transactionIds);
 
         if (txItemsError) {
           throw new Error(`트랜잭션 아이템 삭제 실패: ${txItemsError.message}`);

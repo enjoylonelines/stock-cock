@@ -3,10 +3,10 @@
  * APIError 처리 및 표준화된 응답 생성
  */
 
-import { NextResponse } from "next/server";
+import type { APIErrorResponse, APISuccessResponse } from "@/types/api";
 import { APIError } from "@/utils/api-error";
 import { apiLogger } from "@/utils/logger";
-import type { APIErrorResponse, APISuccessResponse } from "@/types/api";
+import { NextResponse } from "next/server";
 
 /**
  * APIError를 NextResponse로 변환
@@ -77,8 +77,7 @@ export function withAPIHandler<T = unknown>(
         data: result,
       } satisfies APISuccessResponse<T>);
     })
-    .catch((error) => {
+    .catch(error => {
       return handleAPIError(error, endpoint);
     });
 }
-

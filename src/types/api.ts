@@ -108,4 +108,3 @@ export interface PushNotificationInput {
   data?: Record<string, unknown>;
   userIds?: string[];
 }
-

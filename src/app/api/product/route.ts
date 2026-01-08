@@ -1,12 +1,12 @@
 import { supabase } from "@/lib/supabase";
 import { sendPushNotification } from "@/services/push-notification";
+import type { ProductCreateInput } from "@/types/api";
 import type { ProductOption } from "@/types/database";
 import { APIError } from "@/utils/api-error";
 import { handleAPIError } from "@/utils/api-handler";
 import { apiLogger } from "@/utils/logger";
 import { getProductIconUrlByProductId } from "@/utils/product-icon";
 import { type NextRequest, NextResponse } from "next/server";
-import type { ProductCreateInput } from "@/types/api";
 
 export async function POST(req: NextRequest) {
   const endpoint = "/api/product";

@@ -4,8 +4,8 @@
  */
 
 import { sendPushNotification } from "@/services/push-notification";
-import { getProductIconUrl } from "@/utils/product-icon";
 import type { TransactionType } from "@/types/api";
+import { getProductIconUrl } from "@/utils/product-icon";
 
 interface TransactionNotificationParams {
   type: TransactionType;
@@ -19,10 +19,7 @@ interface TransactionNotificationParams {
 /**
  * 트랜잭션 타입에 따른 알림 제목과 본문 반환
  */
-function getNotificationContent(
-  type: TransactionType,
-  itemCount: number
-): { title: string; body: string } {
+function getNotificationContent(type: TransactionType, itemCount: number): { title: string; body: string } {
   switch (type) {
     case "in":
       return {
@@ -62,10 +59,7 @@ function getNotificationTag(type: TransactionType, transactionId: string): strin
 /**
  * 트랜잭션 타입에 따른 알림 데이터 생성
  */
-function getNotificationData(
-  type: TransactionType,
-  transactionId: string
-): Record<string, unknown> {
+function getNotificationData(type: TransactionType, transactionId: string): Record<string, unknown> {
   const baseData = {
     transactionId,
   };
@@ -98,9 +92,7 @@ function getNotificationData(
  * @param params 트랜잭션 알림 파라미터
  * @returns 알림 전송 성공 여부
  */
-export async function sendTransactionNotification(
-  params: TransactionNotificationParams
-): Promise<boolean> {
+export async function sendTransactionNotification(params: TransactionNotificationParams): Promise<boolean> {
   try {
     const { type, transactionId, itemCount, firstOptionId, productId, productImageUrl } = params;
 
@@ -140,4 +132,3 @@ export async function sendTransactionNotification(
     return false;
   }
 }
-

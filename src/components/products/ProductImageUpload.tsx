@@ -24,7 +24,13 @@ export const ProductImageUpload = memo(function ProductImageUpload({
     <div className="flex flex-col items-center pt-6 pb-2">
       <label className="flex overflow-hidden relative justify-center items-center w-24 h-24 bg-gray-100 rounded-md cursor-pointer">
         {localPreviewUrl ? (
-          <Image src={localPreviewUrl} alt="제품 이미지" width={96} height={96} className="object-cover w-full h-full" />
+          <Image
+            src={localPreviewUrl}
+            alt="제품 이미지"
+            width={96}
+            height={96}
+            className="object-cover w-full h-full"
+          />
         ) : (
           <span className="text-sm text-center text-gray-400">
             {user ? (
@@ -54,4 +60,3 @@ export const ProductImageUpload = memo(function ProductImageUpload({
     </div>
   );
 });
-

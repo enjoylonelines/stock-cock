@@ -1,8 +1,8 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import type * as React from "react";
-import { cn } from "@/lib/utils";
 
 export interface TabProps extends React.ComponentProps<typeof TabsPrimitive.Root> {
   /**
@@ -47,7 +47,15 @@ export interface TabProps extends React.ComponentProps<typeof TabsPrimitive.Root
  * />
  * ```
  */
-export default function Tab({ items = [], defaultValue, value, onValueChange, size = "sm", className, ...props }: TabProps) {
+export default function Tab({
+  items = [],
+  defaultValue,
+  value,
+  onValueChange,
+  size = "sm",
+  className,
+  ...props
+}: TabProps) {
   return (
     <TabsPrimitive.Root
       defaultValue={defaultValue}
@@ -58,9 +66,12 @@ export default function Tab({ items = [], defaultValue, value, onValueChange, si
     >
       <TabsPrimitive.List
         data-slot="tab2-list"
-        className={cn("flex w-full items-start justify-start border-0 bg-transparent p-0", size === "md" && "gap-[15px]")}
+        className={cn(
+          "flex w-full items-start justify-start border-0 bg-transparent p-0",
+          size === "md" && "gap-[15px]"
+        )}
       >
-        {items?.map((item) => (
+        {items?.map(item => (
           <TabsPrimitive.Trigger
             key={item.value}
             value={item.value}
@@ -81,8 +92,13 @@ export default function Tab({ items = [], defaultValue, value, onValueChange, si
         ))}
       </TabsPrimitive.List>
 
-      {items?.map((item) => (
-        <TabsPrimitive.Content key={item.value} value={item.value} data-slot="tab2-content" className="flex flex-col w-full outline-none">
+      {items?.map(item => (
+        <TabsPrimitive.Content
+          key={item.value}
+          value={item.value}
+          data-slot="tab2-content"
+          className="flex flex-col w-full outline-none"
+        >
           {item.content}
         </TabsPrimitive.Content>
       ))}

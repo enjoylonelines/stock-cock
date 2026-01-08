@@ -6,19 +6,18 @@ import { useProducts } from "@/hooks/useProducts";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useFormStateStore } from "@/store/formStateStore";
-import { clientLogger } from "@/utils/client-logger";
 import type { ProductOptionView } from "@/types/product_option_view";
+import { clientLogger } from "@/utils/client-logger";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useCallback, useMemo, memo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import DrawerView from "../ui/drawer-view";
 import DatePickerDialog from "./DatePickerDialog";
 import ManageView from "./ManageView";
 import MemoView from "./MemoView";
-import ProductListItem from "./ProductListItem";
 import ProductSelectView from "./ProductSelectView";
+import { ReceiptFormFields } from "./ReceiptFormFields";
 
 export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out"; closeDrawer: () => void }) {
   const [isWarehouseViewVisible, setIsWarehouseViewVisible] = useState(false);
@@ -56,33 +55,42 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
   );
 
   // 날짜 포맷팅 - 메모이제이션
-  const formattedDate = useMemo(
-    () => format(selectedDate, "yyyy년 MM월 dd일", { locale: ko }),
-    [selectedDate]
+  const formattedDate = useMemo(() => format(selectedDate, "yyyy년 MM월 dd일", { locale: ko }), [selectedDate]);
+
+  const handleWarehouseSelect = useCallback(
+    (warehouse: { id: string; name: string }) => {
+      updateReceiptForm(mode, { selectedLocation: warehouse.id });
+      setIsWarehouseViewVisible(false);
+    },
+    [mode, updateReceiptForm]
   );
 
-  const handleWarehouseSelect = useCallback((warehouse: { id: string; name: string }) => {
-    updateReceiptForm(mode, { selectedLocation: warehouse.id });
-    setIsWarehouseViewVisible(false);
-  }, [mode, updateReceiptForm]);
+  const handleSupplierSelect = useCallback(
+    (supplier: { id: string; name: string }) => {
+      updateReceiptForm(mode, { selectedSupplier: supplier.id });
+      setIsSupplierViewVisible(false);
+    },
+    [mode, updateReceiptForm]
+  );
 
-  const handleSupplierSelect = useCallback((supplier: { id: string; name: string }) => {
-    updateReceiptForm(mode, { selectedSupplier: supplier.id });
-    setIsSupplierViewVisible(false);
-  }, [mode, updateReceiptForm]);
-
-  const handleProductSelect = useCallback((list: ProductOptionView[]) => {
-    updateReceiptForm(mode, { selectedProducts: list });
-    setIsProductViewVisible(false);
-  }, [mode, updateReceiptForm]);
+  const handleProductSelect = useCallback(
+    (list: ProductOptionView[]) => {
+      updateReceiptForm(mode, { selectedProducts: list });
+      setIsProductViewVisible(false);
+    },
+    [mode, updateReceiptForm]
+  );
 
   const handleMemoDone = useCallback(() => {
     setIsMemoViewVisible(false);
   }, []);
 
-  const handleDateSelect = useCallback((date: Date) => {
-    updateReceiptForm(mode, { selectedDate: date });
-  }, [mode, updateReceiptForm]);
+  const handleDateSelect = useCallback(
+    (date: Date) => {
+      updateReceiptForm(mode, { selectedDate: date });
+    },
+    [mode, updateReceiptForm]
+  );
 
   const handleSubmit = useCallback(async () => {
     if (!selectedLocation || !selectedSupplier || selectedProducts.length === 0) {
@@ -143,86 +151,19 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
     <div className="flex relative flex-col h-full">
       {/* 입고/출고 정보 */}
       <div className="flex-1 p-4">
-        <div className="space-y-2">
-          <Button
-            onClick={() => setIsDatePickerVisible(true)}
-            variant="ghost"
-            className="flex justify-between items-center py-2 w-full"
-            size="none"
-          >
-            <div className="flex justify-between w-full">
-              <h3 className="font-medium">날짜</h3>
-              <p className="text-sm text-gray-500">{formattedDate}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </Button>
-
-          <Button
-            onClick={() => setIsWarehouseViewVisible(true)}
-            variant="ghost"
-            className="flex justify-between items-center py-2 w-full"
-            size="none"
-          >
-            <div className="flex justify-between w-full">
-              <h3 className="font-medium">위치</h3>
-              <p className="text-sm text-gray-500">{selectedWarehouseName}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </Button>
-
-          <Button
-            onClick={() => setIsSupplierViewVisible(true)}
-            variant="ghost"
-            className="flex justify-between items-center py-2 w-full"
-            size="none"
-          >
-            <div className="flex justify-between w-full">
-              <h3 className="font-medium">거래처</h3>
-              <p className="text-sm text-gray-500">{selectedSupplierName}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </Button>
-
-          <Button
-            onClick={() => setIsProductViewVisible(true)}
-            variant="ghost"
-            className="flex justify-between items-center py-2 w-full"
-            size="none"
-          >
-            <div className="flex justify-between w-full">
-              <h3 className="font-medium">제품</h3>
-              <p className="text-sm text-gray-500">{selectedProducts.length}개 품목</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </Button>
-
-          {/* 선택된 제품 리스트 */}
-          {selectedProducts.length > 0 && (
-            <div className="mt-2 space-y-2">
-              {selectedProducts.map(product => (
-                <ProductListItem
-                  key={product.product_option_id}
-                  product={product}
-                  quantity={product.quantity}
-                  selected={false}
-                />
-              ))}
-            </div>
-          )}
-
-          <Button
-            onClick={() => setIsMemoViewVisible(true)}
-            variant="ghost"
-            className="flex justify-between items-center py-2 w-full"
-            size="none"
-          >
-            <div className="flex justify-between w-full">
-              <h3 className="font-medium">메모</h3>
-              <p className="text-sm text-gray-500">{memo || "작성"}</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </Button>
-        </div>
+        <ReceiptFormFields
+          formattedDate={formattedDate}
+          selectedWarehouseName={selectedWarehouseName}
+          selectedSupplierName={selectedSupplierName}
+          selectedProducts={selectedProducts}
+          memo={memo}
+          mode={mode}
+          onDateClick={() => setIsDatePickerVisible(true)}
+          onWarehouseClick={() => setIsWarehouseViewVisible(true)}
+          onSupplierClick={() => setIsSupplierViewVisible(true)}
+          onProductClick={() => setIsProductViewVisible(true)}
+          onMemoClick={() => setIsMemoViewVisible(true)}
+        />
       </div>
 
       {/* 하단 버튼 */}

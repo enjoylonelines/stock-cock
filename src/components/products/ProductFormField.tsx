@@ -23,12 +23,7 @@ export const ProductFormField = memo(function ProductFormField({
   suffix,
 }: ProductFormFieldProps) {
   return (
-    <Button
-      onClick={onClick}
-      variant="ghost"
-      className="flex justify-between items-center py-2 w-full"
-      size="none"
-    >
+    <Button onClick={onClick} variant="ghost" className="flex justify-between items-center py-2 w-full" size="none">
       <div className="flex justify-between w-full">
         <h3 className="font-medium">{label}</h3>
         <p className="text-sm text-gray-500">
@@ -40,4 +35,3 @@ export const ProductFormField = memo(function ProductFormField({
     </Button>
   );
 });
-
