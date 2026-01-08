@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     }
 
     if (!subscriptions || subscriptions.length === 0) {
-      apiLogger.info(`[API] ${endpoint} 전송할 구독이 없습니다`);
+      apiLogger.requestSuccess(endpoint, { message: "전송할 구독이 없음", total: 0 });
       return NextResponse.json({
         success: true,
         message: "전송할 구독이 없습니다",
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
         await webpush.sendNotification(pushSubscription, payload);
         return { success: true, userId: subscription.user_id };
       } catch (error) {
-        apiLogger.error(`푸시 알림 전송 실패 (${subscription.user_id})`, error);
+        apiLogger.requestError(endpoint, error as Error, { userId: subscription.user_id });
         return { success: false, userId: subscription.user_id, error };
       }
     });

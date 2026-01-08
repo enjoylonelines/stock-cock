@@ -2,6 +2,7 @@ import { APIError } from "@/utils/api-error";
 import { handleAPIError } from "@/utils/api-handler";
 import { apiLogger } from "@/utils/logger";
 import { createClient } from "@/utils/supabase/server";
+import { NextResponse } from "next/server";
 
 export async function GET() {
   const endpoint = "/api/inventory-history";

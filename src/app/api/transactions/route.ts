@@ -1,4 +1,4 @@
-import type { ReceiptInput } from "@/types/api";
+import type { TransactionInput } from "@/types/api";
 import { APIError } from "@/utils/api-error";
 import { handleAPIError } from "@/utils/api-handler";
 import { apiLogger } from "@/utils/logger";
@@ -7,11 +7,11 @@ import { sendTransactionNotification } from "@/utils/transaction-notification";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const endpoint = "/api/receipts";
+  const endpoint = "/api/transactions";
   const supabase = await createClient();
 
   try {
-    const body: ReceiptInput = await request.json();
+    const body: TransactionInput = await request.json();
     const { type, warehouse_id, supplier_id, memo, created_at, items, user_id } = body;
 
     apiLogger.requestStart(endpoint, body);

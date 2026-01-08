@@ -7,7 +7,7 @@ interface PushNotificationData {
   transactionId?: string;
   productId?: string;
   productName?: string;
-  receiptType?: string;
+  transactionType?: string;
 }
 
 interface SendPushNotificationParams {

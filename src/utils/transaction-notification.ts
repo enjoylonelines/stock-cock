@@ -5,6 +5,7 @@
 
 import { sendPushNotification } from "@/services/push-notification";
 import type { TransactionType } from "@/types/api";
+import { apiLogger } from "@/utils/logger";
 import { getProductIconUrl } from "@/utils/product-icon";
 
 interface TransactionNotificationParams {
@@ -69,8 +70,8 @@ function getNotificationData(type: TransactionType, transactionId: string): Reco
     case "out":
       return {
         ...baseData,
-        type: "receipt",
-        receiptType: type,
+        type: "transaction",
+        transactionType: type,
       };
     case "adjust":
       return {
@@ -119,16 +120,21 @@ export async function sendTransactionNotification(params: TransactionNotificatio
     // else if (productId) { ... }
 
     // 알림 전송
+    const notificationData = getNotificationData(type, transactionId);
     return await sendPushNotification({
       title,
       body,
       icon: iconUrl,
       tag: getNotificationTag(type, transactionId),
-      data: getNotificationData(type, transactionId),
+      data: {
+        type: notificationData.type as string,
+        transactionId: notificationData.transactionId as string | undefined,
+        transactionType: notificationData.transactionType as string | undefined,
+      },
     });
   } catch (error) {
     // 알림 실패는 전체 프로세스를 중단시키지 않음
-    console.error("[Transaction Notification] 알림 전송 실패:", error);
+    apiLogger.requestError("transaction-notification", error as Error, { params });
     return false;
   }
 }
