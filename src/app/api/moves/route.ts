@@ -5,6 +5,7 @@ import { APIError } from "@/utils/api-error";
 import { handleAPIError } from "@/utils/api-handler";
 import { apiLogger } from "@/utils/logger";
 import type { MoveInput } from "@/types/api";
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const endpoint = "/api/moves";

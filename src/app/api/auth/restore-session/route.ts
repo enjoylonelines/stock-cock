@@ -49,7 +49,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, user: data.user });
   } catch (error) {
-    console.error("세션 복원 오류:", error);
+    // API 라우트는 이미 handleAPIError로 처리되지만, 여기서는 직접 처리
     return NextResponse.json({ error: "세션 복원 실패" }, { status: 500 });
   }
 }

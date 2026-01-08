@@ -10,9 +10,9 @@ import { endOfDay, startOfDay } from "date-fns";
 import { ArrowDownToLine, ArrowLeftRight, ArrowUpDown, ArrowUpToLine } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, memo, useCallback } from "react";
 
-export default function InventoryList({ grouped }: { grouped: GroupedTransactions[] }) {
+const InventoryList = memo(function InventoryList({ grouped }: { grouped: GroupedTransactions[] }) {
   const router = useRouter();
   const { filters } = useInventoryFilterDrawerStore();
   const { warehouses } = useWarehouses();
@@ -22,7 +22,7 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
 
   const selectedLocationName = useMemo(() => {
     if (!filters.location) return null;
-    const loc = locations.find(l => l.id === filters.location);
+    const loc = warehouses.find(l => l.id === filters.location);
     return loc?.name ?? null;
   }, [filters.location, warehouses]);
 
@@ -106,7 +106,7 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
     selectedMemberName,
   ]);
 
-  const getTypeIcon = (type: string) => {
+  const getTypeIcon = useCallback((type: string) => {
     switch (type) {
       case "입고":
         return <ArrowDownToLine className="w-4 h-4 text-blue-500" />;
@@ -117,13 +117,20 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
       default:
         return <ArrowUpDown className="w-4 h-4 text-green-500" />;
     }
-  };
+  }, []);
 
-  const getQuantityColor = (quantity: number) => {
+  const getQuantityColor = useCallback((quantity: number) => {
     if (quantity > 0) return "text-blue-500";
     if (quantity < 0) return "text-red-500";
     return "text-gray-900";
-  };
+  }, []);
+
+  const handleTransactionClick = useCallback(
+    (transactionId: string) => {
+      router.push(`/inventory/${transactionId}`);
+    },
+    [router]
+  );
 
   return (
     <div className="overflow-auto space-y-6 custom-scrollbar">
@@ -135,11 +142,11 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
               <div
                 key={transaction.transaction_id + transaction.product_name}
                 className="flex gap-4 items-center p-4 bg-white rounded-lg shadow-sm cursor-pointer"
-                onClick={() => router.push(`/inventory/${transaction.transaction_id}`)}
+                onClick={() => handleTransactionClick(transaction.transaction_id)}
                 onKeyDown={e => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    router.push(`/inventory/${transaction.transaction_id}`);
+                    handleTransactionClick(transaction.transaction_id);
                   }
                 }}
                 role="button"
@@ -196,4 +203,8 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
       ))}
     </div>
   );
-}
+});
+
+InventoryList.displayName = "InventoryList";
+
+export default InventoryList;

@@ -1,6 +1,7 @@
 "use client";
 import { Switch } from "@/components/ui/switch";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
+import { clientLogger } from "@/utils/client-logger";
 import { Bell, BellOff, CheckCircle, RefreshCw, XCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -64,9 +65,9 @@ export default function PushNotificationSettings() {
   }, [isSupported, permission, isSubscribed, loading, subscribe, isManuallyDisabled]);
 
   const handleToggle = async () => {
-    console.log("토글 클릭:", { isSubscribed, loading, permission });
+    clientLogger.debug("토글 클릭", { isSubscribed, loading, permission });
     if (isSubscribed) {
-      console.log("구독 해제 시도...");
+      clientLogger.debug("구독 해제 시도");
       await unsubscribe();
       // 사용자가 명시적으로 구독을 해제했음을 표시
       if (typeof window !== "undefined") {
@@ -74,7 +75,7 @@ export default function PushNotificationSettings() {
         setIsManuallyDisabled(true);
       }
     } else {
-      console.log("구독 시도...");
+      clientLogger.debug("구독 시도");
       // 사용자가 다시 구독을 켰으므로 플래그 제거
       if (typeof window !== "undefined") {
         localStorage.removeItem(MANUALLY_DISABLED_KEY);
@@ -123,16 +124,6 @@ export default function PushNotificationSettings() {
   };
 
   const permissionStatus = getPermissionStatus();
-
-  // 디버깅 정보
-  console.log("PushNotificationSettings 상태:", {
-    isSupported,
-    permission,
-    isSubscribed,
-    isEnabled,
-    loading,
-    disabled: loading || permission === "denied",
-  });
 
   return (
     <div className="space-y-4">

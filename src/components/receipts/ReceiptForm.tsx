@@ -6,12 +6,13 @@ import { useProducts } from "@/hooks/useProducts";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useFormStateStore } from "@/store/formStateStore";
+import { clientLogger } from "@/utils/client-logger";
 import type { ProductOptionView } from "@/types/product_option_view";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useCallback, useMemo, memo } from "react";
 import DrawerView from "../ui/drawer-view";
 import DatePickerDialog from "./DatePickerDialog";
 import ManageView from "./ManageView";
@@ -36,33 +37,54 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
   const resetReceiptForm = useFormStateStore(state => state.resetReceiptForm);
   const { selectedLocation, selectedSupplier, selectedProducts, selectedDate, memo } = receiptFormState;
 
-  // 필수 필드 검증: 위치(입고처/출고처), 거래처, 제품이 모두 선택되어야 활성화
-  const isFormValid = selectedLocation && selectedSupplier && selectedProducts.length > 0;
+  // 필수 필드 검증: 위치(입고처/출고처), 거래처, 제품이 모두 선택되어야 활성화 - 메모이제이션
+  const isFormValid = useMemo(
+    () => selectedLocation && selectedSupplier && selectedProducts.length > 0,
+    [selectedLocation, selectedSupplier, selectedProducts.length]
+  );
 
-  const handleWarehouseSelect = (warehouse: { id: string; name: string }) => {
+  // 선택된 창고 이름 - 메모이제이션
+  const selectedWarehouseName = useMemo(
+    () => warehouses.find(loc => loc.id === selectedLocation)?.name || "선택",
+    [warehouses, selectedLocation]
+  );
+
+  // 선택된 거래처 이름 - 메모이제이션
+  const selectedSupplierName = useMemo(
+    () => suppliers.find(sup => sup.id === selectedSupplier)?.name || "선택",
+    [suppliers, selectedSupplier]
+  );
+
+  // 날짜 포맷팅 - 메모이제이션
+  const formattedDate = useMemo(
+    () => format(selectedDate, "yyyy년 MM월 dd일", { locale: ko }),
+    [selectedDate]
+  );
+
+  const handleWarehouseSelect = useCallback((warehouse: { id: string; name: string }) => {
     updateReceiptForm(mode, { selectedLocation: warehouse.id });
     setIsWarehouseViewVisible(false);
-  };
+  }, [mode, updateReceiptForm]);
 
-  const handleSupplierSelect = (supplier: { id: string; name: string }) => {
+  const handleSupplierSelect = useCallback((supplier: { id: string; name: string }) => {
     updateReceiptForm(mode, { selectedSupplier: supplier.id });
     setIsSupplierViewVisible(false);
-  };
+  }, [mode, updateReceiptForm]);
 
-  const handleProductSelect = (list: ProductOptionView[]) => {
+  const handleProductSelect = useCallback((list: ProductOptionView[]) => {
     updateReceiptForm(mode, { selectedProducts: list });
     setIsProductViewVisible(false);
-  };
+  }, [mode, updateReceiptForm]);
 
-  const handleMemoDone = () => {
+  const handleMemoDone = useCallback(() => {
     setIsMemoViewVisible(false);
-  };
+  }, []);
 
-  const handleDateSelect = (date: Date) => {
+  const handleDateSelect = useCallback((date: Date) => {
     updateReceiptForm(mode, { selectedDate: date });
-  };
+  }, [mode, updateReceiptForm]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!selectedLocation || !selectedSupplier || selectedProducts.length === 0) {
       alert(`${mode === "in" ? "입고처" : "출고처"}, 거래처, 제품을 모두 선택해주세요.`);
       return;
@@ -99,12 +121,23 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
       // /inventory로 replace
       router.replace("/inventory");
     } catch (error) {
-      console.error("Error submitting receipt:", error);
+      clientLogger.error("입고/출고 처리 실패", error);
       alert("처리 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [
+    selectedLocation,
+    selectedSupplier,
+    selectedProducts,
+    memo,
+    mode,
+    user?.id,
+    selectedDate,
+    resetReceiptForm,
+    closeDrawer,
+    router,
+  ]);
 
   return (
     <div className="flex relative flex-col h-full">
@@ -119,7 +152,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">날짜</h3>
-              <p className="text-sm text-gray-500">{format(selectedDate, "yyyy년 MM월 dd일", { locale: ko })}</p>
+              <p className="text-sm text-gray-500">{formattedDate}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -132,9 +165,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">위치</h3>
-              <p className="text-sm text-gray-500">
-                {locations.find(loc => loc.id === selectedLocation)?.name || "선택"}
-              </p>
+              <p className="text-sm text-gray-500">{selectedWarehouseName}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -147,9 +178,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">거래처</h3>
-              <p className="text-sm text-gray-500">
-                {suppliers.find(sup => sup.id === selectedSupplier)?.name || "선택"}
-              </p>
+              <p className="text-sm text-gray-500">{selectedSupplierName}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
