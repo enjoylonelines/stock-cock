@@ -3,7 +3,7 @@ import type { GroupedTransactions } from "@/hooks/useInventoryHistory";
 import { useProducts } from "@/hooks/useProducts";
 import { useProfiles } from "@/hooks/useProfiles";
 import { useSuppliers } from "@/hooks/useSuppliers";
-import { useLocations } from "@/hooks/useWarehouses";
+import { useWarehouses } from "@/hooks/useWarehouses";
 import { useInventoryFilterDrawerStore } from "@/store/InventoryFilterDrawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { endOfDay, startOfDay } from "date-fns";
@@ -15,7 +15,7 @@ import { useMemo } from "react";
 export default function InventoryList({ grouped }: { grouped: GroupedTransactions[] }) {
   const router = useRouter();
   const { filters } = useInventoryFilterDrawerStore();
-  const { locations } = useLocations();
+  const { warehouses } = useWarehouses();
   const { suppliers } = useSuppliers();
   const { products } = useProducts();
   const { profiles } = useProfiles();
@@ -24,7 +24,7 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
     if (!filters.location) return null;
     const loc = locations.find(l => l.id === filters.location);
     return loc?.name ?? null;
-  }, [filters.location, locations]);
+  }, [filters.location, warehouses]);
 
   const selectedSupplierName = useMemo(() => {
     if (!filters.supplier) return null;

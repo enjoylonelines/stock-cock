@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
 import { useInventories } from "@/hooks/useInventories";
 import { useProducts } from "@/hooks/useProducts";
-import { useLocations } from "@/hooks/useWarehouses";
+import { useWarehouses } from "@/hooks/useWarehouses";
 import { useFormStateStore } from "@/store/formStateStore";
 import type { ProductOptionView } from "@/types/product_option_view";
 import { format } from "date-fns";
@@ -26,7 +26,7 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
   const [isMemoViewVisible, setIsMemoViewVisible] = useState(false);
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { locations, addLocation, editLocation, deleteLocation } = useLocations();
+  const { warehouses, addWarehouse, editWarehouse, deleteWarehouse } = useWarehouses();
   const { products } = useProducts();
   const { inventories } = useInventories();
   const router = useRouter();
@@ -148,7 +148,7 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">From.</h3>
-              <p className="text-sm text-gray-500">{locations.find(loc => loc.id === fromLocation)?.name || "선택"}</p>
+              <p className="text-sm text-gray-500">{warehouses.find(loc => loc.id === fromLocation)?.name || "선택"}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -161,7 +161,7 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">To.</h3>
-              <p className="text-sm text-gray-500">{locations.find(loc => loc.id === toLocation)?.name || "선택"}</p>
+              <p className="text-sm text-gray-500">{warehouses.find(loc => loc.id === toLocation)?.name || "선택"}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -245,10 +245,10 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
           onBack={() => setIsFromLocationViewVisible(false)}
           onSelect={handleFromLocationSelect}
           title="출발지 선택"
-          items={locations.filter(loc => loc.id !== toLocation)}
-          onAdd={addLocation}
-          onEdit={editLocation}
-          onDelete={deleteLocation}
+          items={warehouses.filter(loc => loc.id !== toLocation)}
+          onAdd={addWarehouse}
+          onEdit={editWarehouse}
+          onDelete={deleteWarehouse}
         />
       </DrawerView>
 
@@ -258,10 +258,10 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
           onBack={() => setIsToLocationViewVisible(false)}
           onSelect={handleToLocationSelect}
           title="도착지 선택"
-          items={locations.filter(loc => loc.id !== fromLocation)}
-          onAdd={addLocation}
-          onEdit={editLocation}
-          onDelete={deleteLocation}
+          items={warehouses.filter(loc => loc.id !== fromLocation)}
+          onAdd={addWarehouse}
+          onEdit={editWarehouse}
+          onDelete={deleteWarehouse}
         />
       </DrawerView>
 

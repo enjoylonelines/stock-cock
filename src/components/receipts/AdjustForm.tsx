@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
 import { useProducts } from "@/hooks/useProducts";
-import { useLocations } from "@/hooks/useWarehouses";
+import { useWarehouses } from "@/hooks/useWarehouses";
 import { useFormStateStore } from "@/store/formStateStore";
 import type { ProductOptionView } from "@/types/product_option_view";
 import { format } from "date-fns";
@@ -24,7 +24,7 @@ export default function AdjustForm({ closeDrawer }: { closeDrawer: () => void })
   const [isMemoViewVisible, setIsMemoViewVisible] = useState(false);
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { locations, addLocation, editLocation, deleteLocation } = useLocations();
+  const { warehouses, addWarehouse, editWarehouse, deleteWarehouse } = useWarehouses();
   const { products } = useProducts();
   const router = useRouter();
   const user = useUser();
@@ -121,7 +121,7 @@ export default function AdjustForm({ closeDrawer }: { closeDrawer: () => void })
             <div className="flex justify-between w-full">
               <h3 className="font-medium">위치</h3>
               <p className="text-sm text-gray-500">
-                {locations.find(loc => loc.id === selectedLocation)?.name || "선택"}
+                {warehouses.find(loc => loc.id === selectedLocation)?.name || "선택"}
               </p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -197,10 +197,10 @@ export default function AdjustForm({ closeDrawer }: { closeDrawer: () => void })
           onBack={() => setIsLocationViewVisible(false)}
           onSelect={handleLocationSelect}
           title="위치 선택"
-          items={locations}
-          onAdd={addLocation}
-          onEdit={editLocation}
-          onDelete={deleteLocation}
+          items={warehouses}
+          onAdd={addWarehouse}
+          onEdit={editWarehouse}
+          onDelete={deleteWarehouse}
         />
       </DrawerView>
 
