@@ -96,10 +96,7 @@ export async function POST(request: Request) {
       const newQty = (inventory?.quantity ?? 0) + signedQty;
 
       if (inventory) {
-        const { error: updateError } = await supabase
-          .from("inventory")
-          .update({ quantity: newQty })
-          .eq("id", inventory.id);
+        const { error: updateError } = await supabase.from("inventory").update({ quantity: newQty }).eq("id", inventory.id);
 
         if (updateError) {
           console.error("[INVENTORY UPDATE ERROR]", updateError);
@@ -110,7 +107,7 @@ export async function POST(request: Request) {
           {
             product_option_id: item.option_id,
             warehouse_id,
-            quantity: item.quantity,
+            quantity: newQty,
           },
         ]);
 
