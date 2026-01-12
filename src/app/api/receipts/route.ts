@@ -110,7 +110,7 @@ export async function POST(request: Request) {
           {
             product_option_id: item.option_id,
             warehouse_id,
-            quantity: item.quantity,
+            quantity: newQty,
           },
         ]);
 
