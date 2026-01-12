@@ -142,7 +142,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-2xl font-semibold text-blue-600">{formatNumber(product.quantity)}개</div>
+                        <div className="text-2xl font-semibold text-blue-600">{formatNumber(product.quantity)}봉</div>
                         {boxSummary && <p className="mt-1 text-xs text-gray-500">{boxSummary}</p>}
                       </div>
                     </div>
