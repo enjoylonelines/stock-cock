@@ -1,8 +1,8 @@
 "use client";
 
-import Tab from "@/components/products/Tab";
 import ProductList from "@/components/products/ProductList";
 import ProductListSkeleton from "@/components/products/ProductListSkeleton";
+import Tab from "@/components/products/Tab";
 import { Input } from "@/components/ui/input";
 import { useProducts } from "@/hooks/useProducts";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
@@ -34,7 +34,7 @@ export default function ProductsPage() {
 
   // 탭별 제품 필터링
   const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
+    return products.filter(product => {
       if (selectedTab === "all") {
         return true;
       }
@@ -71,7 +71,7 @@ export default function ProductsPage() {
           placeholder="제품 이름, 바코드, 속성 검색"
           className="pl-9 h-12 bg-white"
           value={searchInput}
-          onChange={(e) => handleSearchChange(e.target.value)}
+          onChange={e => handleSearchChange(e.target.value)}
         />
       </div>
 
@@ -80,7 +80,7 @@ export default function ProductsPage() {
         items={tabItems}
         defaultValue="company"
         value={selectedTab}
-        onValueChange={(value) => setSelectedTab(value as ProductType)}
+        onValueChange={value => setSelectedTab(value as ProductType)}
         size="md"
       />
 

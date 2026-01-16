@@ -78,7 +78,7 @@ const ManageView = <T extends { id: string; name: string }>({
                 onEdit={() => handleEdit(item.id)}
                 onDelete={async () => {
                   if (!onDelete) return;
-                  
+
                   // 입고처 삭제 시 경고 팝업 (title이 "입고처 관리"인 경우)
                   if (title.includes("입고처") || title.includes("위치")) {
                     const confirmed = window.confirm(

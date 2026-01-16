@@ -2,6 +2,7 @@
 import { formatNumber, formatWeightDisplay } from "@/lib/utils";
 import type { ProductOptionView } from "@/types/product_option_view";
 import Image from "next/image";
+import { memo } from "react";
 
 interface ProductListItemProps {
   product: ProductOptionView;
@@ -11,7 +12,13 @@ interface ProductListItemProps {
   currentStock?: number; // 조정 모드에서 현재 재고 표시용
 }
 
-export default function ProductListItem({ product, quantity, selected, onClick, currentStock }: ProductListItemProps) {
+export const ProductListItem = memo(function ProductListItem({
+  product,
+  quantity,
+  selected,
+  onClick,
+  currentStock,
+}: ProductListItemProps) {
   const hasImage = product.image_url && product.image_url.trim() !== "";
 
   return (
@@ -81,4 +88,6 @@ export default function ProductListItem({ product, quantity, selected, onClick, 
       </div>
     </button>
   );
-}
+});
+
+export default ProductListItem;

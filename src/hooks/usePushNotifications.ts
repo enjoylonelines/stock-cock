@@ -1,6 +1,7 @@
 "use client";
 import { useUser } from "@/contexts/UserContext";
 import { supabase } from "@/lib/supabase";
+import { clientLogger } from "@/utils/client-logger";
 import { useCallback, useEffect, useState } from "react";
 
 export function usePushNotifications() {
@@ -36,12 +37,12 @@ export function usePushNotifications() {
         try {
           await saveSubscriptionToServer(existingSubscription);
         } catch (saveError) {
-          console.error("구독 정보 저장 실패:", saveError);
+          clientLogger.error("구독 정보 저장 실패", saveError);
           // 저장 실패해도 구독 정보는 유지
         }
       }
     } catch (error) {
-      console.error("구독 정보 가져오기 오류:", error);
+      clientLogger.error("구독 정보 가져오기 오류", error);
     } finally {
       setLoading(false);
     }
@@ -163,13 +164,11 @@ export function usePushNotifications() {
         const auth = arrayBufferToBase64Url(subscription.getKey("auth"));
         const deviceInfo = getDeviceInfo();
 
-        console.log("구독 정보 저장 시도:", {
+        clientLogger.debug("구독 정보 저장 시도", {
           userId: user.id,
           endpoint: subscription.endpoint,
           deviceId: deviceInfo.device_id,
           deviceName: deviceInfo.device_name,
-          p256dh: p256dh ? "있음" : "없음",
-          auth: auth ? "있음" : "없음",
         });
 
         // 먼저 기존 구독 확인 (같은 디바이스의 다른 endpoint가 있을 수 있음)
@@ -192,7 +191,7 @@ export function usePushNotifications() {
               .eq("user_id", user.id)
               .eq("device_id", deviceInfo.device_id)
               .in("endpoint", oldEndpoints);
-            console.log(`기존 구독 ${oldEndpoints.length}개 삭제 (같은 디바이스)`);
+            clientLogger.debug(`기존 구독 ${oldEndpoints.length}개 삭제 (같은 디바이스)`);
           }
         }
 
@@ -216,7 +215,7 @@ export function usePushNotifications() {
         );
 
         if (error) {
-          console.error("구독 정보 저장 오류 상세:", {
+          clientLogger.error("구독 정보 저장 오류", error, {
             code: error.code,
             message: error.message,
             details: error.details,
@@ -229,16 +228,16 @@ export function usePushNotifications() {
             (error as { code?: string; hint?: string; message?: string }).hint?.includes("duplicate key") ||
             (error as { code?: string; hint?: string; message?: string }).message?.includes("duplicate")
           ) {
-            console.warn("구독 정보 중복, 무시합니다.");
+            clientLogger.debug("구독 정보 중복, 무시합니다.");
             return;
           }
-          console.error("구독 정보 저장 실패:", error);
+          clientLogger.error("구독 정보 저장 실패", error);
           return;
         }
 
-        console.log("구독 정보 저장 성공 (디바이스 정보 포함)");
+        clientLogger.debug("구독 정보 저장 성공 (디바이스 정보 포함)");
       } catch (error) {
-        console.error("구독 정보 저장 중 오류:", error);
+        clientLogger.error("구독 정보 저장 중 오류", error);
         // 오류를 throw하지 않고 로그만 출력
       }
     },
@@ -254,7 +253,7 @@ export function usePushNotifications() {
       setPermission(permission);
       return permission === "granted";
     } catch (error) {
-      console.error("권한 요청 오류:", error);
+      clientLogger.error("권한 요청 오류", error);
       return false;
     }
   };
@@ -262,7 +261,7 @@ export function usePushNotifications() {
   // 푸시 구독 생성 (Service Worker 방식)
   const subscribe = async (): Promise<boolean> => {
     if (!isSupported || !user?.id) {
-      console.log("구독 조건 불만족:", { isSupported, userId: user?.id });
+      clientLogger.debug("구독 조건 불만족", { isSupported, userId: user?.id });
       return false;
     }
 
@@ -271,50 +270,49 @@ export function usePushNotifications() {
       // 권한 확인 (항상 최신 상태 확인)
       const currentPermission = typeof window !== "undefined" ? Notification.permission : permission;
       if (currentPermission !== "granted") {
-        console.log("권한 요청 시작...");
+        clientLogger.debug("권한 요청 시작");
         const granted = await requestPermission();
         if (!granted) {
-          console.log("권한 거부됨");
+          clientLogger.debug("권한 거부됨");
           setLoading(false);
           return false;
         }
-        console.log("권한 허용됨");
+        clientLogger.debug("권한 허용됨");
       }
 
       const registration = await navigator.serviceWorker.ready;
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
       if (!vapidPublicKey) {
-        console.error("VAPID 공개키가 설정되지 않음");
+        clientLogger.error("VAPID 공개키가 설정되지 않음");
         setLoading(false);
         return false;
       }
 
-      console.log("VAPID 공개키 확인됨:", `${vapidPublicKey.substring(0, 20)}...`);
+      clientLogger.debug("VAPID 공개키 확인됨", `${vapidPublicKey.substring(0, 20)}...`);
 
       const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
-      console.log("구독 생성 시작...");
+      clientLogger.debug("구독 생성 시작");
 
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: applicationServerKey as BufferSource,
       });
 
-      console.log("구독 생성 성공:", subscription.endpoint);
+      clientLogger.debug("구독 생성 성공", subscription.endpoint);
       setSubscription(subscription);
 
-      console.log("서버에 구독 정보 저장 시작...");
+      clientLogger.debug("서버에 구독 정보 저장 시작");
       await saveSubscriptionToServer(subscription);
-      console.log("구독 완료!");
+      clientLogger.debug("구독 완료");
 
       return true;
     } catch (error) {
-      console.error("구독 생성 오류:", error);
+      clientLogger.error("구독 생성 오류", error);
       if (error instanceof Error) {
-        console.error("오류 상세:", {
+        clientLogger.error("오류 상세", error, {
           name: error.name,
           message: error.message,
-          stack: error.stack,
         });
       }
       return false;
@@ -331,9 +329,9 @@ export function usePushNotifications() {
       if (subscription) {
         try {
           await subscription.unsubscribe();
-          console.log("브라우저 구독 해제 완료");
+          clientLogger.debug("브라우저 구독 해제 완료");
         } catch (error) {
-          console.error("브라우저 구독 해제 오류:", error);
+          clientLogger.error("브라우저 구독 해제 오류", error);
           // 브라우저 구독 해제 실패해도 서버에서 삭제는 진행
         }
         setSubscription(null);
@@ -342,7 +340,7 @@ export function usePushNotifications() {
       // 서버에서 현재 디바이스의 구독 삭제 (subscription 유무와 관계없이 항상 실행)
       const deviceInfo = getDeviceInfo();
       if (!user?.id) {
-        console.log("사용자 ID가 없어 서버 삭제를 건너뜁니다");
+        clientLogger.debug("사용자 ID가 없어 서버 삭제를 건너뜁니다");
         setLoading(false);
         return true;
       }
@@ -357,7 +355,7 @@ export function usePushNotifications() {
           .select();
 
         if (deviceError) {
-          console.error("구독 정보 삭제 오류 (device_id):", deviceError);
+          clientLogger.error("구독 정보 삭제 오류 (device_id)", deviceError);
           // fallback: endpoint로 삭제 시도 (subscription이 있는 경우)
           if (subscription?.endpoint) {
             const { error: endpointError } = await supabase
@@ -366,14 +364,14 @@ export function usePushNotifications() {
               .eq("user_id", user.id)
               .eq("endpoint", subscription.endpoint);
             if (endpointError) {
-              console.error("구독 정보 삭제 오류 (endpoint):", endpointError);
+              clientLogger.error("구독 정보 삭제 오류 (endpoint)", endpointError);
             } else {
-              console.log("구독 정보 삭제 성공 (endpoint)");
+              clientLogger.debug("구독 정보 삭제 성공 (endpoint)");
             }
           }
         } else {
           const deletedCount = data?.length || 0;
-          console.log(`디바이스 구독 정보 삭제 성공 (${deletedCount}개)`);
+          clientLogger.debug(`디바이스 구독 정보 삭제 성공 (${deletedCount}개)`);
         }
       } else if (subscription?.endpoint) {
         // device_id가 없는 경우 endpoint로 삭제 (기존 방식)
@@ -383,23 +381,23 @@ export function usePushNotifications() {
           .eq("user_id", user.id)
           .eq("endpoint", subscription.endpoint);
         if (error) {
-          console.error("구독 정보 삭제 오류 (endpoint):", error);
+          clientLogger.error("구독 정보 삭제 오류 (endpoint)", error);
         } else {
-          console.log("구독 정보 삭제 성공 (endpoint)");
+          clientLogger.debug("구독 정보 삭제 성공 (endpoint)");
         }
       } else {
         // subscription도 없고 device_id도 없는 경우, 사용자의 모든 구독 삭제 시도
         const { error } = await supabase.from("push_subscriptions").delete().eq("user_id", user.id);
         if (error) {
-          console.error("구독 정보 삭제 오류 (user_id):", error);
+          clientLogger.error("구독 정보 삭제 오류 (user_id)", error);
         } else {
-          console.log("사용자 구독 정보 삭제 성공");
+          clientLogger.debug("사용자 구독 정보 삭제 성공");
         }
       }
 
       return true;
     } catch (error) {
-      console.error("구독 해제 오류:", error);
+      clientLogger.error("구독 해제 오류", error);
       return false;
     } finally {
       setLoading(false);

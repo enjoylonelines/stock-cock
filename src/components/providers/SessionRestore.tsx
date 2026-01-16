@@ -1,5 +1,6 @@
 "use client";
 
+import { clientLogger } from "@/utils/client-logger";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useRef } from "react";
 
@@ -75,7 +76,7 @@ export function SessionRestore() {
           }
         }
       } catch (error) {
-        console.error("세션 복원 오류:", error);
+        clientLogger.error("세션 복원 오류", error);
       } finally {
         isRestoring.current = false;
       }

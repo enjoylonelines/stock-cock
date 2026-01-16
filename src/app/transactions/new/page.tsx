@@ -5,7 +5,7 @@ import { ChevronRight, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export default function NewReceiptPage() {
+export default function NewTransactionPage() {
   const router = useRouter();
 
   return (
@@ -25,7 +25,7 @@ export default function NewReceiptPage() {
       <div className="flex-1 p-4">
         <h2 className="mb-4 text-lg font-medium text-blue-500">입고 정보</h2>
         <div className="space-y-2">
-          <Link href="/receipts/new/location">
+          <Link href="/transactions/new/location">
             <Button variant="ghost" className="flex items-center justify-between w-full px-0 py-3">
               <div className="flex justify-between w-full">
                 <h3 className="font-medium">위치</h3>
@@ -35,7 +35,7 @@ export default function NewReceiptPage() {
             </Button>
           </Link>
 
-          <Link href="/receipts/new/supplier">
+          <Link href="/transactions/new/supplier">
             <Button variant="ghost" className="flex items-center justify-between w-full px-0 py-3">
               <div className="flex justify-between w-full">
                 <h3 className="font-medium">입고처</h3>
@@ -45,7 +45,7 @@ export default function NewReceiptPage() {
             </Button>
           </Link>
 
-          <Link href="/receipts/new/products">
+          <Link href="/transactions/new/products">
             <Button variant="ghost" className="flex items-center justify-between w-full px-0 py-3">
               <div className="flex justify-between w-full">
                 <h3 className="font-medium">제품</h3>
@@ -55,7 +55,7 @@ export default function NewReceiptPage() {
             </Button>
           </Link>
 
-          <Link href="/receipts/new/memo">
+          <Link href="/transactions/new/memo">
             <Button variant="ghost" className="flex items-center justify-between w-full px-0 py-3">
               <div className="flex justify-between w-full">
                 <h3 className="font-medium">메모</h3>
