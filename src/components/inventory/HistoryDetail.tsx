@@ -1,6 +1,7 @@
 "use client";
 import { supabase } from "@/lib/supabase";
 import type { TransactionHistoryView } from "@/types/database";
+import { clientLogger } from "@/utils/client-logger";
 import { ChevronLeft } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -36,7 +37,7 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
         .eq("transaction_id", transactionId);
       setLoading(false);
       setData(data);
-      console.log(data);
+      clientLogger.debug("트랜잭션 이력 데이터 로드", { count: data?.length });
     };
     fetchData();
   }, [transactionId]);

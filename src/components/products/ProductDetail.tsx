@@ -6,12 +6,13 @@ import { useBrands } from "@/hooks/useBrands";
 import { useCategories } from "@/hooks/useCategories";
 import { useInventories } from "@/hooks/useInventories";
 import { useInventoryHistory } from "@/hooks/useInventoryHistory";
-import { useLocations } from "@/hooks/useWarehouses";
+import { useWarehouses } from "@/hooks/useWarehouses";
 import { supabase } from "@/lib/supabase";
 import { formatBoxBreakdown, formatNumber } from "@/lib/utils";
 import { useDrawerStore } from "@/store/drawerStore";
 import { useFormStateStore } from "@/store/formStateStore";
 import type { ProductOptionView } from "@/types/product_option_view";
+import { clientLogger } from "@/utils/client-logger";
 import { Edit } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
@@ -22,7 +23,7 @@ interface ProductDetailProps {
 
 export default function ProductDetail({ product }: ProductDetailProps) {
   const { inventories } = useInventories();
-  const { locations } = useLocations();
+  const { warehouses } = useWarehouses();
   const { grouped } = useInventoryHistory();
   const [showOnlyStocked, setShowOnlyStocked] = useState(false);
   const { openDrawer } = useDrawerStore();
@@ -38,7 +39,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   const normalizeQuantity = (quantity: number | null) => (typeof quantity === "number" ? quantity : 0);
   const totalStock = getTotalStock(product.product_option_id);
   const totalBoxSummary = formatBoxBreakdown(totalStock, product.box_unit);
-  const getLocationName = (locationId: string) => locations.find(loc => loc.id === locationId)?.name || "알 수 없음";
+  const getLocationName = (locationId: string) => warehouses.find(loc => loc.id === locationId)?.name || "알 수 없음";
 
   const productInventories = inventories.filter(i => i.product_option_id === product.product_option_id);
   const filteredInventories = showOnlyStocked
@@ -96,7 +97,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
       // 수정 모드로 드로어 열기
       openDrawer("product-edit");
     } catch (error) {
-      console.error("제품 수정 오류:", error);
+      clientLogger.error("제품 수정 오류", error);
       alert("제품 정보를 불러오는데 실패했습니다.");
     }
   };

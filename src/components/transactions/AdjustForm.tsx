@@ -3,10 +3,10 @@
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/contexts/UserContext";
 import { useProducts } from "@/hooks/useProducts";
-import { useSuppliers } from "@/hooks/useSuppliers";
-import { useLocations } from "@/hooks/useWarehouses";
+import { useWarehouses } from "@/hooks/useWarehouses";
 import { useFormStateStore } from "@/store/formStateStore";
 import type { ProductOptionView } from "@/types/product_option_view";
+import { clientLogger } from "@/utils/client-logger";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { ChevronRight } from "lucide-react";
@@ -19,38 +19,28 @@ import MemoView from "./MemoView";
 import ProductListItem from "./ProductListItem";
 import ProductSelectView from "./ProductSelectView";
 
-export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out"; closeDrawer: () => void }) {
-  const [isWarehouseViewVisible, setIsWarehouseViewVisible] = useState(false);
-  const [isSupplierViewVisible, setIsSupplierViewVisible] = useState(false);
+export default function AdjustForm({ closeDrawer }: { closeDrawer: () => void }) {
+  const [isLocationViewVisible, setIsLocationViewVisible] = useState(false);
   const [isProductViewVisible, setIsProductViewVisible] = useState(false);
   const [isMemoViewVisible, setIsMemoViewVisible] = useState(false);
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { locations, addLocation, editLocation, deleteLocation } = useLocations();
-  const { suppliers, addSupplier, editSupplier, deleteSupplier } = useSuppliers();
+  const { warehouses, addWarehouse, editWarehouse, deleteWarehouse } = useWarehouses();
   const { products } = useProducts();
   const router = useRouter();
   const user = useUser();
-  const receiptFormState = useFormStateStore(state => state.receiptForms[mode]);
-  const updateReceiptForm = useFormStateStore(state => state.updateReceiptForm);
-  const resetReceiptForm = useFormStateStore(state => state.resetReceiptForm);
-  const { selectedLocation, selectedSupplier, selectedProducts, selectedDate, memo } = receiptFormState;
+  const adjustForm = useFormStateStore(state => state.adjustForm);
+  const updateAdjustForm = useFormStateStore(state => state.updateAdjustForm);
+  const resetAdjustForm = useFormStateStore(state => state.resetAdjustForm);
+  const { selectedLocation, selectedProducts, selectedDate, memo } = adjustForm;
 
-  // 필수 필드 검증: 위치(입고처/출고처), 거래처, 제품이 모두 선택되어야 활성화
-  const isFormValid = selectedLocation && selectedSupplier && selectedProducts.length > 0;
-
-  const handleWarehouseSelect = (warehouse: { id: string; name: string }) => {
-    updateReceiptForm(mode, { selectedLocation: warehouse.id });
-    setIsWarehouseViewVisible(false);
-  };
-
-  const handleSupplierSelect = (supplier: { id: string; name: string }) => {
-    updateReceiptForm(mode, { selectedSupplier: supplier.id });
-    setIsSupplierViewVisible(false);
+  const handleLocationSelect = (location: { id: string; name: string }) => {
+    updateAdjustForm({ selectedLocation: location.id });
+    setIsLocationViewVisible(false);
   };
 
   const handleProductSelect = (list: ProductOptionView[]) => {
-    updateReceiptForm(mode, { selectedProducts: list });
+    updateAdjustForm({ selectedProducts: list });
     setIsProductViewVisible(false);
   };
 
@@ -59,25 +49,24 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
   };
 
   const handleDateSelect = (date: Date) => {
-    updateReceiptForm(mode, { selectedDate: date });
+    updateAdjustForm({ selectedDate: date });
   };
 
   const handleSubmit = async () => {
-    if (!selectedLocation || !selectedSupplier || selectedProducts.length === 0) {
-      alert(`${mode === "in" ? "입고처" : "출고처"}, 거래처, 제품을 모두 선택해주세요.`);
+    if (!selectedLocation || selectedProducts.length === 0) {
+      alert("위치, 제품을 모두 선택해주세요.");
       return;
     }
+
     try {
       setIsLoading(true);
-      const response = await fetch("/api/receipts", {
+      const response = await fetch("/api/adjustments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          type: mode,
           warehouse_id: selectedLocation,
-          supplier_id: selectedSupplier,
           memo,
           user_id: user?.id,
           created_at: format(selectedDate, "yyyy-MM-dd HH:mm:ss"),
@@ -90,16 +79,16 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
       });
 
       if (!response.ok) {
-        throw new Error("입고 처리 중 오류가 발생했습니다.");
+        throw new Error("조정 처리 중 오류가 발생했습니다.");
       }
 
-      resetReceiptForm(mode);
+      resetAdjustForm();
       closeDrawer();
 
       // /inventory로 replace
       router.replace("/inventory");
     } catch (error) {
-      console.error("Error submitting receipt:", error);
+      clientLogger.error("재고 조정 처리 실패", error);
       alert("처리 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
@@ -108,7 +97,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
 
   return (
     <div className="flex relative flex-col h-full">
-      {/* 입고/출고 정보 */}
+      {/* 조정 정보 */}
       <div className="flex-1 p-4">
         <div className="space-y-2">
           <Button
@@ -118,14 +107,14 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
             size="none"
           >
             <div className="flex justify-between w-full">
-              <h3 className="font-medium">날짜</h3>
+              <h3 className="font-medium">현재 시간</h3>
               <p className="text-sm text-gray-500">{format(selectedDate, "yyyy년 MM월 dd일", { locale: ko })}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
 
           <Button
-            onClick={() => setIsWarehouseViewVisible(true)}
+            onClick={() => setIsLocationViewVisible(true)}
             variant="ghost"
             className="flex justify-between items-center py-2 w-full"
             size="none"
@@ -133,22 +122,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
             <div className="flex justify-between w-full">
               <h3 className="font-medium">위치</h3>
               <p className="text-sm text-gray-500">
-                {locations.find(loc => loc.id === selectedLocation)?.name || "선택"}
-              </p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </Button>
-
-          <Button
-            onClick={() => setIsSupplierViewVisible(true)}
-            variant="ghost"
-            className="flex justify-between items-center py-2 w-full"
-            size="none"
-          >
-            <div className="flex justify-between w-full">
-              <h3 className="font-medium">거래처</h3>
-              <p className="text-sm text-gray-500">
-                {suppliers.find(sup => sup.id === selectedSupplier)?.name || "선택"}
+                {warehouses.find(loc => loc.id === selectedLocation)?.name || "선택"}
               </p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -159,10 +133,13 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
             variant="ghost"
             className="flex justify-between items-center py-2 w-full"
             size="none"
+            disabled={!selectedLocation}
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">제품</h3>
-              <p className="text-sm text-gray-500">{selectedProducts.length}개 품목</p>
+              <p className="text-sm text-gray-500">
+                {!selectedLocation ? "위치를 먼저 선택해주세요" : `${selectedProducts.length}개 품목`}
+              </p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -198,24 +175,13 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
 
       {/* 하단 버튼 */}
       <div className="p-4 pb-8 border-t">
-        <div className="flex gap-2">
-          {/* <Button variant="outline" className="flex-1">
-            임시 저장
-          </Button> */}
-          <Button
-            onClick={handleSubmit}
-            disabled={isLoading || !isFormValid}
-            className={`flex-1 ${
-              isFormValid
-                ? mode === "in"
-                  ? "bg-blue-500 hover:bg-blue-600 active:bg-blue-600 text-white"
-                  : "bg-red-500 text-white hover:bg-red-600 active:bg-red-600"
-                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-            }`}
-          >
-            {isLoading ? "처리 중..." : mode === "in" ? "입고완료" : "출고완료"}
-          </Button>
-        </div>
+        <Button
+          onClick={handleSubmit}
+          disabled={isLoading}
+          className="w-full h-12 text-lg font-semibold text-white bg-green-500 hover:bg-green-600"
+        >
+          {isLoading ? "처리 중..." : "조정 완료"}
+        </Button>
       </div>
 
       {/* 날짜 선택 다이얼로그 */}
@@ -226,29 +192,16 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
         onSelect={handleDateSelect}
       />
 
-      {/* 입고처/출고처 관리 드로어 */}
-      <DrawerView isVisible={isWarehouseViewVisible}>
+      {/* 위치 선택 드로어 */}
+      <DrawerView isVisible={isLocationViewVisible}>
         <ManageView
-          onBack={() => setIsWarehouseViewVisible(false)}
-          onSelect={handleWarehouseSelect}
-          title={mode === "in" ? "입고처 선택" : "출고처 선택"}
-          items={locations}
-          onAdd={addLocation}
-          onEdit={editLocation}
-          onDelete={deleteLocation}
-        />
-      </DrawerView>
-
-      {/* 거래처 관리 드로어 */}
-      <DrawerView isVisible={isSupplierViewVisible}>
-        <ManageView
-          onBack={() => setIsSupplierViewVisible(false)}
-          onSelect={handleSupplierSelect}
-          title="거래처 선택"
-          items={suppliers}
-          onAdd={addSupplier}
-          onEdit={editSupplier}
-          onDelete={deleteSupplier}
+          onBack={() => setIsLocationViewVisible(false)}
+          onSelect={handleLocationSelect}
+          title="위치 선택"
+          items={warehouses}
+          onAdd={addWarehouse}
+          onEdit={editWarehouse}
+          onDelete={deleteWarehouse}
         />
       </DrawerView>
 
@@ -258,6 +211,8 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
           products={products}
           onBack={() => setIsProductViewVisible(false)}
           onSelect={handleProductSelect}
+          allowNegative={true}
+          selectedLocationId={selectedLocation}
           initialSelectedProducts={selectedProducts}
         />
       </DrawerView>
@@ -266,7 +221,7 @@ export default function ReceiptForm({ mode, closeDrawer }: { mode: "in" | "out";
       <DrawerView isVisible={isMemoViewVisible}>
         <MemoView
           value={memo}
-          onChange={value => updateReceiptForm(mode, { memo: value })}
+          onChange={value => updateAdjustForm({ memo: value })}
           onBack={() => setIsMemoViewVisible(false)}
           onDone={handleMemoDone}
         />

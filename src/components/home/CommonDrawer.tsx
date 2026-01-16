@@ -10,16 +10,16 @@ import dynamic from "next/dynamic";
 import { Suspense, useEffect, useRef } from "react";
 
 // 동적 임포트로 코드 스플리팅
-const ReceiptForm = dynamic(() => import("../receipts/ReceiptForm"), {
+const TransactionForm = dynamic(() => import("../transactions/TransactionForm"), {
   loading: () => <div className="p-4">로딩 중...</div>,
 });
 const ProductCreateForm = dynamic(() => import("../products/ProductCreateForm"), {
   loading: () => <div className="p-4">로딩 중...</div>,
 });
-const MoveForm = dynamic(() => import("../receipts/MoveForm"), {
+const MoveForm = dynamic(() => import("../transactions/MoveForm"), {
   loading: () => <div className="p-4">로딩 중...</div>,
 });
-const AdjustForm = dynamic(() => import("../receipts/AdjustForm"), {
+const AdjustForm = dynamic(() => import("../transactions/AdjustForm"), {
   loading: () => <div className="p-4">로딩 중...</div>,
 });
 
@@ -27,7 +27,7 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
   const { isOpen, currentForm, closeDrawer } = useDrawerStore();
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const resetProductForm = useFormStateStore(state => state.resetProductForm);
-  const resetReceiptForm = useFormStateStore(state => state.resetReceiptForm);
+  const resetTransactionForm = useFormStateStore(state => state.resetTransactionForm);
   const resetMoveForm = useFormStateStore(state => state.resetMoveForm);
   const resetAdjustForm = useFormStateStore(state => state.resetAdjustForm);
 
@@ -124,10 +124,10 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
         resetProductForm();
         break;
       case "receipt":
-        resetReceiptForm("in");
+        resetTransactionForm("in");
         break;
       case "issue":
-        resetReceiptForm("out");
+        resetTransactionForm("out");
         break;
       case "move":
         resetMoveForm();
@@ -149,13 +149,13 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
       case "receipt":
         return (
           <Suspense fallback={<div className="p-4">로딩 중...</div>}>
-            <ReceiptForm mode="in" closeDrawer={closeDrawer} />
+            <TransactionForm mode="in" closeDrawer={closeDrawer} />
           </Suspense>
         );
       case "issue":
         return (
           <Suspense fallback={<div className="p-4">로딩 중...</div>}>
-            <ReceiptForm mode="out" closeDrawer={closeDrawer} />
+            <TransactionForm mode="out" closeDrawer={closeDrawer} />
           </Suspense>
         );
       case "move":

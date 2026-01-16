@@ -1,35 +1,25 @@
-import { supabase } from "@/lib/supabase";
-import { sendPushNotification } from "@/services/push-notification";
+import type { AdjustmentInput } from "@/types/api";
+import { APIError } from "@/utils/api-error";
+import { handleAPIError } from "@/utils/api-handler";
 import { updateInventory } from "@/utils/inventory";
-import { getProductIconUrl } from "@/utils/product-icon";
+import { apiLogger } from "@/utils/logger";
 import { createClient } from "@/utils/supabase/server";
+import { sendTransactionNotification } from "@/utils/transaction-notification";
 import { NextResponse } from "next/server";
 
-type AdjustmentItemInput = {
-  quantity: number;
-  unit_price: number;
-  option_id: string;
-  expiration_date: string | null;
-};
-
-type AdjustmentInput = {
-  warehouse_id: string;
-  memo?: string;
-  created_at?: string;
-  items: AdjustmentItemInput[];
-  user_id: string;
-};
-
 export async function POST(request: Request) {
+  const endpoint = "/api/adjustments";
   const supabase = await createClient();
 
   try {
     const body: AdjustmentInput = await request.json();
     const { warehouse_id, memo, created_at, items, user_id } = body;
 
-    console.log("[ADJUSTMENT REQUEST BODY]", body);
+    apiLogger.requestStart(endpoint, body);
 
-    if (!items.length) throw new Error("Invalid request body: Missing items");
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      throw APIError.badRequest("제품 항목이 필요합니다.");
+    }
 
     // [1] 트랜잭션 기록
     const { data: transaction, error: txError } = await supabase
@@ -47,12 +37,12 @@ export async function POST(request: Request) {
       .single();
 
     if (txError) {
-      console.error("[TX ERROR]", txError);
-      throw txError;
+      apiLogger.dbError("트랜잭션 생성", txError);
+      throw APIError.fromSupabaseError(txError);
     }
 
     for (const item of items) {
-      console.log("[ADJUSTMENT ITEM PROCESSING]", item);
+      apiLogger.transaction("조정 항목 처리 시작", item);
 
       // [2] 배치 insert (조정용)
       const { data: batch, error: batchError } = await supabase
@@ -70,8 +60,8 @@ export async function POST(request: Request) {
         .single();
 
       if (batchError) {
-        console.error("[BATCH ERROR]", batchError);
-        throw batchError;
+        apiLogger.dbError("배치 생성", batchError);
+        throw APIError.fromSupabaseError(batchError);
       }
 
       // [3] inventory 조정 (목표 재고로 설정)
@@ -83,8 +73,8 @@ export async function POST(request: Request) {
         .maybeSingle();
 
       if (currentInvError) {
-        console.error("[CURRENT INVENTORY SELECT ERROR]", currentInvError);
-        throw currentInvError;
+        apiLogger.dbError("현재 재고 조회", currentInvError);
+        throw APIError.fromSupabaseError(currentInvError);
       }
 
       const currentQuantity = currentInventory?.quantity ?? 0;
@@ -104,28 +94,22 @@ export async function POST(request: Request) {
       ]);
 
       if (itemError) {
-        console.error("[ITEM INSERT ERROR]", itemError);
-        throw itemError;
+        apiLogger.dbError("트랜잭션 항목 생성", itemError);
+        throw APIError.fromSupabaseError(itemError);
       }
     }
 
-    // 푸시 알림 전송
-    const firstOptionId = items[0]?.option_id;
-    const iconUrl = firstOptionId ? await getProductIconUrl(firstOptionId) : undefined;
-    await sendPushNotification({
-      title: "재고 조정 완료",
-      body: `${items.length}개 제품의 재고가 조정되었습니다`,
-      icon: iconUrl,
-      tag: `adjust-${transaction.id}`,
-      data: {
-        type: "adjustment",
-        transactionId: transaction.id,
-      },
+    // 푸시 알림 전송 (실패해도 전체 프로세스를 중단하지 않음)
+    await sendTransactionNotification({
+      type: "adjust",
+      transactionId: transaction.id,
+      itemCount: items.length,
+      firstOptionId: items[0]?.option_id,
     });
 
+    apiLogger.requestSuccess(endpoint, { transaction_id: transaction.id });
     return NextResponse.json({ success: true, transaction_id: transaction.id });
   } catch (error) {
-    console.error("[ADJUSTMENT UNHANDLED ERROR]", error);
-    return NextResponse.json({ error: "조정 처리 실패", detail: String(error) }, { status: 500 });
+    return handleAPIError(error, endpoint);
   }
 }

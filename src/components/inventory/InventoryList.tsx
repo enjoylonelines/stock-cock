@@ -3,7 +3,7 @@ import type { GroupedTransactions } from "@/hooks/useInventoryHistory";
 import { useProducts } from "@/hooks/useProducts";
 import { useProfiles } from "@/hooks/useProfiles";
 import { useSuppliers } from "@/hooks/useSuppliers";
-import { useLocations } from "@/hooks/useWarehouses";
+import { useWarehouses } from "@/hooks/useWarehouses";
 import { useInventoryFilterDrawerStore } from "@/store/InventoryFilterDrawer";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { formatWeightDisplay } from "@/lib/utils";
@@ -11,21 +11,21 @@ import { endOfDay, startOfDay } from "date-fns";
 import { ArrowDownToLine, ArrowLeftRight, ArrowUpDown, ArrowUpToLine } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
 
-export default function InventoryList({ grouped }: { grouped: GroupedTransactions[] }) {
+const InventoryList = memo(function InventoryList({ grouped }: { grouped: GroupedTransactions[] }) {
   const router = useRouter();
   const { filters } = useInventoryFilterDrawerStore();
-  const { locations } = useLocations();
+  const { warehouses } = useWarehouses();
   const { suppliers } = useSuppliers();
   const { products } = useProducts();
   const { profiles } = useProfiles();
 
   const selectedLocationName = useMemo(() => {
     if (!filters.location) return null;
-    const loc = locations.find((l) => l.id === filters.location);
+    const loc = warehouses.find(l => l.id === filters.location);
     return loc?.name ?? null;
-  }, [filters.location, locations]);
+  }, [filters.location, warehouses]);
 
   const selectedSupplierName = useMemo(() => {
     if (!filters.supplier) return null;
@@ -97,7 +97,7 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
       .filter((g) => g.transactions.length > 0);
   }, [grouped, filters, start, end, selectedLocationName, selectedSupplierName, selectedProductName, selectedMemberName]);
 
-  const getTypeIcon = (type: string) => {
+  const getTypeIcon = useCallback((type: string) => {
     switch (type) {
       case "입고":
         return <ArrowDownToLine className="w-4 h-4 text-blue-500" />;
@@ -108,13 +108,20 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
       default:
         return <ArrowUpDown className="w-4 h-4 text-green-500" />;
     }
-  };
+  }, []);
 
-  const getQuantityColor = (quantity: number) => {
+  const getQuantityColor = useCallback((quantity: number) => {
     if (quantity > 0) return "text-blue-500";
     if (quantity < 0) return "text-red-500";
     return "text-gray-900";
-  };
+  }, []);
+
+  const handleTransactionClick = useCallback(
+    (transactionId: string) => {
+      router.push(`/inventory/${transactionId}`);
+    },
+    [router]
+  );
 
   return (
     <div className="overflow-auto space-y-6 custom-scrollbar">
@@ -126,11 +133,11 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
               <div
                 key={transaction.transaction_id + transaction.product_name}
                 className="flex gap-4 items-center p-4 bg-white rounded-lg shadow-sm cursor-pointer"
-                onClick={() => router.push(`/inventory/${transaction.transaction_id}`)}
-                onKeyDown={(e) => {
+                onClick={() => handleTransactionClick(transaction.transaction_id)}
+                onKeyDown={e => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    router.push(`/inventory/${transaction.transaction_id}`);
+                    handleTransactionClick(transaction.transaction_id);
                   }
                 }}
                 role="button"
@@ -205,4 +212,8 @@ export default function InventoryList({ grouped }: { grouped: GroupedTransaction
       ))}
     </div>
   );
-}
+});
+
+InventoryList.displayName = "InventoryList";
+
+export default InventoryList;
