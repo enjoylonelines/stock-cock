@@ -113,7 +113,7 @@ describe("withAPIHandler", () => {
 
     expect(response).toBeDefined();
     expect(response.json).toBeDefined();
-    
+
     const body = await response.json();
     expect(body).toEqual({
       success: true,
@@ -192,4 +192,3 @@ describe("withAPIHandler", () => {
     });
   });
 });
-

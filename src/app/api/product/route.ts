@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     // 2. product_options 테이블에 insert
     const productId = productData.id;
-    const optionsWithProductId = options.map((opt: ProductOption) => ({
+    const optionsWithProductId = options.map(opt => ({
       ...opt,
       product_id: productId,
     }));

@@ -1,6 +1,6 @@
-import { sendTransactionNotification } from "@/utils/transaction-notification";
 import { sendPushNotification } from "@/services/push-notification";
 import { getProductIconUrl } from "@/utils/product-icon";
+import { sendTransactionNotification } from "@/utils/transaction-notification";
 
 // Supabase 모킹 (환경 변수 문제 방지)
 jest.mock("@/lib/supabase", () => ({

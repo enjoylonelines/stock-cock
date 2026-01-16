@@ -84,7 +84,10 @@ export async function POST(request: Request) {
       const newQty = (inventory?.quantity ?? 0) + signedQty;
 
       if (inventory) {
-        const { error: updateError } = await supabase.from("inventory").update({ quantity: newQty }).eq("id", inventory.id);
+        const { error: updateError } = await supabase
+          .from("inventory")
+          .update({ quantity: newQty })
+          .eq("id", inventory.id);
 
         if (updateError) {
           apiLogger.dbError("재고 업데이트", updateError);
