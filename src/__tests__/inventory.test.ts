@@ -1,5 +1,5 @@
-import { updateInventory } from "@/utils/inventory";
 import { supabase } from "@/lib/supabase";
+import { updateInventory } from "@/utils/inventory";
 
 // supabase 모킹
 jest.mock("@/lib/supabase", () => ({
@@ -143,7 +143,9 @@ describe("updateInventory", () => {
         update: updateMock,
       });
 
-      await expect(updateInventory(productOptionId, warehouseId, 5)).rejects.toThrow("재고 업데이트 실패: 업데이트 실패");
+      await expect(updateInventory(productOptionId, warehouseId, 5)).rejects.toThrow(
+        "재고 업데이트 실패: 업데이트 실패"
+      );
     });
   });
 

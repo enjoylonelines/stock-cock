@@ -1,5 +1,5 @@
-import { getProductIconUrl, getProductIconUrlByProductId } from "@/utils/product-icon";
 import { supabase } from "@/lib/supabase";
+import { getProductIconUrl, getProductIconUrlByProductId } from "@/utils/product-icon";
 
 // supabase 모킹
 jest.mock("@/lib/supabase", () => ({
