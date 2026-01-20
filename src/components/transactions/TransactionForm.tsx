@@ -114,7 +114,7 @@ export default function TransactionForm({ mode, closeDrawer }: { mode: "in" | "o
           items: selectedProducts.map(product => ({
             option_id: product.product_option_id,
             quantity: product.quantity || 1,
-            unit_price: product.sell_price || null,
+            unit_price: null,
           })),
         }),
       });

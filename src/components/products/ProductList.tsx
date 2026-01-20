@@ -142,8 +142,6 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
                           {formatWeightDisplay(product.weight, product.unit_label as "g" | "kg" | undefined)}
                         </h3>
                         <div className="flex flex-wrap mt-1 text-xs text-gray-600">
-                          <span>{formatNumber(product.sell_price)}원</span>
-                          <span className="mx-1">·</span>
                           <span>{product.brand_name}</span>
                           <span className="mx-1">·</span>
                           <span>{product.warehouse_name}</span>
