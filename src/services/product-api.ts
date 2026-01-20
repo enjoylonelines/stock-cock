@@ -49,8 +49,6 @@ export async function registerProduct(form: ProductFormInput) {
       {
         product_id: product.id,
         weight: form.weight,
-        buy_price: form.buy_price,
-        sell_price: form.sell_price,
         unit_label: form.unit_label,
         box_unit: form.box_unit,
         sku: form.sku,
@@ -127,8 +125,6 @@ export async function updateProduct(
     .from("product_options")
     .update({
       weight: form.weight,
-      buy_price: form.buy_price,
-      sell_price: form.sell_price,
       unit_label: form.unit_label,
       box_unit: form.box_unit,
       sku: form.sku,

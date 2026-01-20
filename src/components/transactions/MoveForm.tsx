@@ -87,7 +87,7 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
           items: selectedProducts.map(product => ({
             option_id: product.product_option_id,
             quantity: product.quantity || 1,
-            unit_price: product.sell_price || null,
+            unit_price: null,
           })),
         }),
       });
