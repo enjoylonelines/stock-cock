@@ -5,7 +5,7 @@ import { useUser } from "@/contexts/UserContext";
 import { useProducts } from "@/hooks/useProducts";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useFormStateStore } from "@/store/formStateStore";
-import type { ProductOptionView } from "@/types/product_option_view";
+import type { ProductOptionView } from "@/types/database";
 import { clientLogger } from "@/utils/client-logger";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -72,7 +72,7 @@ export default function AdjustForm({ closeDrawer }: { closeDrawer: () => void })
           created_at: format(selectedDate, "yyyy-MM-dd HH:mm:ss"),
           items: selectedProducts.map(product => ({
             option_id: product.product_option_id,
-            quantity: product.quantity || 1,
+            quantity: product.quantity ?? 0,
             unit_price: null,
           })),
         }),

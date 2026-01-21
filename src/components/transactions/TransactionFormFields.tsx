@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import type { ProductOptionView } from "@/types/product_option_view";
+import type { ProductOptionView } from "@/types/database";
 import { ChevronRight } from "lucide-react";
 import { memo } from "react";
 import ProductListItem from "./ProductListItem";

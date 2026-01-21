@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatBoxBreakdown, formatNumber } from "@/lib/utils";
 import { useDrawerStore } from "@/store/drawerStore";
 import { useFormStateStore } from "@/store/formStateStore";
-import type { ProductOptionView } from "@/types/product_option_view";
+import type { ProductOptionView } from "@/types/database";
 import { clientLogger } from "@/utils/client-logger";
 import { Edit } from "lucide-react";
 import Image from "next/image";

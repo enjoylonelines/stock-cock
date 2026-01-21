@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import type { ProductOptionView } from "@/types/product_option_view";
+import type { ProductOptionView } from "@/types/database";
 import useSWR from "swr";
 
 function groupProductsByOption(products: ProductOptionView[]) {

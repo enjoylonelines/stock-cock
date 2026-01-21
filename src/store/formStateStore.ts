@@ -1,4 +1,4 @@
-import type { ProductOptionView } from "@/types/product_option_view";
+import type { ProductOptionView } from "@/types/database";
 import { create } from "zustand";
 
 export type TransactionMode = "in" | "out";
