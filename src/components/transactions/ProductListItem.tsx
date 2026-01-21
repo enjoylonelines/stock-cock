@@ -1,6 +1,6 @@
 "use client";
 import { formatNumber, formatWeightDisplay } from "@/lib/utils";
-import type { ProductOptionView } from "@/types/product_option_view";
+import type { ProductOptionView } from "@/types/database";
 import Image from "next/image";
 import { memo } from "react";
 

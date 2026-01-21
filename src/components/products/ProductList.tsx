@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { formatBoxBreakdown, formatNumber, formatWeightDisplay } from "@/lib/utils";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
 import { useProductSortStore } from "@/store/productSortStore";
-import type { ProductOptionView } from "@/types/product_option_view";
+import type { ProductOptionView } from "@/types/database";
 import Image from "next/image";
 import Link from "next/link";
 import { memo, useMemo } from "react";
