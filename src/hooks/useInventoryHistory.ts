@@ -1,5 +1,5 @@
 "use client";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import type { TransactionHistoryView } from "@/types/database";
 import { useCallback, useEffect } from "react";
 import useSWR, { mutate } from "swr";
@@ -19,6 +19,8 @@ export interface GroupedTransactions {
   date: string;
   transactions: InventoryTransaction[];
 }
+
+const supabase = createClient();
 
 const processTransactionData = (
   data: TransactionHistoryView[],

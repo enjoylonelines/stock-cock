@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 
 const DEFAULT_ICON = "/icons/logo-192x192.png";
 
@@ -9,6 +9,7 @@ const DEFAULT_ICON = "/icons/logo-192x192.png";
  */
 export async function getProductIconUrlByProductId(productId: string): Promise<string> {
   try {
+    const supabase = await createClient();
     const { data: productRow, error: productErr } = await supabase
       .from("products")
       .select("image_url")
@@ -32,6 +33,7 @@ export async function getProductIconUrlByProductId(productId: string): Promise<s
  */
 export async function getProductIconUrl(optionId: string): Promise<string> {
   try {
+    const supabase = await createClient();
     // 1) option -> product_id 조회
     const { data: optionRow, error: optionErr } = await supabase
       .from("product_options")

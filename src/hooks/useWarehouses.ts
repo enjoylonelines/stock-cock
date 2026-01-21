@@ -1,8 +1,9 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import type { Warehouse } from "@/types/database";
 import { useCRUD } from "./useCRUD";
 
 export function useWarehouses() {
+  const supabase = createClient();
   const { items, isLoading, addItem, editItem, deleteItem, refetch } = useCRUD<Warehouse>({
     tableName: "warehouses",
     swrKey: "warehouses",

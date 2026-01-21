@@ -6,7 +6,7 @@ import { useUser } from "@/contexts/UserContext";
 import { useBrands } from "@/hooks/useBrands";
 import { useCategories } from "@/hooks/useCategories";
 import { useWarehouses } from "@/hooks/useWarehouses";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { generateSKU, generateUniqueFileName } from "@/lib/utils";
 import { registerProduct, updateProduct } from "@/services/product-api";
 import { useFormStateStore } from "@/store/formStateStore";
@@ -38,6 +38,7 @@ export default function ProductCreateForm({
   productOptionId,
 }: ProductCreateFormProps) {
   const [activeDrawer, setActiveDrawer] = useState<null | string>(null);
+  const supabase = createClient();
   const [savedScrollPosition, setSavedScrollPosition] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
   const { warehouses, addWarehouse, editWarehouse, deleteWarehouse } = useWarehouses();
