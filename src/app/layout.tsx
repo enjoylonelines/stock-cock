@@ -6,7 +6,7 @@ import Header from "@/components/layout/Header";
 import { SWRProvider } from "@/components/providers/SWRProvider";
 import { SessionRestore } from "@/components/providers/SessionRestore";
 import { UserProvider } from "@/contexts/UserContext";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 
 const inter = Inter({

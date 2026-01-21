@@ -7,7 +7,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useInventories } from "@/hooks/useInventories";
 import { useInventoryHistory } from "@/hooks/useInventoryHistory";
 import { useWarehouses } from "@/hooks/useWarehouses";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { formatBoxBreakdown, formatNumber } from "@/lib/utils";
 import { useDrawerStore } from "@/store/drawerStore";
 import { useFormStateStore } from "@/store/formStateStore";
@@ -22,6 +22,7 @@ interface ProductDetailProps {
 }
 
 export default function ProductDetail({ product }: ProductDetailProps) {
+  const supabase = createClient();
   const { inventories } = useInventories();
   const { warehouses } = useWarehouses();
   const { grouped } = useInventoryHistory();

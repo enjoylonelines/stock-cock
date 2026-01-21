@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import useSWR from "swr";
 
 interface Stats {
@@ -40,6 +40,7 @@ const fetcher = async () => {
 };
 
 export function useStats() {
+  const supabase = createClient();
   const {
     data: summary = { total: 0, in: 0, out: 0 },
     isLoading,

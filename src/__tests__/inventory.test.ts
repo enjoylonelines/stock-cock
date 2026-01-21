@@ -1,11 +1,11 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { updateInventory } from "@/utils/inventory";
 
 // supabase 모킹
-jest.mock("@/lib/supabase", () => ({
-  supabase: {
-    from: jest.fn(),
-  },
+const supabase = { from: jest.fn() } as { from: jest.Mock };
+
+jest.mock("@/lib/supabase/client", () => ({
+  createClient: () => supabase,
 }));
 
 describe("updateInventory", () => {

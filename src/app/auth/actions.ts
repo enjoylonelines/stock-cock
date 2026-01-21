@@ -1,8 +1,7 @@
 // app/login/actions.ts
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 function validateEmail(email: string) {

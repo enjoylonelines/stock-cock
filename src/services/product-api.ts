@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import type { Product, ProductOption } from "@/types/database";
 import type { Insertable } from "@/types/util";
 
@@ -12,6 +12,7 @@ export type ProductFormInput = Insertable<Product> &
  * 제품 등록 API
  */
 export async function registerProduct(form: ProductFormInput) {
+  const supabase = createClient();
   // 필수 필드 검증
   if (!form.name || !form.category_id || !form.brand_id || !form.product_type) {
     throw new Error("필수 정보가 누락되었습니다.");
@@ -98,11 +99,8 @@ export async function registerProduct(form: ProductFormInput) {
 /**
  * 제품 업데이트 API
  */
-export async function updateProduct(
-  productId: string,
-  productOptionId: string,
-  form: Omit<ProductFormInput, "warehouse_id" | "quantity">
-) {
+export async function updateProduct(productId: string, productOptionId: string, form: Omit<ProductFormInput, "warehouse_id" | "quantity">) {
+  const supabase = createClient();
   // 1. products 테이블 업데이트
   const { error: productError } = await supabase
     .from("products")

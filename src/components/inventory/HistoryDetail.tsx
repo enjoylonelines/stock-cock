@@ -1,5 +1,5 @@
 "use client";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import type { TransactionHistoryView } from "@/types/database";
 import { clientLogger } from "@/utils/client-logger";
 import { ChevronLeft } from "lucide-react";
@@ -24,6 +24,7 @@ const getTypeColor = (type: string) => {
 };
 
 export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
+  const supabase = createClient();
   const [data, setData] = useState<TransactionHistoryView[] | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
