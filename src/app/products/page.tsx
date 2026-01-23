@@ -9,7 +9,7 @@ import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
 import { Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-export type ProductType = "all" | "company" | "franchise" | "pb";
+export type ProductType = "all" | "company" | "franchise" | "pb" | "material";
 
 export default function ProductsPage() {
   const { products, isLoading } = useProducts();
@@ -54,6 +54,10 @@ export default function ProductsPage() {
     {
       value: "pb",
       label: "PB제품",
+    },
+    {
+      value: "material",
+      label: "원재료",
     },
     {
       value: "all",
