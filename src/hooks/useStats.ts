@@ -64,14 +64,17 @@ const fetcher = async () => {
   // 원재료가 아닌 inventory만 계산
   let sum = 0;
   for (const el of inventoryResult.data || []) {
-    const productOptions = el.product_options as unknown as Array<{ 
-      products?: Array<{ product_type?: string }> 
-    }> | null | undefined;
-    const firstOption = productOptions?.[0];
-    const firstProduct = firstOption?.products?.[0];
-    const productType = firstProduct?.product_type;
+    // Supabase의 !inner 조인은 단일 객체를 반환
+    const productOptions = el.product_options as unknown as 
+      | { products?: { product_type?: string } }
+      | null
+      | undefined;
     
-    if (productType && productType !== "material") {
+    const productType = productOptions?.products?.product_type;
+    
+    // product_type이 없거나 material이 아닌 경우에만 합산
+    // (product_type이 null/undefined인 경우도 포함하여 안전하게 처리)
+    if (productType !== "material") {
       sum += Number(el.quantity);
     }
   }
