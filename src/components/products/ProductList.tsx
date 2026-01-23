@@ -27,6 +27,34 @@ function getProductPriority(productName: string): number {
   return index === -1 ? PRIORITY_PRODUCTS.length : index; // 우선순위 제품이 아니면 가장 낮은 우선순위
 }
 
+// storage_type을 한국어로 변환
+function getStorageTypeLabel(storageType: string | null | undefined): string {
+  switch (storageType) {
+    case "room_temperature":
+      return "실온";
+    case "refrigerated":
+      return "냉장";
+    case "frozen":
+      return "냉동";
+    default:
+      return "기타";
+  }
+}
+
+// storage_type 정렬 우선순위 (실온이 최상단)
+function getStorageTypePriority(storageType: string | null | undefined): number {
+  switch (storageType) {
+    case "room_temperature":
+      return 0; // 최상단
+    case "refrigerated":
+      return 1;
+    case "frozen":
+      return 2;
+    default:
+      return 3; // 가장 하단
+  }
+}
+
 const ProductList = memo(function ProductList({ products }: ProductListProps) {
   const { filters } = useProductFilterDrawerStore();
   const { sortOption } = useProductSortStore();
@@ -58,9 +86,40 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
       });
     }
 
-    // 정렬 (우선순위 + 기본 정렬)
+    // 정렬 (원재료는 storage_type 우선, 나머지는 카테고리 우선)
     const sorted = [...filtered].sort((a, b) => {
-      // 1. 우선순위 비교
+      const isMaterialA = a.product_type === "material";
+      const isMaterialB = b.product_type === "material";
+      
+      // 원재료인 경우 storage_type 우선순위 비교 (실온이 최상단)
+      if (isMaterialA && isMaterialB) {
+        const storagePriorityA = getStorageTypePriority(a.storage_type);
+        const storagePriorityB = getStorageTypePriority(b.storage_type);
+
+        if (storagePriorityA !== storagePriorityB) {
+          return storagePriorityA - storagePriorityB; // 우선순위가 낮을수록 앞에 배치
+        }
+      }
+      
+      // 원재료가 아닌 경우 카테고리명으로 먼저 정렬
+      if (!isMaterialA && !isMaterialB) {
+        const categoryCompare = (a.category_name || "기타").localeCompare(
+          b.category_name || "기타",
+          "ko"
+        );
+        if (categoryCompare !== 0) {
+          return categoryCompare;
+        }
+        
+        // 같은 카테고리 내에서는 storage_type 우선순위 비교
+        const storagePriorityA = getStorageTypePriority(a.storage_type);
+        const storagePriorityB = getStorageTypePriority(b.storage_type);
+        if (storagePriorityA !== storagePriorityB) {
+          return storagePriorityA - storagePriorityB;
+        }
+      }
+
+      // 2. 우선순위 제품 비교
       const priorityA = getProductPriority(a.product_name);
       const priorityB = getProductPriority(b.product_name);
 
@@ -68,7 +127,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
         return priorityA - priorityB; // 우선순위가 낮을수록 앞에 배치
       }
 
-      // 2. 우선순위가 같으면 기존 정렬 로직 적용
+      // 3. 우선순위가 같으면 기존 정렬 로직 적용
       switch (sortOption) {
         case "name-asc":
           return a.product_name.localeCompare(b.product_name, "ko");
@@ -86,7 +145,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
     return sorted;
   }, [products, filters, sortOption]);
 
-  // 제품 타입에 따라 그룹핑
+  // 제품 타입에 따라 그룹핑 (원재료는 storage_type, 나머지는 category_name)
   const groupedProducts = useMemo(() => {
     const groups: Record<string, ProductOptionView[]> = {};
 
@@ -95,7 +154,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
       
       if (product.product_type === "material") {
         // 원재료는 storage_type으로 그룹핑 (실온/냉장/냉동)
-        groupKey = product.storage_type || "기타";
+        groupKey = getStorageTypeLabel(product.storage_type);
       } else {
         // 완제품은 category_name으로 그룹핑
         groupKey = product.category_name || "기타";
@@ -107,17 +166,34 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
       groups[groupKey].push(product);
     });
 
-    // 그룹명으로 정렬
-    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b, "ko"));
+    // 그룹 정렬: 원재료 그룹(storage_type)은 실온이 최상단, 나머지는 알파벳 순
+    return Object.entries(groups).sort(([groupA, productsA], [groupB, productsB]) => {
+      const isMaterialGroupA = productsA[0]?.product_type === "material";
+      const isMaterialGroupB = productsB[0]?.product_type === "material";
+      
+      // 원재료 그룹인 경우 storage_type 우선순위로 정렬
+      if (isMaterialGroupA && isMaterialGroupB) {
+        const priorityA = getStorageTypePriority(
+          groupA === "실온" ? "room_temperature" :
+          groupA === "냉장" ? "refrigerated" :
+          groupA === "냉동" ? "frozen" : null
+        );
+        const priorityB = getStorageTypePriority(
+          groupB === "실온" ? "room_temperature" :
+          groupB === "냉장" ? "refrigerated" :
+          groupB === "냉동" ? "frozen" : null
+        );
+        
+        if (priorityA !== priorityB) {
+          return priorityA - priorityB;
+        }
+      }
+      
+      // 원재료 그룹을 일반 그룹보다 앞에 배치 (선택사항)
+      // 또는 알파벳 순으로 정렬
+      return groupA.localeCompare(groupB, "ko");
+    });
   }, [filteredAndSortedProducts]);
-
-  // 원재료의 단위 표시 포맷팅 (box_unit + unit_label)
-  const formatMaterialUnit = (product: ProductOptionView): string => {
-    if (product.box_unit && product.unit_label) {
-      return `${product.box_unit}${product.unit_label}`;
-    }
-    return formatWeightDisplay(product.weight, product.unit_label as "g" | "kg" | undefined);
-  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -155,14 +231,23 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
                         )}
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-medium">
-                          {product.product_name}{" "}
-                          {isMaterial ? (
-                            <span className="text-xs text-gray-500">{formatMaterialUnit(product)}</span>
-                          ) : (
-                            formatWeightDisplay(product.weight, product.unit_label as "g" | "kg" | undefined)
+                        <div className="flex gap-2 items-center">
+                          <h3 className="font-medium">
+                            {product.product_name}{" "}
+                            {isMaterial ? (
+                              (product.weight && product.unit_label) && (
+                                <span className="text-xs text-gray-500">{`${product.weight}${product.unit_label}`}</span>
+                              )
+                            ) : (
+                              <span className="text-xs text-gray-500">{formatWeightDisplay(product.weight, product.unit_label as "g" | "kg" | undefined)}</span>
+                            )}
+                          </h3>
+                          {product.storage_type && (
+                            <span className="px-2 py-0.5 text-xs font-medium rounded-md bg-blue-100 text-blue-700">
+                              {getStorageTypeLabel(product.storage_type)}
+                            </span>
                           )}
-                        </h3>
+                        </div>
                         <div className="flex flex-wrap mt-1 text-xs text-gray-600">
                           {isMaterial ? (
                             <>
