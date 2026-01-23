@@ -8,10 +8,28 @@ const fetcher = async () => {
   const [transactionsResult, inventoryResult] = await Promise.all([
     supabase
       .from("transactions")
-      .select("id, type, created_at, transaction_items(quantity)")
+      .select(`
+        id, 
+        type, 
+        created_at, 
+        transaction_items!inner(
+          quantity,
+          product_options!inner(
+            products!inner(product_type)
+          )
+        )
+      `)
       .gte("created_at", `${today}T00:00:00`)
       .lte("created_at", `${today}T23:59:59`),
-    supabase.from("inventory").select("quantity"),
+    supabase
+      .from("inventory")
+      .select(`
+        quantity,
+        product_options!inner(
+          product_id,
+          products!inner(product_type)
+        )
+      `),
   ]);
 
   if (transactionsResult.error) throw transactionsResult.error;
@@ -20,15 +38,42 @@ const fetcher = async () => {
   let inTotal = 0;
   let outTotal = 0;
 
+  // 원재료가 아닌 transaction_items만 계산
   for (const tx of transactionsResult.data || []) {
-    const qtySum = tx.transaction_items?.reduce((sum: number, item) => sum + Number(item.quantity), 0) || 0;
+    const items = tx.transaction_items || [];
+    const nonMaterialItems = items.filter((item) => {
+      const productOptions = (item as unknown as { 
+        product_options?: Array<{ products?: Array<{ product_type?: string }> }> 
+      }).product_options;
+      const firstOption = productOptions?.[0];
+      const firstProduct = firstOption?.products?.[0];
+      return firstProduct?.product_type !== "material";
+    });
+    
+    const qtySum = nonMaterialItems.reduce(
+      (sum: number, item) => {
+        const quantity = (item as unknown as { quantity: number | string }).quantity;
+        return sum + Number(quantity);
+      }, 
+      0
+    );
     if (tx.type === "in") inTotal += qtySum;
     if (tx.type === "out") outTotal += qtySum;
   }
 
+  // 원재료가 아닌 inventory만 계산
   let sum = 0;
   for (const el of inventoryResult.data || []) {
-    sum += el.quantity;
+    const productOptions = el.product_options as unknown as Array<{ 
+      products?: Array<{ product_type?: string }> 
+    }> | null | undefined;
+    const firstOption = productOptions?.[0];
+    const firstProduct = firstOption?.products?.[0];
+    const productType = firstProduct?.product_type;
+    
+    if (productType && productType !== "material") {
+      sum += Number(el.quantity);
+    }
   }
 
   return { total: sum, in: inTotal, out: outTotal };
