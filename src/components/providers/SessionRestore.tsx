@@ -1,6 +1,7 @@
 "use client";
 
-import { createClient } from "@/utils/supabase/client";
+import { clientLogger } from "@/utils/client-logger";
+import { createClient } from "@/lib/supabase/client";
 import { useEffect, useRef } from "react";
 
 const SESSION_RESTORE_KEY = "session-restore-completed";
@@ -75,7 +76,7 @@ export function SessionRestore() {
           }
         }
       } catch (error) {
-        console.error("세션 복원 오류:", error);
+        clientLogger.error("세션 복원 오류", error);
       } finally {
         isRestoring.current = false;
       }

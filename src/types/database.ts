@@ -24,11 +24,15 @@ export type Product = {
   name: string;
   category_id: string;
   brand_id: string;
-  product_type?: "company" | "franchise" | "pb";
+  product_type?: ProductType;
+  storage_type?: string | null; // 실온/냉장/냉동
+  origin?: string | null; // 원산지
   image_url?: string;
   created_at: string;
   updated_at: string;
 };
+
+export type ProductType = "company" | "franchise" | "pb" | "material";
 
 // Product Option (SKU)
 export type ProductOption = {
@@ -38,10 +42,28 @@ export type ProductOption = {
   weight: number;
   unit_label: string;
   box_unit?: number | null;
-  buy_price: number;
-  sell_price: number;
   created_at: string;
   updated_at: string;
+};
+
+// ProductOptionView (joined view for product option + product + warehouse)
+export type ProductOptionView = {
+  product_option_id: string;
+  sku: string;
+  weight: number;
+  unit_label: string;
+  box_unit?: number | null;
+  product_id: string;
+  product_name: string;
+  brand_name: string;
+  category_name: string;
+  product_type?: ProductType | null;
+  storage_type?: string | null; // 실온/냉장/냉동
+  origin?: string | null; // 원산지
+  quantity: number;
+  warehouse_id: string;
+  warehouse_name: string;
+  image_url: string;
 };
 
 // Inventory (real-time stock summary)

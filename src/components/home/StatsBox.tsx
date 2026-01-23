@@ -6,9 +6,8 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 
 export default function StatsBox() {
-  const { summary, error, isLoading } = useStats();
-  const today = new Date();
-  const todayStr = format(today, "M월 d일", { locale: ko });
+  const { summary, error } = useStats();
+  const todayStr = format(new Date(), "M월 d일", { locale: ko });
 
   if (error) {
     return (
@@ -19,27 +18,29 @@ export default function StatsBox() {
       </Card>
     );
   }
+
   return (
     <Card className="bg-orange-200">
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
           <span>재고 현황</span>
           <span className="text-base font-normal text-muted-foreground">{todayStr}</span>
+          
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">총 재고</p>
-            <p className="text-2xl font-bold">{isLoading ? "-" : summary.total.toLocaleString()}</p>
+            <p className="text-2xl font-bold">{summary.total.toLocaleString()}</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">입고</p>
-            <p className="text-2xl font-bold text-green-600">{isLoading ? "-" : summary.in.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-green-600">{summary.in.toLocaleString()}</p>
           </div>
           <div className="space-y-1">
             <p className="text-sm font-medium text-muted-foreground">출고</p>
-            <p className="text-2xl font-bold text-red-600">{isLoading ? "-" : summary.out.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-red-600">{summary.out.toLocaleString()}</p>
           </div>
         </div>
       </CardContent>

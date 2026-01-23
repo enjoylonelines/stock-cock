@@ -1,4 +1,5 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+import { clientLogger } from "@/utils/client-logger";
 import { useEffect, useState } from "react";
 
 interface TeamInfo {
@@ -10,6 +11,7 @@ interface TeamInfo {
 }
 
 export function useTeamInfo() {
+  const supabase = createClient();
   const [info, setInfo] = useState<TeamInfo>({
     productCount: 0,
     locationCount: 0,
@@ -44,7 +46,7 @@ export function useTeamInfo() {
           customerCount: customerCount ?? 0,
         });
       } catch (error) {
-        console.error("팀 정보를 가져오는데 실패했습니다:", error);
+        clientLogger.error("팀 정보를 가져오는데 실패했습니다", error);
       } finally {
         setIsLoading(false);
       }

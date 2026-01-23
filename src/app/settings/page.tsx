@@ -1,7 +1,7 @@
 import SettingsPage from "@/components/setting/SettingsPage";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function Settings() {
   const supabase = await createClient();
