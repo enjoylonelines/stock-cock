@@ -6,7 +6,7 @@ import Header from "@/components/layout/Header";
 import { SWRProvider } from "@/components/providers/SWRProvider";
 import { SessionRestore } from "@/components/providers/SessionRestore";
 import { UserProvider } from "@/contexts/UserContext";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 
 const inter = Inter({
@@ -56,9 +56,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Header />
             <main className="pt-14 pb-20 min-h-screen">{children}</main>
             <Footer />
-            {/* 초기 접속 시 푸시 권한 요청 팝업 */}
-            {/* <PushPermissionPrompt /> */}
-            {/* 전역 드로어 - 모든 페이지에서 사용 가능 */}
             <CommonDrawer />
           </body>
         </SWRProvider>

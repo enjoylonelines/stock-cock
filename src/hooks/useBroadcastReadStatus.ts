@@ -1,13 +1,15 @@
 "use client";
 import { useUser } from "@/contexts/UserContext";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { useBroadcastReadStatusStore } from "@/store/broadcastReadStatusStore";
+import { clientLogger } from "@/utils/client-logger";
 import { useCallback, useEffect, useState } from "react";
 
 export function useBroadcastReadStatus() {
   const { lastReadBroadcastId, setLastReadBroadcastId } = useBroadcastReadStatusStore();
   const [loading, setLoading] = useState(true);
   const user = useUser();
+  const supabase = createClient();
 
   const fetchReadStatus = useCallback(async () => {
     if (!user?.id) return;
@@ -23,13 +25,13 @@ export function useBroadcastReadStatus() {
 
       if (error && error.code !== "PGRST116") {
         // PGRST116은 데이터가 없을 때
-        console.error("읽음 상태 조회 오류:", error);
+        clientLogger.error("읽음 상태 조회 오류", error);
         return;
       }
 
       setLastReadBroadcastId(data?.last_read_broadcast_id || 0);
     } catch (error) {
-      console.error("읽음 상태 조회 중 오류:", error);
+      clientLogger.error("읽음 상태 조회 중 오류", error);
     } finally {
       setLoading(false);
     }
@@ -55,14 +57,14 @@ export function useBroadcastReadStatus() {
       );
 
       if (error) {
-        console.error("읽음 처리 오류:", error);
+        clientLogger.error("읽음 처리 오류", error);
         return;
       }
 
       // 전역 상태 업데이트
       setLastReadBroadcastId(broadcastId);
     } catch (error) {
-      console.error("읽음 처리 중 오류:", error);
+      clientLogger.error("읽음 처리 중 오류", error);
     }
   };
 
@@ -82,14 +84,14 @@ export function useBroadcastReadStatus() {
       );
 
       if (error) {
-        console.error("전체 읽음 처리 오류:", error);
+        clientLogger.error("전체 읽음 처리 오류", error);
         return;
       }
 
       // 전역 상태 업데이트
       setLastReadBroadcastId(latestBroadcastId);
     } catch (error) {
-      console.error("전체 읽음 처리 중 오류:", error);
+      clientLogger.error("전체 읽음 처리 중 오류", error);
     }
   };
 
@@ -117,7 +119,7 @@ export function useBroadcastReadStatus() {
         () => {
           // 새로운 트랜잭션이 추가되면 읽지 않은 알람 개수가 증가할 수 있으므로
           // UI가 자동으로 업데이트되도록 함 (transactions 배열이 변경되면 getUnreadCount가 재계산됨)
-          console.log("새로운 트랜잭션으로 인한 알람 업데이트");
+          clientLogger.debug("새로운 트랜잭션으로 인한 알람 업데이트");
         }
       )
       .subscribe();

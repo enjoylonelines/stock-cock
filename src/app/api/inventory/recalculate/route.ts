@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 /**
@@ -175,4 +175,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "재고 재계산 실패", detail: String(error) }, { status: 500 });
   }
 }
-

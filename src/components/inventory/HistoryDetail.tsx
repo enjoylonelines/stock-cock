@@ -1,6 +1,7 @@
 "use client";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import type { TransactionHistoryView } from "@/types/database";
+import { clientLogger } from "@/utils/client-logger";
 import { ChevronLeft } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -23,6 +24,7 @@ const getTypeColor = (type: string) => {
 };
 
 export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
+  const supabase = createClient();
   const [data, setData] = useState<TransactionHistoryView[] | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -36,7 +38,7 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
         .eq("transaction_id", transactionId);
       setLoading(false);
       setData(data);
-      console.log(data);
+      clientLogger.debug("트랜잭션 이력 데이터 로드", { count: data?.length });
     };
     fetchData();
   }, [transactionId]);

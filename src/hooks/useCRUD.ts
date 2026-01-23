@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { swrConfig } from "@/lib/swr-config";
 import useSWR, { mutate, MutatorOptions } from "swr";
 
@@ -21,6 +21,8 @@ interface UseCRUDOptions<T extends CRUDEntity> {
  * @returns CRUD 작업을 위한 훅 반환값
  */
 export function useCRUD<T extends CRUDEntity>({ tableName, swrKey, orderBy = "name", transform }: UseCRUDOptions<T>) {
+  const supabase = createClient();
+
   const fetcher = async () => {
     const { data, error } = await supabase.from(tableName).select("*").order(orderBy);
     if (error) throw error;

@@ -1,8 +1,7 @@
 // app/login/actions.ts
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
-import { cookies } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 function validateEmail(email: string) {
@@ -111,8 +110,9 @@ export async function logout() {
   const { error } = await supabase.auth.signOut();
 
   if (error) {
-    console.error("로그아웃 실패:", error.message);
-    throw new Error("로그아웃 실패");
+    // 서버 액션에서는 로거 사용 불가 (클라이언트 전용)
+    // 에러는 throw하여 상위에서 처리
+    throw new Error(`로그아웃 실패: ${error.message}`);
   }
 
   // 리다이렉트

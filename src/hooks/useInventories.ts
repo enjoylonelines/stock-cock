@@ -1,6 +1,8 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import type { Inventory } from "@/types/database";
 import useSWR from "swr";
+
+const supabase = createClient();
 
 const fetcher = async () => {
   const { data, error } = await supabase.from("inventory").select("*");

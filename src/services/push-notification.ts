@@ -7,7 +7,7 @@ interface PushNotificationData {
   transactionId?: string;
   productId?: string;
   productName?: string;
-  receiptType?: string;
+  transactionType?: string;
 }
 
 interface SendPushNotificationParams {
@@ -44,7 +44,7 @@ export async function sendPushNotification(params: SendPushNotificationParams): 
     return response.ok;
   } catch (error) {
     // 푸시 알림 실패는 전체 프로세스를 중단시키지 않음
-    console.error("푸시 알림 전송 실패:", error);
+    // 서비스 레이어에서는 logger를 사용하지 않음 (API 레이어에서 처리)
     return false;
   }
 }
