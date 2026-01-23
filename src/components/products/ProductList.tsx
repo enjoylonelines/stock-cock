@@ -86,34 +86,52 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
     return sorted;
   }, [products, filters, sortOption]);
 
-  // 카테고리별로 그룹핑
-  const groupedByCategory = useMemo(() => {
+  // 제품 타입에 따라 그룹핑
+  const groupedProducts = useMemo(() => {
     const groups: Record<string, ProductOptionView[]> = {};
 
     filteredAndSortedProducts.forEach(product => {
-      const categoryName = product.category_name || "기타";
-      if (!groups[categoryName]) {
-        groups[categoryName] = [];
+      let groupKey: string;
+      
+      if (product.product_type === "material") {
+        // 원재료는 storage_type으로 그룹핑 (실온/냉장/냉동)
+        groupKey = product.storage_type || "기타";
+      } else {
+        // 완제품은 category_name으로 그룹핑
+        groupKey = product.category_name || "기타";
       }
-      groups[categoryName].push(product);
+      
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(product);
     });
 
-    // 카테고리명으로 정렬
+    // 그룹명으로 정렬
     return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b, "ko"));
   }, [filteredAndSortedProducts]);
 
+  // 원재료의 단위 표시 포맷팅 (box_unit + unit_label)
+  const formatMaterialUnit = (product: ProductOptionView): string => {
+    if (product.box_unit && product.unit_label) {
+      return `${product.box_unit}${product.unit_label}`;
+    }
+    return formatWeightDisplay(product.weight, product.unit_label as "g" | "kg" | undefined);
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      {groupedByCategory.map(([categoryName, categoryProducts]) => (
-        <div key={categoryName} className="flex flex-col gap-2">
-          {/* 카테고리 헤더 */}
+      {groupedProducts.map(([groupName, groupProducts]) => (
+        <div key={groupName} className="flex flex-col gap-2">
+          {/* 그룹 헤더 (카테고리 또는 보관방식) */}
           <div className="px-1 py-1">
-            <h2 className="text-sm font-semibold text-gray-600">{categoryName}</h2>
+            <h2 className="text-sm font-semibold text-gray-600">{groupName}</h2>
           </div>
-          {/* 카테고리별 제품 리스트 */}
-          {categoryProducts.map(product => {
+          {/* 그룹별 제품 리스트 */}
+          {groupProducts.map(product => {
             const boxSummary = formatBoxBreakdown(product.quantity, product.box_unit);
             const hasImage = product.image_url && product.image_url.trim() !== "";
+            const isMaterial = product.product_type === "material";
 
             return (
               <Link key={product.product_option_id} href={`/products/${product.product_option_id}`}>
@@ -139,12 +157,30 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
                       <div className="flex-1">
                         <h3 className="font-medium">
                           {product.product_name}{" "}
-                          {formatWeightDisplay(product.weight, product.unit_label as "g" | "kg" | undefined)}
+                          {isMaterial ? (
+                            <span className="text-xs text-gray-500">{formatMaterialUnit(product)}</span>
+                          ) : (
+                            formatWeightDisplay(product.weight, product.unit_label as "g" | "kg" | undefined)
+                          )}
                         </h3>
                         <div className="flex flex-wrap mt-1 text-xs text-gray-600">
-                          <span>{product.brand_name}</span>
-                          <span className="mx-1">·</span>
-                          <span>{product.warehouse_name}</span>
+                          {isMaterial ? (
+                            <>
+                              {product.origin && <span>{product.origin}</span>}
+                              {product.origin && product.brand_name && <span className="mx-1">·</span>}
+                              {product.brand_name && <span>{product.brand_name}</span>}
+                              {(product.origin || product.brand_name) && product.warehouse_name && (
+                                <span className="mx-1">·</span>
+                              )}
+                              <span>{product.warehouse_name}</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>{product.brand_name}</span>
+                              <span className="mx-1">·</span>
+                              <span>{product.warehouse_name}</span>
+                            </>
+                          )}
                         </div>
                       </div>
                       <div className="text-right">

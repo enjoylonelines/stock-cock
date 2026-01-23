@@ -54,7 +54,7 @@ const saveToStorage = <T extends Record<string, unknown>>(key: string, state: T)
   }
 };
 
-export type ProductType = "company" | "franchise" | "pb";
+export type ProductType = "company" | "franchise" | "pb" | "material";
 
 export interface ProductFormState {
   imageFile: File | null;
@@ -73,6 +73,8 @@ export interface ProductFormState {
   weight: number;
   weightUnit: "g" | "kg";
   sku: string;
+  storageType?: string; // 원재료 보관방식 (실온/냉장/냉동)
+  origin?: string; // 원재료 원산지
   editingProductId?: string;
   editingProductOptionId?: string;
 }
@@ -94,6 +96,8 @@ const createDefaultProductFormState = (): ProductFormState => ({
   weight: initialWeight,
   weightUnit: "g" as const,
   sku: "",
+  storageType: "",
+  origin: "",
 });
 
 export interface TransactionFormState {

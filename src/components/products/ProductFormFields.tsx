@@ -19,6 +19,8 @@ interface ProductFormFieldsProps {
   weight: number;
   weightUnit: "g" | "kg";
   initLocation: string;
+  storageType?: string;
+  origin?: string;
   mode: "create" | "edit";
   categories: Array<{ id: string; name: string }>;
   brands: Array<{ id: string; name: string }>;
@@ -28,6 +30,8 @@ interface ProductFormFieldsProps {
   onSellPriceChange: (value: string) => void;
   onInitQuantityChange: (value: string) => void;
   onBoxUnitChange: (value: string) => void;
+  onStorageTypeChange: (value: string) => void;
+  onOriginChange: (value: string) => void;
   onCategoryClick: () => void;
   onBrandClick: () => void;
   onProductTypeClick: () => void;
@@ -51,6 +55,8 @@ export const ProductFormFields = memo(function ProductFormFields({
   weight,
   weightUnit,
   initLocation,
+  storageType,
+  origin,
   mode,
   categories,
   brands,
@@ -60,6 +66,8 @@ export const ProductFormFields = memo(function ProductFormFields({
   onSellPriceChange,
   onInitQuantityChange,
   onBoxUnitChange,
+  onStorageTypeChange,
+  onOriginChange,
   onCategoryClick,
   onBrandClick,
   onProductTypeClick,
@@ -183,11 +191,40 @@ export const ProductFormFields = memo(function ProductFormFields({
                 ? "가맹점"
                 : productType === "pb"
                   ? "PB제품"
-                  : "제품 유형 선택"}
+                  : productType === "material"
+                    ? "원재료"
+                    : "제품 유형 선택"}
           </p>
         </div>
         <ChevronRight className="w-5 h-5 text-gray-400" />
       </Button>
+      {/* 원재료일 때만 보관방식과 원산지 필드 표시 */}
+      {productType === "material" && (
+        <>
+          <div className="flex gap-2 items-center py-2 w-full">
+            <h3 className="w-20 font-medium">보관방식</h3>
+            <select
+              value={storageType || ""}
+              onChange={e => onStorageTypeChange(e.target.value)}
+              className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
+            >
+              <option value="">선택</option>
+              <option value="실온">실온</option>
+              <option value="냉장">냉장</option>
+              <option value="냉동">냉동</option>
+            </select>
+          </div>
+          <div className="flex gap-2 items-center py-2 w-full">
+            <h3 className="w-20 font-medium">원산지</h3>
+            <input
+              value={origin || ""}
+              onChange={e => onOriginChange(e.target.value)}
+              placeholder="원산지 입력"
+              className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
+          </div>
+        </>
+      )}
       <Button
         onClick={onWeightClick}
         variant="ghost"

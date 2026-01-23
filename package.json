@@ -12,7 +12,16 @@
     "format": "biome format --write .",
     "format:check": "biome format .",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "supabase": "supabase",
+    "db:start": "npx supabase start",
+    "db:stop": "npx supabase stop",
+    "db:reset": "npx supabase db reset",
+    "db:migrate": "npx supabase db push",
+    "db:diff": "npx supabase db diff --linked",
+    "db:diff:remote": "npx supabase db diff --linked",
+    "db:pull": "npx supabase db pull",
+    "db:new-migration": "npx supabase migration new"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",

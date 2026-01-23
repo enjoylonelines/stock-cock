@@ -65,6 +65,8 @@ export default function ProductCreateForm({
     weight,
     weightUnit,
     sku,
+    storageType,
+    origin,
     editingProductId,
     editingProductOptionId,
   } = productForm;
@@ -163,6 +165,8 @@ export default function ProductCreateForm({
           category_id: categoryId,
           brand_id: brandId,
           product_type: productType,
+          storage_type: productType === "material" ? storageType || null : null,
+          origin: productType === "material" ? origin || null : null,
           weight,
           unit_label: weightUnit, // 선택한 단위(g 또는 kg)로 저장
           box_unit: boxUnit ? Number(boxUnit) : null,
@@ -190,6 +194,8 @@ export default function ProductCreateForm({
           category_id: categoryId,
           brand_id: brandId,
           product_type: productType,
+          storage_type: productType === "material" ? storageType || null : null,
+          origin: productType === "material" ? origin || null : null,
           weight,
           unit_label: weightUnit, // 선택한 단위(g 또는 kg)로 저장
           box_unit: boxUnit ? Number(boxUnit) : null,
@@ -287,6 +293,8 @@ export default function ProductCreateForm({
           weight={weight}
           weightUnit={weightUnit}
           initLocation={initLocation}
+          storageType={storageType}
+          origin={origin}
           mode={mode}
           categories={categories}
           brands={brands}
@@ -296,6 +304,8 @@ export default function ProductCreateForm({
           onSellPriceChange={value => updateProductForm({ sellPrice: value })}
           onInitQuantityChange={value => updateProductForm({ initQuantity: value })}
           onBoxUnitChange={value => updateProductForm({ boxUnit: value })}
+          onStorageTypeChange={value => updateProductForm({ storageType: value })}
+          onOriginChange={value => updateProductForm({ origin: value })}
           onCategoryClick={() => openDrawer("category")}
           onBrandClick={() => openDrawer("brand")}
           onProductTypeClick={() => openDrawer("productType")}
