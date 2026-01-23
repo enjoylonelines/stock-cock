@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 import { sendPushNotification } from "@/services/push-notification";
 import type { ProductCreateInput } from "@/types/api";
 import type { ProductOption } from "@/types/database";
@@ -12,6 +12,7 @@ export async function POST(req: NextRequest) {
   const endpoint = "/api/product";
 
   try {
+    const supabase = await createClient();
     const body: ProductCreateInput = await req.json();
     const { product, options } = body;
 

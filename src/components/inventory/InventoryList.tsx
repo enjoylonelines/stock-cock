@@ -139,9 +139,9 @@ const InventoryList = memo(function InventoryList({ grouped }: { grouped: Groupe
         <div key={group.date} className="space-y-2">
           <h2 className="text-sm font-medium text-gray-500">{group.date}</h2>
           <div className="space-y-2">
-            {group.transactions.map(transaction => (
+            {group.transactions.map((transaction, index) => (
               <div
-                key={transaction.transaction_id + transaction.product_name}
+                key={`${transaction.transaction_id}-${transaction.product_option_id}-${index}`}
                 className="flex gap-4 items-center p-4 bg-white rounded-lg shadow-sm cursor-pointer"
                 onClick={() => handleTransactionClick(transaction.transaction_id)}
                 onKeyDown={e => {

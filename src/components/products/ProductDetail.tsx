@@ -7,11 +7,11 @@ import { useCategories } from "@/hooks/useCategories";
 import { useInventories } from "@/hooks/useInventories";
 import { useInventoryHistory } from "@/hooks/useInventoryHistory";
 import { useWarehouses } from "@/hooks/useWarehouses";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { formatBoxBreakdown, formatNumber } from "@/lib/utils";
 import { useDrawerStore } from "@/store/drawerStore";
 import { useFormStateStore } from "@/store/formStateStore";
-import type { ProductOptionView } from "@/types/product_option_view";
+import type { ProductOptionView } from "@/types/database";
 import { clientLogger } from "@/utils/client-logger";
 import { Edit } from "lucide-react";
 import Image from "next/image";
@@ -22,6 +22,7 @@ interface ProductDetailProps {
 }
 
 export default function ProductDetail({ product }: ProductDetailProps) {
+  const supabase = createClient();
   const { inventories } = useInventories();
   const { warehouses } = useWarehouses();
   const { grouped } = useInventoryHistory();
@@ -82,8 +83,8 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         categoryId: productData.category_id,
         brandId: productData.brand_id,
         productType: (productData.product_type as "company" | "franchise" | "pb") || "company",
-        buyPrice: product.buy_price.toString(),
-        sellPrice: product.sell_price.toString(),
+        buyPrice: "",
+        sellPrice: "",
         weight: product.weight,
         weightUnit,
         boxUnit: product.box_unit ? product.box_unit.toString() : "",
@@ -140,10 +141,6 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                 </div>
               </div>
               <div className="flex flex-wrap mt-2 text-sm text-gray-600">
-                <span>{formatNumber(product.sell_price)}원</span>
-                <span className="mx-1">·</span>
-                <span>{formatNumber(product.buy_price)}원</span>
-                <span className="mx-1">·</span>
                 <span>{product.category_name}</span>
                 <span className="mx-1">·</span>
                 <span>{product.brand_name}</span>

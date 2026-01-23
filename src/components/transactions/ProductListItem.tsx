@@ -1,6 +1,6 @@
 "use client";
 import { formatNumber, formatWeightDisplay } from "@/lib/utils";
-import type { ProductOptionView } from "@/types/product_option_view";
+import type { ProductOptionView } from "@/types/database";
 import Image from "next/image";
 import { memo } from "react";
 
@@ -79,8 +79,6 @@ export const ProductListItem = memo(function ProductListItem({
           </div>
         </div>
         <div className="flex gap-1 items-center text-xs text-gray-500">
-          <span className="font-medium text-gray-700">{formatNumber(product.sell_price)}원</span>
-          <span>·</span>
           <span>{product.brand_name}</span>
           <span>·</span>
           <span>{product.warehouse_name}</span>

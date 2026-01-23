@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 
 /**
  * 재고 업데이트 헬퍼 함수
@@ -12,6 +12,7 @@ export async function updateInventory(
   warehouseId: string,
   quantityChange: number
 ): Promise<void> {
+  const supabase = await createClient();
   const { data: inventory, error: invError } = await supabase
     .from("inventory")
     .select("*")
