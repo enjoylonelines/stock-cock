@@ -389,8 +389,17 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
               ? formatMaterialSummary(product.quantity, product.weight, product.unit_label)
               : null;
 
+            // 현재 탭 정보를 포함한 URL 생성
+            const getProductUrl = () => {
+              if (typeof window !== "undefined") {
+                const currentTab = sessionStorage.getItem("products_selected_tab") || "company";
+                return `/products/${product.product_option_id}?tab=${currentTab}`;
+              }
+              return `/products/${product.product_option_id}`;
+            };
+
             return (
-              <Link key={product.product_option_id} href={`/products/${product.product_option_id}`}>
+              <Link key={product.product_option_id} href={getProductUrl()}>
                 <Card className="px-4 py-2 transition-colors bg-slate-50 hover:bg-slate-100">
                   <CardContent className="p-0">
                     <div className="flex gap-4 items-center">
