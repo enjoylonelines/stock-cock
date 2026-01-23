@@ -1,15 +1,10 @@
 import { createClient } from "@/lib/supabase/client";
 import useSWR from "swr";
 
-interface Stats {
-  totalStock: number;
-  todayInbound: number;
-  todayOutbound: number;
-}
-
 const fetcher = async () => {
+  const supabase = createClient();
   const today = new Date().toISOString().split("T")[0]; // '2025-06-30'
-
+  
   const [transactionsResult, inventoryResult] = await Promise.all([
     supabase
       .from("transactions")
@@ -40,7 +35,6 @@ const fetcher = async () => {
 };
 
 export function useStats() {
-  const supabase = createClient();
   const {
     data: summary = { total: 0, in: 0, out: 0 },
     isLoading,
