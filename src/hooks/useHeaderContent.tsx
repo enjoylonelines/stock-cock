@@ -76,10 +76,20 @@ export function useHeaderContent(): UseHeaderContentReturn {
     }
 
     if (pathname.match(/^\/products\/[\w-]+$/)) {
+      // 현재 탭 정보를 포함한 URL 생성
+      const getBackUrl = () => {
+        if (typeof window !== "undefined") {
+          const urlParams = new URLSearchParams(window.location.search);
+          const tab = urlParams.get("tab") || sessionStorage.getItem("products_selected_tab") || "company";
+          return `/products?tab=${tab}`;
+        }
+        return "/products";
+      };
+
       return {
         title: "상품 상세",
         leftButton: (
-          <Link href="/products">
+          <Link href={getBackUrl()}>
             <Button variant="ghost" size="icon">
               <ArrowLeft className="w-5 h-5" />
             </Button>
