@@ -6,7 +6,7 @@ import { useInventories } from "@/hooks/useInventories";
 import { useProducts } from "@/hooks/useProducts";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { useFormStateStore } from "@/store/formStateStore";
-import type { ProductOptionView } from "@/types/product_option_view";
+import type { ProductOptionView } from "@/types/database";
 import { clientLogger } from "@/utils/client-logger";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -87,7 +87,7 @@ export default function MoveForm({ closeDrawer }: { closeDrawer: () => void }) {
           items: selectedProducts.map(product => ({
             option_id: product.product_option_id,
             quantity: product.quantity || 1,
-            unit_price: product.sell_price || null,
+            unit_price: null,
           })),
         }),
       });

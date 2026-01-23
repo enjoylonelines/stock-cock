@@ -6,7 +6,7 @@ import { useUser } from "@/contexts/UserContext";
 import { useBrands } from "@/hooks/useBrands";
 import { useCategories } from "@/hooks/useCategories";
 import { useWarehouses } from "@/hooks/useWarehouses";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { generateSKU, generateUniqueFileName } from "@/lib/utils";
 import { registerProduct, updateProduct } from "@/services/product-api";
 import { useFormStateStore } from "@/store/formStateStore";
@@ -38,6 +38,7 @@ export default function ProductCreateForm({
   productOptionId,
 }: ProductCreateFormProps) {
   const [activeDrawer, setActiveDrawer] = useState<null | string>(null);
+  const supabase = createClient();
   const [savedScrollPosition, setSavedScrollPosition] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
   const { warehouses, addWarehouse, editWarehouse, deleteWarehouse } = useWarehouses();
@@ -64,6 +65,8 @@ export default function ProductCreateForm({
     weight,
     weightUnit,
     sku,
+    storageType,
+    origin,
     editingProductId,
     editingProductOptionId,
   } = productForm;
@@ -162,9 +165,9 @@ export default function ProductCreateForm({
           category_id: categoryId,
           brand_id: brandId,
           product_type: productType,
+          storage_type: productType === "material" ? storageType || null : null,
+          origin: productType === "material" ? origin || null : null,
           weight,
-          buy_price: Number(buyPrice),
-          sell_price: Number(sellPrice),
           unit_label: weightUnit, // 선택한 단위(g 또는 kg)로 저장
           box_unit: boxUnit ? Number(boxUnit) : null,
           sku,
@@ -191,9 +194,9 @@ export default function ProductCreateForm({
           category_id: categoryId,
           brand_id: brandId,
           product_type: productType,
+          storage_type: productType === "material" ? storageType || null : null,
+          origin: productType === "material" ? origin || null : null,
           weight,
-          buy_price: Number(buyPrice),
-          sell_price: Number(sellPrice),
           unit_label: weightUnit, // 선택한 단위(g 또는 kg)로 저장
           box_unit: boxUnit ? Number(boxUnit) : null,
           sku,
@@ -290,6 +293,8 @@ export default function ProductCreateForm({
           weight={weight}
           weightUnit={weightUnit}
           initLocation={initLocation}
+          storageType={storageType}
+          origin={origin}
           mode={mode}
           categories={categories}
           brands={brands}
@@ -299,6 +304,8 @@ export default function ProductCreateForm({
           onSellPriceChange={value => updateProductForm({ sellPrice: value })}
           onInitQuantityChange={value => updateProductForm({ initQuantity: value })}
           onBoxUnitChange={value => updateProductForm({ boxUnit: value })}
+          onStorageTypeChange={value => updateProductForm({ storageType: value })}
+          onOriginChange={value => updateProductForm({ origin: value })}
           onCategoryClick={() => openDrawer("category")}
           onBrandClick={() => openDrawer("brand")}
           onProductTypeClick={() => openDrawer("productType")}

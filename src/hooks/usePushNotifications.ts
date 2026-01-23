@@ -1,6 +1,6 @@
 "use client";
 import { useUser } from "@/contexts/UserContext";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { clientLogger } from "@/utils/client-logger";
 import { useCallback, useEffect, useState } from "react";
 
@@ -10,6 +10,7 @@ export function usePushNotifications() {
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
   const [loading, setLoading] = useState(false);
   const user = useUser();
+  const supabase = createClient();
 
   // 브라우저 지원 여부 확인
   useEffect(() => {

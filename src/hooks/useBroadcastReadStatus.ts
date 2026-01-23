@@ -1,6 +1,6 @@
 "use client";
 import { useUser } from "@/contexts/UserContext";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { useBroadcastReadStatusStore } from "@/store/broadcastReadStatusStore";
 import { clientLogger } from "@/utils/client-logger";
 import { useCallback, useEffect, useState } from "react";
@@ -9,6 +9,7 @@ export function useBroadcastReadStatus() {
   const { lastReadBroadcastId, setLastReadBroadcastId } = useBroadcastReadStatusStore();
   const [loading, setLoading] = useState(true);
   const user = useUser();
+  const supabase = createClient();
 
   const fetchReadStatus = useCallback(async () => {
     if (!user?.id) return;

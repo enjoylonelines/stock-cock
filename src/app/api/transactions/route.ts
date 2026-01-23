@@ -2,7 +2,7 @@ import type { TransactionInput } from "@/types/api";
 import { APIError } from "@/utils/api-error";
 import { handleAPIError } from "@/utils/api-handler";
 import { apiLogger } from "@/utils/logger";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { sendTransactionNotification } from "@/utils/transaction-notification";
 import { NextResponse } from "next/server";
 

@@ -23,6 +23,7 @@ export const ProductTypeSelectView = memo(function ProductTypeSelectView({
     { value: "company", label: "자사" },
     { value: "franchise", label: "가맹점" },
     { value: "pb", label: "PB제품" },
+    { value: "material", label: "원재료" },
   ];
 
   return (

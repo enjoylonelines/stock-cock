@@ -39,7 +39,7 @@ export function formatBoxBreakdown(quantity?: number | null, boxUnit?: number | 
     parts.push(`${formatNumber(boxes)}박스`);
   }
   if (remainder > 0) {
-    parts.push(`${formatNumber(remainder)}개`);
+    parts.push(`${formatNumber(remainder)}봉`);
   }
 
   if (parts.length === 0) {

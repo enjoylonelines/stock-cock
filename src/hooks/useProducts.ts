@@ -1,5 +1,5 @@
-import { supabase } from "@/lib/supabase";
-import type { ProductOptionView } from "@/types/product_option_view";
+import { createClient } from "@/lib/supabase/client";
+import type { ProductOptionView } from "@/types/database";
 import useSWR from "swr";
 
 function groupProductsByOption(products: ProductOptionView[]) {
@@ -18,6 +18,8 @@ function groupProductsByOption(products: ProductOptionView[]) {
   // 다시 배열로 변환
   return Object.values(map);
 }
+
+const supabase = createClient();
 
 const fetcher = async () => {
   const { data, error } = await supabase.from("product_option_inventory_view").select("*").order("product_name");
