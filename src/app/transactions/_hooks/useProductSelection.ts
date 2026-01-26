@@ -35,8 +35,17 @@ export function useProductSelection({
     setSelectedProducts(initialSelectedProducts);
   }, [initialSelectedProducts]);
 
-  // 검색 인풋 포커스 시 visualViewport 변경 감지 및 드로어 높이 조정
+  // iOS 감지 함수
+  const isIOS = () => {
+    if (typeof window === "undefined") return false;
+    return /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  };
+
+  // 검색 인풋 포커스 시 visualViewport 변경 감지 및 드로어 높이 조정 (iOS만)
   useEffect(() => {
+    // iOS가 아니면 뷰포트 조정 로직 실행하지 않음
+    if (!isIOS()) return;
+
     const searchInput = searchInputRef.current;
     if (!searchInput) return;
 
