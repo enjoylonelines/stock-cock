@@ -31,7 +31,13 @@ export default function TransactionForm({ mode, closeDrawer }: TransactionFormPr
 
   const { warehouses, addWarehouse, editWarehouse, deleteWarehouse } = useWarehouses();
   const { suppliers, addSupplier, editSupplier, deleteSupplier } = useSuppliers();
-  const { products } = useProducts();
+  const { products: allProducts } = useProducts();
+
+  // 입출고 폼에서는 원재료 제외
+  const products = useMemo(
+    () => allProducts.filter(product => product.product_type !== "material"),
+    [allProducts]
+  );
 
   const {
     isLoading,
