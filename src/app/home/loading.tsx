@@ -1,4 +1,4 @@
-import HomeSkeleton from "@/components/home/HomeSkeleton";
+import HomeSkeleton from "./_components/HomeSkeleton";
 
 export default function Loading() {
   return (

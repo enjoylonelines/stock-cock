@@ -1,7 +1,7 @@
 "use client";
 
-import ProductDetail from "@/components/products/ProductDetail";
-import ProductDetailSkeleton from "@/components/products/ProductDetailSkeleton";
+import ProductDetail from "../_components/ProductDetail";
+import ProductDetailSkeleton from "../_components/ProductDetailSkeleton";
 import { useProduct } from "@/hooks/useProducts";
 import { useParams } from "next/navigation";
 
