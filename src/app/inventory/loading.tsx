@@ -1,4 +1,4 @@
-import InventoryListSkeleton from "@/components/inventory/InventoryListSkeleton";
+import InventoryListSkeleton from "./_components/InventoryListSkeleton";
 
 export default function Loading() {
   return (
