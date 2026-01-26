@@ -110,7 +110,7 @@ export function useProductSelection({
 
   // 필터링된 제품 목록
   const filteredProducts = products.filter(product =>
-    product.product_name.toLowerCase().includes(searchTerm.toLowerCase())
+    product.product_name.replace(/\s+/g, "").toLowerCase().includes(searchTerm.trim().replace(/\s+/g, "").toLowerCase())
   );
 
   // 제품별 현재 재고 계산
