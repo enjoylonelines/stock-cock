@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --turbopack",
+    "build": "next build --webpack",
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "biome check .",
@@ -14,14 +14,14 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "supabase": "supabase",
-    "db:start": "npx supabase start",
-    "db:stop": "npx supabase stop",
-    "db:reset": "npx supabase db reset",
-    "db:migrate": "npx supabase db push",
-    "db:diff": "npx supabase db diff --linked",
-    "db:diff:remote": "npx supabase db diff --linked",
-    "db:pull": "npx supabase db pull",
-    "db:new-migration": "npx supabase migration new"
+    "db:start": "pnpm dlx supabase start",
+    "db:stop": "pnpm dlx supabase stop",
+    "db:reset": "pnpm dlx supabase db reset",
+    "db:migrate": "pnpm dlx supabase db push",
+    "db:diff": "pnpm dlx supabase db diff --linked",
+    "db:diff:remote": "pnpm dlx supabase db diff --linked",
+    "db:pull": "pnpm dlx supabase db pull",
+    "db:new-migration": "pnpm dlx supabase migration new"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
@@ -42,7 +42,7 @@
     "date-fns": "^3.6.0",
     "framer-motion": "^12.11.0",
     "lucide-react": "^0.488.0",
-    "next": "15.2.6",
+    "next": "^16.1.4",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
@@ -75,6 +75,6 @@
     "tsx": "^4.21.0",
     "typescript": "^5",
     "webpack": "^5.99.5",
-    "xlsx": "^0.18.5"
+    "@e965/xlsx": "^0.20.3"
   }
 }
