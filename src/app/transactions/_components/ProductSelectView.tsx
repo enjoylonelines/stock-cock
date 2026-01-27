@@ -10,6 +10,8 @@ import ProductQuantityDialog from "./ProductQuantityDialog";
 import { useProductSelection } from "../_hooks/useProductSelection";
 import { useProductQuantityDialog } from "../_hooks/useProductQuantityDialog";
 
+type FormType = "in" | "out" | "move" | "adjust";
+
 interface ProductSelectViewProps {
   onBack: () => void;
   onSelect: (products: ProductOptionView[]) => void;
@@ -17,6 +19,7 @@ interface ProductSelectViewProps {
   allowNegative?: boolean;
   selectedLocationId?: string;
   initialSelectedProducts?: ProductOptionView[];
+  formType?: FormType;
 }
 
 /**
@@ -29,6 +32,7 @@ export default function ProductSelectView({
   allowNegative = false,
   selectedLocationId,
   initialSelectedProducts = [],
+  formType = "in",
 }: ProductSelectViewProps) {
   const productSelection = useProductSelection({
     products,
@@ -71,6 +75,7 @@ export default function ProductSelectView({
     allowNegative,
     selectedLocationId,
     initialQuantity,
+    formType,
   });
 
   const handleConfirmClick = () => {
@@ -150,6 +155,7 @@ export default function ProductSelectView({
           allowNegative={allowNegative}
           selectedLocationId={selectedLocationId}
           initialQuantity={initialQuantity}
+          formType={formType}
           inputValue={quantityDialogHook.inputValue}
           currentStock={quantityDialogHook.currentStock}
           finalStock={quantityDialogHook.finalStock}

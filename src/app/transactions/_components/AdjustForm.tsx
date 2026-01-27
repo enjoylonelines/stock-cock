@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
 import { useWarehouses } from "@/hooks/useWarehouses";
+import { useInventories } from "@/hooks/useInventories";
 import { transactionFormatter } from "../_lib/transaction-formatter";
 import { useAdjustForm } from "../_hooks/useAdjustForm";
 import DrawerView from "@/components/ui/drawer-view";
@@ -28,7 +29,14 @@ export default function AdjustForm({ closeDrawer }: AdjustFormProps) {
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
 
   const { warehouses, addWarehouse, editWarehouse, deleteWarehouse } = useWarehouses();
-  const { products } = useProducts();
+  const { products: allProducts } = useProducts();
+  const { inventories } = useInventories();
+
+  // 원재료 제외
+  const products = useMemo(
+    () => allProducts.filter(product => product.product_type !== "material"),
+    [allProducts]
+  );
 
   const {
     isLoading,
@@ -46,6 +54,23 @@ export default function AdjustForm({ closeDrawer }: AdjustFormProps) {
     () => transactionFormatter.formatDate(selectedDate),
     [selectedDate]
   );
+
+  // 해당 위치에 재고가 있는지 확인
+  const hasStockInLocation = useMemo(() => {
+    if (!selectedLocation) return true;
+    return inventories.some(inv => inv.warehouse_id === selectedLocation && inv.quantity > 0);
+  }, [selectedLocation, inventories]);
+
+  // 제품 버튼 상태
+  const productButtonState = useMemo(() => {
+    if (!selectedLocation) {
+      return { disabled: true, text: "위치를 먼저 선택해주세요" };
+    }
+    if (!hasStockInLocation) {
+      return { disabled: true, text: "재고가 없습니다" };
+    }
+    return { disabled: false, text: `${selectedProducts.length}개 품목` };
+  }, [selectedLocation, hasStockInLocation, selectedProducts.length]);
 
   const handleLocationSelect = (location: { id: string; name: string }) => {
     updateAdjustForm({ selectedLocation: location.id });
@@ -103,13 +128,11 @@ export default function AdjustForm({ closeDrawer }: AdjustFormProps) {
             variant="ghost"
             className="flex justify-between items-center py-2 w-full"
             size="none"
-            disabled={!selectedLocation}
+            disabled={productButtonState.disabled}
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">제품</h3>
-              <p className="text-sm text-gray-500">
-                {!selectedLocation ? "위치를 먼저 선택해주세요" : `${selectedProducts.length}개 품목`}
-              </p>
+              <p className="text-sm text-gray-500">{productButtonState.text}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -184,6 +207,7 @@ export default function AdjustForm({ closeDrawer }: AdjustFormProps) {
           allowNegative={true}
           selectedLocationId={selectedLocation}
           initialSelectedProducts={selectedProducts}
+          formType="adjust"
         />
       </DrawerView>
 
