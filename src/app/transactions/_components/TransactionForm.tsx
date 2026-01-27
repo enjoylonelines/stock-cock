@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useProducts } from "@/hooks/useProducts";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useWarehouses } from "@/hooks/useWarehouses";
+import { useInventories } from "@/hooks/useInventories";
 import { transactionFormatter } from "../_lib/transaction-formatter";
 import { useTransactionForm } from "../_hooks/useTransactionForm";
 import DrawerView from "@/components/ui/drawer-view";
@@ -32,6 +33,7 @@ export default function TransactionForm({ mode, closeDrawer }: TransactionFormPr
   const { warehouses, addWarehouse, editWarehouse, deleteWarehouse } = useWarehouses();
   const { suppliers, addSupplier, editSupplier, deleteSupplier } = useSuppliers();
   const { products: allProducts } = useProducts();
+  const { inventories } = useInventories();
 
   // 입출고 폼에서는 원재료 제외
   const products = useMemo(
@@ -68,6 +70,25 @@ export default function TransactionForm({ mode, closeDrawer }: TransactionFormPr
     () => transactionFormatter.formatDate(selectedDate),
     [selectedDate]
   );
+
+  // 출고 모드일 때 해당 위치에 재고가 있는지 확인
+  const hasStockInLocation = useMemo(() => {
+    if (mode !== "out" || !selectedLocation) return true;
+    return inventories.some(inv => inv.warehouse_id === selectedLocation && inv.quantity > 0);
+  }, [mode, selectedLocation, inventories]);
+
+  // 제품 버튼 상태
+  const productButtonState = useMemo(() => {
+    if (mode === "out") {
+      if (!selectedLocation) {
+        return { disabled: true, text: "위치를 먼저 선택해주세요" };
+      }
+      if (!hasStockInLocation) {
+        return { disabled: true, text: "재고가 없습니다" };
+      }
+    }
+    return { disabled: false, text: undefined };
+  }, [mode, selectedLocation, hasStockInLocation]);
 
   const handleWarehouseSelect = (warehouse: { id: string; name: string }) => {
     updateTransactionForm({ selectedLocation: warehouse.id });
@@ -108,6 +129,8 @@ export default function TransactionForm({ mode, closeDrawer }: TransactionFormPr
           onSupplierClick={() => setIsSupplierViewVisible(true)}
           onProductClick={() => setIsProductViewVisible(true)}
           onMemoClick={() => setIsMemoViewVisible(true)}
+          productDisabled={productButtonState.disabled}
+          productStatusText={productButtonState.text}
         />
       </div>
 
@@ -171,6 +194,7 @@ export default function TransactionForm({ mode, closeDrawer }: TransactionFormPr
           onBack={() => setIsProductViewVisible(false)}
           onSelect={handleProductSelect}
           initialSelectedProducts={selectedProducts}
+          formType={mode}
         />
       </DrawerView>
 

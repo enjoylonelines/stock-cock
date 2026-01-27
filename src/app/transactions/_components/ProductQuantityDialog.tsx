@@ -4,6 +4,8 @@ import { formatNumber } from "@/lib/utils";
 import type { ProductOptionView } from "@/types/database";
 import { Minus, Plus } from "lucide-react";
 
+type FormType = "in" | "out" | "move" | "adjust";
+
 interface ProductQuantityDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -14,6 +16,7 @@ interface ProductQuantityDialogProps {
   allowNegative?: boolean;
   selectedLocationId?: string;
   initialQuantity?: number;
+  formType?: FormType;
   // Hook 결과를 props로 받음 (순수 UI 컴포넌트)
   inputValue: string;
   currentStock: number;
@@ -28,6 +31,13 @@ interface ProductQuantityDialogProps {
 /**
  * 제품 수량 다이얼로그 컴포넌트 (순수 UI)
  */
+const FORM_TYPE_TITLES: Record<FormType, string> = {
+  in: "입고 수량을 입력하세요",
+  out: "출고 수량을 입력하세요",
+  move: "이동 수량을 입력하세요",
+  adjust: "조정 수량을 입력하세요",
+};
+
 export default function ProductQuantityDialog({
   open,
   onOpenChange,
@@ -35,6 +45,7 @@ export default function ProductQuantityDialog({
   onConfirm,
   quantity,
   allowNegative = false,
+  formType = "in",
   inputValue,
   currentStock,
   finalStock,
@@ -56,7 +67,7 @@ export default function ProductQuantityDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="p-0 w-full max-w-xs bg-white rounded-lg">
         <DialogHeader className="px-4 py-5 text-center border-b">
-          <DialogTitle>{allowNegative ? "조정 수량을 입력하세요." : "입고 수량을 입력하세요."}</DialogTitle>
+          <DialogTitle>{FORM_TYPE_TITLES[formType]}</DialogTitle>
           <p className="text-sm text-gray-500">{product.product_name}</p>
         </DialogHeader>
 

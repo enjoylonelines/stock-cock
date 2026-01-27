@@ -3,6 +3,8 @@ import { useInventories } from "@/hooks/useInventories";
 import type { ProductOptionView } from "@/types/database";
 import { useEffect, useRef, useState } from "react";
 
+type FormType = "in" | "out" | "move" | "adjust";
+
 interface UseProductQuantityDialogProps {
   open: boolean;
   product: ProductOptionView | null;
@@ -11,6 +13,7 @@ interface UseProductQuantityDialogProps {
   allowNegative?: boolean;
   selectedLocationId?: string;
   initialQuantity?: number;
+  formType?: FormType;
 }
 
 /**
@@ -24,6 +27,7 @@ export function useProductQuantityDialog({
   allowNegative = false,
   selectedLocationId,
   initialQuantity = 0,
+  formType = "in",
 }: UseProductQuantityDialogProps) {
   const { inventories } = useInventories();
   const hasInitializedRef = useRef(false);
@@ -35,11 +39,29 @@ export function useProductQuantityDialog({
     ? stockCalculator.getCurrentStock(product.product_option_id, inventories, selectedLocationId)
     : 0;
 
-  const finalStock = currentStock + quantity;
-  const changeAmount = quantity;
+  // formType에 따른 최종 재고 및 표시 재고 계산
+  const calculateDisplayStock = () => {
+    const isInitial = quantity === initialQuantityRef.current;
 
-  // 초기 모달 오픈 시에는 원래 재고를 표시, 수량 변경 후에는 변경된 재고를 표시
-  const displayStock = quantity === initialQuantityRef.current ? currentStock : finalStock;
+    switch (formType) {
+      case "in":
+        // 입고: 현재 재고 + 입고량
+        return isInitial ? currentStock : currentStock + quantity;
+      case "out":
+        // 출고: 현재 재고 - 출고량
+        return isInitial ? currentStock : currentStock - quantity;
+      case "move":
+      case "adjust":
+        // 이동/조정: 입력값 자체가 수량
+        return quantity;
+      default:
+        return isInitial ? currentStock : currentStock + quantity;
+    }
+  };
+
+  const finalStock = formType === "out" ? currentStock - quantity : currentStock + quantity;
+  const changeAmount = formType === "out" ? -quantity : quantity;
+  const displayStock = calculateDisplayStock();
 
   /**
    * 모달 최초 오픈 + inventories 준비 완료 시

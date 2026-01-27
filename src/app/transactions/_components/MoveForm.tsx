@@ -31,8 +31,14 @@ export default function MoveForm({ closeDrawer }: MoveFormProps) {
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
 
   const { warehouses, addWarehouse, editWarehouse, deleteWarehouse } = useWarehouses();
-  const { products } = useProducts();
+  const { products: allProducts } = useProducts();
   const { inventories } = useInventories();
+
+  // 원재료 제외
+  const products = useMemo(
+    () => allProducts.filter(product => product.product_type !== "material"),
+    [allProducts]
+  );
 
   const {
     isLoading,
@@ -235,6 +241,7 @@ export default function MoveForm({ closeDrawer }: MoveFormProps) {
           onBack={() => setIsProductViewVisible(false)}
           onSelect={handleProductSelect}
           initialSelectedProducts={selectedProducts}
+          formType="move"
         />
       </DrawerView>
 
