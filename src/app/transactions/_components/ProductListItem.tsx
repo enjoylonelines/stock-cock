@@ -20,6 +20,15 @@ export const ProductListItem = memo(function ProductListItem({
   currentStock,
 }: ProductListItemProps) {
   const hasImage = product.image_url && product.image_url.trim() !== "";
+  const isMaterial = product.product_type === "material";
+
+  // 원재료는 중량으로 표시, 완제품은 개수로 표시
+  const formatQuantity = (qty: number) => {
+    if (isMaterial) {
+      return formatWeightDisplay(qty);
+    }
+    return `${formatNumber(Math.abs(qty))}개`;
+  };
 
   return (
     <button
@@ -69,12 +78,16 @@ export const ProductListItem = memo(function ProductListItem({
                 }`}
               >
                 {quantity < 0 ? "-" : ""}
-                {formatNumber(Math.abs(quantity))}개
+                {formatQuantity(quantity)}
               </p>
             ) : currentStock !== undefined ? (
-              <p className="text-sm text-gray-600">현재: {formatNumber(currentStock)}개</p>
+              <p className="text-sm text-gray-600">현재: {isMaterial ? formatWeightDisplay(currentStock) : `${formatNumber(currentStock)}개`}</p>
             ) : (
-              <p className="text-sm text-gray-600">{formatNumber(product.quantity ?? 0)}개</p>
+              <p className="text-sm text-gray-600">
+                {isMaterial 
+                  ? formatWeightDisplay(product.weight_in_grams ?? 0) 
+                  : `${formatNumber(product.quantity ?? 0)}개`}
+              </p>
             )}
           </div>
         </div>

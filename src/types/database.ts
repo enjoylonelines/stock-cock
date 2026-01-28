@@ -60,7 +60,8 @@ export type ProductOptionView = {
   product_type?: ProductType | null;
   storage_type?: string | null; // 실온/냉장/냉동
   origin?: string | null; // 원산지
-  quantity: number;
+  quantity: number; // 완제품용 (개수)
+  weight_in_grams?: number | null; // 원재료용 (g 단위)
   warehouse_id: string;
   warehouse_name: string;
   image_url: string;
@@ -71,7 +72,8 @@ export type Inventory = {
   id: string;
   product_option_id: string;
   warehouse_id: string;
-  quantity: number;
+  quantity: number | null; // 완제품용 (개수), 원재료는 NULL
+  weight_in_grams?: number | null; // 원재료용 (g 단위), 완제품은 NULL
   updated_at: string;
 };
 
