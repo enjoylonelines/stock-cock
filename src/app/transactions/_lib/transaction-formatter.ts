@@ -43,6 +43,7 @@ export const transactionFormatter = {
         option_id: product.product_option_id,
         quantity: product.quantity || 1,
         unit_price: 0, // API에서 null 대신 0 사용
+        product_type: product.product_type, // 원재료 구분용
       })),
       user_id: data.user_id,
     };
@@ -91,6 +92,7 @@ export const transactionFormatter = {
         option_id: product.product_option_id,
         quantity: product.quantity ?? 0,
         unit_price: 0, // API에서 null 대신 0 사용
+        product_type: product.product_type, // 원재료 구분용
       })),
       user_id: data.user_id,
     };

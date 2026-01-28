@@ -8,7 +8,7 @@ import { useInventories } from "@/hooks/useInventories";
 import { useInventoryHistory } from "@/hooks/useInventoryHistory";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { createClient } from "@/lib/supabase/client";
-import { formatBoxBreakdown, formatNumber } from "@/lib/utils";
+import { formatBoxBreakdown, formatNumber, formatWeightDisplay } from "@/lib/utils";
 import { useDrawerStore } from "@/store/drawerStore";
 import { useFormStateStore } from "@/store/formStateStore";
 import type { ProductOptionView } from "@/types/database";
@@ -32,19 +32,31 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   const { categories } = useCategories();
   const { brands } = useBrands();
 
-  const getTotalStock = (productId: string) =>
-    inventories
-      .filter(i => i.product_option_id === productId)
-      .reduce((sum, i) => sum + (typeof i.quantity === "number" ? i.quantity : 0), 0);
+  const isMaterial = product.product_type === "material";
 
-  const normalizeQuantity = (quantity: number | null) => (typeof quantity === "number" ? quantity : 0);
+  const getTotalStock = (productId: string) => {
+    const productInventories = inventories.filter(i => i.product_option_id === productId);
+    
+    if (isMaterial) {
+      return productInventories.reduce((sum, i) => sum + (i.weight_in_grams ?? 0), 0);
+    }
+    return productInventories.reduce((sum, i) => sum + (typeof i.quantity === "number" ? i.quantity : 0), 0);
+  };
+
+  const normalizeQuantity = (inv: typeof inventories[0]) => {
+    if (isMaterial) {
+      return inv.weight_in_grams ?? 0;
+    }
+    return typeof inv.quantity === "number" ? inv.quantity : 0;
+  };
+
   const totalStock = getTotalStock(product.product_option_id);
-  const totalBoxSummary = formatBoxBreakdown(totalStock, product.box_unit);
+  const totalBoxSummary = isMaterial ? null : formatBoxBreakdown(totalStock, product.box_unit);
   const getLocationName = (locationId: string) => warehouses.find(loc => loc.id === locationId)?.name || "알 수 없음";
 
   const productInventories = inventories.filter(i => i.product_option_id === product.product_option_id);
   const filteredInventories = showOnlyStocked
-    ? productInventories.filter(inv => (typeof inv.quantity === "number" ? inv.quantity : 0) > 0)
+    ? productInventories.filter(inv => normalizeQuantity(inv) > 0)
     : productInventories;
 
   // 특정 제품의 재고 변동 내역만 필터링
@@ -136,9 +148,11 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                   <p className="text-sm text-gray-500">{""}</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-xl font-bold text-blue-500">{formatNumber(totalStock)}개</div>
-                  {totalBoxSummary && <p className="mt-1 text-xs text-gray-500">{totalBoxSummary}</p>}
-                </div>
+                                  <div className="text-xl font-bold text-blue-500">
+                                    {isMaterial ? formatWeightDisplay(totalStock) : `${formatNumber(totalStock)}개`}
+                                  </div>
+                                  {totalBoxSummary && <p className="mt-1 text-xs text-gray-500">{totalBoxSummary}</p>}
+                                </div>
               </div>
               <div className="flex flex-wrap mt-2 text-sm text-gray-600">
                 <span>{product.category_name}</span>
@@ -176,8 +190,8 @@ export default function ProductDetail({ product }: ProductDetailProps) {
               <div className="text-sm text-gray-400">재고 없음</div>
             ) : (
               filteredInventories.map(inv => {
-                const locationQuantity = normalizeQuantity(inv.quantity);
-                const boxSummary = formatBoxBreakdown(locationQuantity, product.box_unit);
+                const locationQuantity = normalizeQuantity(inv);
+                const boxSummary = isMaterial ? null : formatBoxBreakdown(locationQuantity, product.box_unit);
 
                 return (
                   <div key={inv.id} className="flex justify-between items-center p-4 w-full text-left">
@@ -186,7 +200,9 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                       <span>{getLocationName(inv.warehouse_id)}</span>
                     </div>
                     <div className="text-right">
-                      <span className="block text-blue-500">{formatNumber(locationQuantity)}개</span>
+                      <span className="block text-blue-500">
+                        {isMaterial ? formatWeightDisplay(locationQuantity) : `${formatNumber(locationQuantity)}개`}
+                      </span>
                       {boxSummary && <span className="text-xs text-gray-500">{boxSummary}</span>}
                     </div>
                   </div>

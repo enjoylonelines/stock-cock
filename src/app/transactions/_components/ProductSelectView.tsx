@@ -2,15 +2,19 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formatNumber } from "@/lib/utils";
+import { formatNumber, formatWeightDisplay } from "@/lib/utils";
 import type { ProductOptionView } from "@/types/database";
 import { ArrowLeft, Filter, Search } from "lucide-react";
+import { useState, useMemo } from "react";
+import Tab from "@/app/products/_components/Tab";
 import ProductListItem from "./ProductListItem";
 import ProductQuantityDialog from "./ProductQuantityDialog";
+import WeightPickerDialog from "./WeightPickerDialog";
 import { useProductSelection } from "../_hooks/useProductSelection";
 import { useProductQuantityDialog } from "../_hooks/useProductQuantityDialog";
 
 type FormType = "in" | "out" | "move" | "adjust";
+type TabType = "product" | "material";
 
 interface ProductSelectViewProps {
   onBack: () => void;
@@ -34,8 +38,31 @@ export default function ProductSelectView({
   initialSelectedProducts = [],
   formType = "in",
 }: ProductSelectViewProps) {
+  // 탭 상태 (입고/조정에서만 사용)
+  const [selectedTab, setSelectedTab] = useState<TabType>("product");
+  const [weightDialogOpen, setWeightDialogOpen] = useState(false);
+
+  // 탭 표시 여부 (입고와 조정에서만 탭 표시)
+  const showTabs = formType === "in" || formType === "adjust";
+
+  // 원재료 존재 여부 확인
+  const hasMaterials = useMemo(
+    () => products.some(p => p.product_type === "material"),
+    [products]
+  );
+
+  // 탭에 따른 제품 필터링
+  const tabFilteredProducts = useMemo(() => {
+    if (!showTabs) return products;
+    return products.filter(p =>
+      selectedTab === "material"
+        ? p.product_type === "material"
+        : p.product_type !== "material"
+    );
+  }, [products, selectedTab, showTabs]);
+
   const productSelection = useProductSelection({
-    products,
+    products: tabFilteredProducts,
     allowNegative,
     selectedLocationId,
     initialSelectedProducts,
@@ -61,14 +88,31 @@ export default function ProductSelectView({
     handleDialogOpenChange,
   } = productSelection;
 
+  // 선택된 제품이 원재료인지 확인
+  const isMaterialProduct = selectedProduct?.product_type === "material";
+
+  // 원재료 선택 시 WeightPickerDialog 열기
+  const handleProductItemClick = (product: ProductOptionView) => {
+    handleProductClick(product);
+    if (product.product_type === "material") {
+      setWeightDialogOpen(true);
+    }
+  };
+
+  // 중량 선택 완료 핸들러
+  const handleWeightConfirm = (product: ProductOptionView, weightInGrams: number) => {
+    handleQuantityConfirm(product, weightInGrams);
+    setWeightDialogOpen(false);
+  };
+
   // onSelect 호출 시 selectedProducts 전달
   const handleSelectComplete = () => {
     onSelect(selectedProducts);
   };
 
-  // 수량 다이얼로그 hook
+  // 수량 다이얼로그 hook (완제품용)
   const quantityDialogHook = useProductQuantityDialog({
-    open: quantityDialogOpen,
+    open: quantityDialogOpen && !isMaterialProduct,
     product: selectedProduct,
     quantity: currentQuantity,
     setQuantity: setCurrentQuantity,
@@ -82,9 +126,31 @@ export default function ProductSelectView({
     quantityDialogHook.handleConfirm(handleQuantityConfirm, handleDialogOpenChange);
   };
 
-  const getTotalQuantity = (products: ProductOptionView[]) => {
-    return products.reduce((acc, curr) => acc + (curr.quantity ?? 0), 0);
+  // 선택 요약 텍스트 생성
+  const getSelectionSummary = (products: ProductOptionView[]) => {
+    const finishedProducts = products.filter(p => p.product_type !== "material");
+    const materials = products.filter(p => p.product_type === "material");
+    
+    const parts: string[] = [];
+    
+    if (finishedProducts.length > 0) {
+      const totalQty = finishedProducts.reduce((acc, curr) => acc + (curr.quantity ?? 0), 0);
+      parts.push(`완제품 ${formatNumber(totalQty)}개`);
+    }
+    
+    if (materials.length > 0) {
+      const totalWeight = materials.reduce((acc, curr) => acc + (curr.quantity ?? 0), 0);
+      parts.push(`원재료 ${formatWeightDisplay(totalWeight)}`);
+    }
+    
+    return parts.length > 0 ? parts.join(", ") : "0개 선택";
   };
+
+  // 탭 아이템
+  const tabItems = [
+    { value: "product", label: "완제품" },
+    { value: "material", label: "원재료" },
+  ];
 
   return (
     <div className="flex flex-col h-full">
@@ -113,6 +179,17 @@ export default function ProductSelectView({
         </div>
       </div>
 
+      {/* 탭 (입고/조정에서만, 원재료가 있을 때만) */}
+      {showTabs && hasMaterials && (
+        <div className="px-4 pt-2">
+          <Tab
+            items={tabItems}
+            value={selectedTab}
+            onValueChange={value => setSelectedTab(value as TabType)}
+          />
+        </div>
+      )}
+
       {/* 제품 목록 */}
       <div className="overflow-y-auto flex-1">
         <div className="p-4 space-y-2">
@@ -122,7 +199,7 @@ export default function ProductSelectView({
               product={product}
               quantity={isSelected(product.product_option_id) ? getSelectedQuantity(product.product_option_id) : undefined}
               selected={isSelected(product.product_option_id)}
-              onClick={() => handleProductClick(product)}
+              onClick={() => handleProductItemClick(product)}
               currentStock={allowNegative && selectedLocationId ? getCurrentStock(product.product_option_id) : undefined}
             />
           ))}
@@ -132,7 +209,7 @@ export default function ProductSelectView({
       {/* 하단 버튼 */}
       <div className="p-4 border-t">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm text-gray-600">총 {formatNumber(getTotalQuantity(selectedProducts))}개 선택</span>
+          <span className="text-sm text-gray-600">{getSelectionSummary(selectedProducts)}</span>
         </div>
         <Button
           className="w-full text-white bg-orange-500 hover:bg-orange-600"
@@ -143,8 +220,8 @@ export default function ProductSelectView({
         </Button>
       </div>
 
-      {/* 수량 선택 모달 */}
-      {selectedProduct && (
+      {/* 수량 선택 모달 (완제품용) */}
+      {selectedProduct && !isMaterialProduct && (
         <ProductQuantityDialog
           quantity={currentQuantity}
           setQuantity={setCurrentQuantity}
@@ -164,6 +241,21 @@ export default function ProductSelectView({
           handleQuantityChange={quantityDialogHook.handleQuantityChange}
           handleInputChange={quantityDialogHook.handleInputChange}
           handleInputBlur={quantityDialogHook.handleInputBlur}
+        />
+      )}
+
+      {/* 중량 선택 모달 (원재료용) */}
+      {selectedProduct && isMaterialProduct && (
+        <WeightPickerDialog
+          open={weightDialogOpen}
+          onOpenChange={open => {
+            setWeightDialogOpen(open);
+            if (!open) handleDialogOpenChange(false);
+          }}
+          product={selectedProduct}
+          onConfirm={handleWeightConfirm}
+          formType={formType === "in" || formType === "adjust" ? formType : "in"}
+          currentStock={getCurrentStock(selectedProduct.product_option_id)}
         />
       )}
     </div>

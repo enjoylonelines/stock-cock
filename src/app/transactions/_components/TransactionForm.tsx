@@ -35,10 +35,12 @@ export default function TransactionForm({ mode, closeDrawer }: TransactionFormPr
   const { products: allProducts } = useProducts();
   const { inventories } = useInventories();
 
-  // 입출고 폼에서는 원재료 제외
+  // 입고: 원재료 포함, 출고: 원재료 제외
   const products = useMemo(
-    () => allProducts.filter(product => product.product_type !== "material"),
-    [allProducts]
+    () => mode === "in" 
+      ? allProducts 
+      : allProducts.filter(product => product.product_type !== "material"),
+    [allProducts, mode]
   );
 
   const {
