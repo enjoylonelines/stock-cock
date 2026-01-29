@@ -55,7 +55,10 @@ export default function AdjustForm({ closeDrawer }: AdjustFormProps) {
   // 해당 위치에 재고가 있는지 확인
   const hasStockInLocation = useMemo(() => {
     if (!selectedLocation) return true;
-    return inventories.some(inv => inv.warehouse_id === selectedLocation && inv.quantity > 0);
+    return inventories.some(inv => 
+      inv.warehouse_id === selectedLocation && 
+      ((inv.quantity ?? 0) > 0 || (inv.weight_in_grams ?? 0) > 0)
+    );
   }, [selectedLocation, inventories]);
 
   // 제품 버튼 상태

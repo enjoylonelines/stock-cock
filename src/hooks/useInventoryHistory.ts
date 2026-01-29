@@ -24,12 +24,13 @@ const supabase = createClient();
 
 const processTransactionData = (
   data: TransactionHistoryView[],
-  inventories: { product_option_id: string; quantity: number }[]
+  inventories: { product_option_id: string; quantity: number | null; weight_in_grams?: number | null }[]
 ) => {
   const mergedInventories: Record<string, number> = inventories.reduce(
     (acc, inv) => {
       if (!acc[inv.product_option_id]) acc[inv.product_option_id] = 0;
-      acc[inv.product_option_id] += inv.quantity;
+      // quantity 또는 weight_in_grams 사용
+      acc[inv.product_option_id] += inv.quantity ?? inv.weight_in_grams ?? 0;
       return acc;
     },
     {} as Record<string, number>
