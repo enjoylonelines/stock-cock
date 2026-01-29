@@ -44,11 +44,10 @@ export default function WeightPickerDialog({
     return `${weightInGrams}g`;
   }, []);
 
-  // 다이얼로그 열릴 때 초기화
+  // 다이얼로그 열릴 때 초기화 - 현재 재고를 기본값으로 설정
   useEffect(() => {
     if (open) {
-      // 조정의 경우 현재 재고를 기본값으로
-      if (formType === "adjust" && currentStock > 0) {
+      if (currentStock > 0) {
         if (currentStock >= 1000) {
           const kgValue = currentStock / 1000;
           setInputValue(kgValue % 1 === 0 ? kgValue.toString() : Number.parseFloat(kgValue.toFixed(2)).toString());
@@ -62,7 +61,7 @@ export default function WeightPickerDialog({
         setSelectedUnit("kg");
       }
     }
-  }, [open, formType, currentStock]);
+  }, [open, currentStock]);
 
   // 단위 변경 핸들러
   const handleUnitChange = (newUnit: "g" | "kg") => {
