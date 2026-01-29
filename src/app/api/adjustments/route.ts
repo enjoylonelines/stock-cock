@@ -1,7 +1,7 @@
 import type { AdjustmentInput } from "@/types/api";
 import { APIError } from "@/utils/api-error";
 import { handleAPIError } from "@/utils/api-handler";
-import { updateInventory } from "@/utils/inventory";
+import { setInventory } from "@/utils/inventory";
 import { apiLogger } from "@/utils/logger";
 import { createClient } from "@/lib/supabase/server";
 import { sendTransactionNotification } from "@/utils/transaction-notification";
@@ -77,10 +77,19 @@ export async function POST(request: Request) {
         throw APIError.fromSupabaseError(currentInvError);
       }
 
-      const currentQuantity = currentInventory?.quantity ?? 0;
+      const isMaterial = item.product_type === "material";
+      const currentQuantity = isMaterial 
+        ? (currentInventory?.weight_in_grams ?? 0) 
+        : (currentInventory?.quantity ?? 0);
       const adjustmentQuantity = item.quantity - currentQuantity; // 목표 재고 - 현재 재고 = 조정량
 
-      await updateInventory(item.option_id, warehouse_id, adjustmentQuantity);
+      await setInventory({
+        productOptionId: item.option_id,
+        warehouseId: warehouse_id,
+        quantity: isMaterial ? undefined : item.quantity,
+        weightInGrams: isMaterial ? item.quantity : undefined,
+        isMaterial,
+      });
 
       // [4] transaction_items 기록 (조정량 기록)
       const { error: itemError } = await supabase.from("transaction_items").insert([

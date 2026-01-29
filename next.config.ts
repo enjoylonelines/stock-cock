@@ -21,7 +21,16 @@ const nextConfig: NextConfig = withBundleAnalyzer(
   withPWA({
     reactStrictMode: true,
     images: {
-      domains: ["i.pravatar.cc", "kqkvgqbdgkgbhjcuwxei.supabase.co"],
+      remotePatterns: [
+        {
+          protocol: "https",
+          hostname: "i.pravatar.cc",
+        },
+        {
+          protocol: "https",
+          hostname: "kqkvgqbdgkgbhjcuwxei.supabase.co",
+        },
+      ],
       formats: ["image/avif", "image/webp"],
       minimumCacheTTL: 60,
       // 이미지 최적화 강화
@@ -40,6 +49,8 @@ const nextConfig: NextConfig = withBundleAnalyzer(
     compress: true,
     // 프로덕션 최적화
     poweredByHeader: false,
+    // Next.js 16: 개발 서버는 Turbopack 사용, 프로덕션 빌드는 webpack 사용 (PWA 플러그인 호환)
+    // 개발 서버에서 Turbopack 사용 시 더 빠른 HMR 제공
   })
 );
 

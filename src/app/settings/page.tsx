@@ -1,4 +1,5 @@
-import SettingsPage from "@/components/setting/SettingsPage";
+import SettingsPage from "./_components/SettingsPage";
+import { settingsService } from "./_services/settings-service";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/server";
@@ -26,27 +27,12 @@ export default async function Settings() {
   }
 
   // 병렬로 모든 데이터 가져오기
-  const [profileResult, productsCountResult, membersCountResult, warehousesCountResult, suppliersCountResult] =
-    await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user.id).single(),
-      supabase.from("products").select("*", { count: "exact", head: true }),
-      supabase.from("profiles").select("*", { count: "exact", head: true }),
-      supabase.from("warehouses").select("*", { count: "exact", head: true }),
-      supabase.from("suppliers").select("*", { count: "exact", head: true }),
-    ]);
+  const [profileResult, info] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
+    settingsService.getSettingsInfo(user.id),
+  ]);
 
   const { data: profile } = profileResult;
-  const { count: productsCount } = productsCountResult;
-  const { count: membersCount } = membersCountResult;
-  const { count: warehousesCount } = warehousesCountResult;
-  const { count: suppliersCount } = suppliersCountResult;
-
-  const info = {
-    productCount: productsCount || 0,
-    memberCount: membersCount || 0,
-    locationCount: warehousesCount || 0,
-    supplierCount: suppliersCount || 0,
-  };
 
   return <SettingsPage user={profile} info={info} />;
 }

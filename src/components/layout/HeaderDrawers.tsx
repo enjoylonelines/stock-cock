@@ -5,16 +5,16 @@ import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
 import dynamic from "next/dynamic";
 
 // 드로어 컴포넌트를 동적 임포트로 지연 로딩
-const ActivityLogDrawer = dynamic(() => import("../home/ActivityLogDrawer"), {
+const ActivityLogDrawer = dynamic(() => import("@/app/home/_components/ActivityLogDrawer"), {
   ssr: false,
 });
-const FilterDrawer = dynamic(() => import("../inventory/FilterDrawer"), {
+const FilterDrawer = dynamic(() => import("@/app/inventory/_components/FilterDrawer"), {
   ssr: false,
 });
-const ProductFilterDrawer = dynamic(() => import("../products/ProductFilterDrawer"), {
+const ProductFilterDrawer = dynamic(() => import("@/app/products/_components/ProductFilterDrawer"), {
   ssr: false,
 });
-const ProductSortDialog = dynamic(() => import("../products/ProductSortDialog"), {
+const ProductSortDialog = dynamic(() => import("@/app/products/_components/ProductSortDialog"), {
   ssr: false,
 });
 
