@@ -42,8 +42,8 @@ export default function ProductSelectView({
   const [selectedTab, setSelectedTab] = useState<TabType>("product");
   const [weightDialogOpen, setWeightDialogOpen] = useState(false);
 
-  // 탭 표시 여부 (조정 제외한 입고/출고/이동에서만 탭 표시)
-  const showTabs = formType !== "adjust";
+  // 탭 표시 여부 (모든 폼에서 탭 표시)
+  const showTabs = true;
 
   // 원재료 존재 여부 확인
   const hasMaterials = useMemo(
