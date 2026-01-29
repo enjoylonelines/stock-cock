@@ -49,50 +49,64 @@ function getStorageTypePriority(storageType: string | null | undefined): number 
   }
 }
 
-// 원재료 중량 포맷팅: weight_in_grams(g)를 kg으로 변환하여 표시
+// 원재료 중량 포맷팅: weight_in_grams를 kg로 변환하여 표시
 function formatMaterialQuantity(weightInGrams: number | null | undefined): string {
   const weight = weightInGrams ?? 0;
-  
-  if (weight >= 1000) {
-    const kgValue = weight / 1000;
-    return kgValue % 1 === 0 ? `${kgValue}kg` : `${Number.parseFloat(kgValue.toFixed(2))}kg`;
-  }
-  return `${weight}g`;
+  const kgValue = weight / 1000;
+  return kgValue % 1 === 0 ? `${kgValue}kg` : `${Number.parseFloat(kgValue.toFixed(2))}kg`;
 }
 
 // 원재료 summary 포맷팅: 규격(weight) 단위로 나누어 "규격 × 개수 + 잔량" 표시
-function formatMaterialSummary(weightInGrams: number | null | undefined, optionWeight: number, unitLabel: string | null | undefined): string | null {
+function formatMaterialSummary(
+  weightInGrams: number | null | undefined,
+  optionWeight: number,
+  unitLabel: string | null | undefined,
+): string | null {
   const totalGrams = weightInGrams ?? 0;
   if (!optionWeight || !unitLabel || totalGrams === 0) {
     return null;
   }
 
-  // 규격 weight를 g 단위로 변환
+  // 규격 weight를 기본 단위로 변환 (g 또는 ml)
   const normalizedUnit = unitLabel.toLowerCase();
-  let optionWeightInGrams: number;
-  
+  let optionWeightInBase: number;
+  const isLiquid = normalizedUnit === "l" || normalizedUnit === "리터";
+
   if (normalizedUnit === "kg") {
-    optionWeightInGrams = optionWeight * 1000;
+    optionWeightInBase = optionWeight * 1000; // kg → g
+  } else if (isLiquid) {
+    optionWeightInBase = optionWeight * 1000; // L → ml
   } else {
-    optionWeightInGrams = optionWeight; // g 또는 기타 단위는 그대로
+    optionWeightInBase = optionWeight; // g 또는 기타 단위는 그대로
   }
 
-  // 규격 표시용
-  const displayWeight = optionWeight % 1 === 0 ? optionWeight.toString() : optionWeight.toFixed(1);
-  const displayUnit = normalizedUnit === "g" ? "kg" : (normalizedUnit === "l" || normalizedUnit === "리터" ? "L" : "kg");
-  
-  // 실제 표시용 규격 (g은 kg으로 변환)
+  // 규격 표시용 (g 단위이고 1kg 미만이면 g 그대로, 아니면 kg)
   let displayOptionWeight: string;
-  if (normalizedUnit === "g") {
-    const kgValue = optionWeight / 1000;
-    displayOptionWeight = kgValue % 1 === 0 ? kgValue.toString() : kgValue.toFixed(1);
+  let displayUnit: string;
+
+  if (isLiquid) {
+    displayUnit = "L";
+    displayOptionWeight = optionWeight % 1 === 0 ? optionWeight.toString() : optionWeight.toFixed(1);
+  } else if (normalizedUnit === "g") {
+    if (optionWeight < 1000) {
+      // 1kg 미만: g 그대로 표시 (예: 300g)
+      displayUnit = "g";
+      displayOptionWeight = optionWeight % 1 === 0 ? optionWeight.toString() : optionWeight.toFixed(1);
+    } else {
+      // 1kg 이상: kg로 변환 (예: 1000g → 1kg)
+      displayUnit = "kg";
+      const kgValue = optionWeight / 1000;
+      displayOptionWeight = kgValue % 1 === 0 ? kgValue.toString() : kgValue.toFixed(1);
+    }
   } else {
-    displayOptionWeight = displayWeight;
+    // kg 단위
+    displayUnit = "kg";
+    displayOptionWeight = optionWeight % 1 === 0 ? optionWeight.toString() : optionWeight.toFixed(1);
   }
 
   // 박스 개수와 나머지 계산
-  const boxes = Math.floor(totalGrams / optionWeightInGrams);
-  const remainderGrams = totalGrams % optionWeightInGrams;
+  const boxes = Math.floor(totalGrams / optionWeightInBase);
+  const remainderBase = totalGrams % optionWeightInBase;
 
   const parts: string[] = [];
 
@@ -100,14 +114,24 @@ function formatMaterialSummary(weightInGrams: number | null | undefined, optionW
     parts.push(`${displayOptionWeight}${displayUnit} × ${formatNumber(boxes)}`);
   }
 
-  if (remainderGrams > 0) {
-    // 나머지를 kg/g로 표시
-    if (remainderGrams >= 1000) {
-      const remainderKg = remainderGrams / 1000;
-      const formattedRemainder = remainderKg % 1 === 0 ? remainderKg.toString() : remainderKg.toFixed(2);
-      parts.push(`${formattedRemainder}kg`);
+  if (remainderBase > 0) {
+    // 나머지 표시 (액체는 L/ml, 고체는 kg/g)
+    if (isLiquid) {
+      if (remainderBase >= 1000) {
+        const remainderL = remainderBase / 1000;
+        const formattedRemainder = remainderL % 1 === 0 ? remainderL.toString() : remainderL.toFixed(2);
+        parts.push(`${formattedRemainder}L`);
+      } else {
+        parts.push(`${remainderBase}ml`);
+      }
     } else {
-      parts.push(`${remainderGrams}g`);
+      if (remainderBase >= 1000) {
+        const remainderKg = remainderBase / 1000;
+        const formattedRemainder = remainderKg % 1 === 0 ? remainderKg.toString() : remainderKg.toFixed(2);
+        parts.push(`${formattedRemainder}kg`);
+      } else {
+        parts.push(`${remainderBase}g`);
+      }
     }
   }
 
@@ -142,7 +166,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
       filtered = filtered.filter((product) => {
         const isMaterial = product.product_type === "material";
         const stock = isMaterial ? (product.weight_in_grams ?? 0) : product.quantity;
-        
+
         if (filters.inStock === true) {
           return stock > 0;
         }
@@ -324,7 +348,9 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
                 const hasImage = product.image_url && product.image_url.trim() !== "";
                 const isMaterial = product.product_type === "material";
                 const boxSummary = isMaterial ? null : formatBoxBreakdown(product.quantity, product.box_unit);
-                const materialSummary = isMaterial ? formatMaterialSummary(product.weight_in_grams, product.weight, product.unit_label) : null;
+                const materialSummary = isMaterial
+                  ? formatMaterialSummary(product.weight_in_grams, product.weight, product.unit_label)
+                  : null;
 
                 // 현재 탭 정보를 포함한 URL 생성
                 const getProductUrl = () => {

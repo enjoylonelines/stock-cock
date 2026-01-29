@@ -34,11 +34,8 @@ export default function MoveForm({ closeDrawer }: MoveFormProps) {
   const { products: allProducts } = useProducts();
   const { inventories } = useInventories();
 
-  // 원재료 제외
-  const products = useMemo(
-    () => allProducts.filter(product => product.product_type !== "material"),
-    [allProducts]
-  );
+  // 원재료 포함
+  const products = allProducts;
 
   const {
     isLoading,
