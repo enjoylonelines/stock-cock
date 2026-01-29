@@ -78,33 +78,66 @@ export async function POST(request: Request) {
         throw APIError.fromSupabaseError(invError);
       }
 
+      const isMaterial = item.product_type === "material";
       let signedQty = item.quantity;
       if (type === "out") signedQty = -item.quantity;
 
-      const newQty = (inventory?.quantity ?? 0) + signedQty;
+      if (isMaterial) {
+        // 원재료: weight_in_grams 사용
+        const newWeight = (inventory?.weight_in_grams ?? 0) + signedQty;
 
-      if (inventory) {
-        const { error: updateError } = await supabase
-          .from("inventory")
-          .update({ quantity: newQty })
-          .eq("id", inventory.id);
+        if (inventory) {
+          const { error: updateError } = await supabase
+            .from("inventory")
+            .update({ weight_in_grams: newWeight })
+            .eq("id", inventory.id);
 
-        if (updateError) {
-          apiLogger.dbError("재고 업데이트", updateError);
-          throw APIError.fromSupabaseError(updateError);
+          if (updateError) {
+            apiLogger.dbError("재고 업데이트", updateError);
+            throw APIError.fromSupabaseError(updateError);
+          }
+        } else {
+          const { error: insertError } = await supabase.from("inventory").insert([
+            {
+              product_option_id: item.option_id,
+              warehouse_id,
+              weight_in_grams: signedQty,
+              quantity: null,
+            },
+          ]);
+
+          if (insertError) {
+            apiLogger.dbError("재고 생성", insertError);
+            throw APIError.fromSupabaseError(insertError);
+          }
         }
       } else {
-        const { error: insertError } = await supabase.from("inventory").insert([
-          {
-            product_option_id: item.option_id,
-            warehouse_id,
-            quantity: newQty,
-          },
-        ]);
+        // 완제품: quantity 사용
+        const newQty = (inventory?.quantity ?? 0) + signedQty;
 
-        if (insertError) {
-          apiLogger.dbError("재고 생성", insertError);
-          throw APIError.fromSupabaseError(insertError);
+        if (inventory) {
+          const { error: updateError } = await supabase
+            .from("inventory")
+            .update({ quantity: newQty })
+            .eq("id", inventory.id);
+
+          if (updateError) {
+            apiLogger.dbError("재고 업데이트", updateError);
+            throw APIError.fromSupabaseError(updateError);
+          }
+        } else {
+          const { error: insertError } = await supabase.from("inventory").insert([
+            {
+              product_option_id: item.option_id,
+              warehouse_id,
+              quantity: newQty,
+            },
+          ]);
+
+          if (insertError) {
+            apiLogger.dbError("재고 생성", insertError);
+            throw APIError.fromSupabaseError(insertError);
+          }
         }
       }
 

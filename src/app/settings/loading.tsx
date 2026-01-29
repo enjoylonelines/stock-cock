@@ -1,4 +1,4 @@
-import SettingsSkeleton from "@/components/setting/SettingsSkeleton";
+import SettingsSkeleton from "./_components/SettingsSkeleton";
 
 export default function Loading() {
   return (
