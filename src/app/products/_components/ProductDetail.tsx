@@ -87,8 +87,6 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         categoryId: productData.category_id,
         brandId: productData.brand_id,
         productType: (productData.product_type as "company" | "franchise" | "pb") || "company",
-        buyPrice: "",
-        sellPrice: "",
         weight: product.weight,
         weightUnit,
         boxUnit: product.box_unit ? product.box_unit.toString() : "",
