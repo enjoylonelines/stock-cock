@@ -14,6 +14,7 @@ interface UpdateInventoryOptions {
  * @throws 에러 발생 시 throw
  */
 export async function updateInventory(productOptionId: string, warehouseId: string, quantityChange: number): Promise<void>;
+export async function updateInventory(options: UpdateInventoryOptions): Promise<void>;
 
 export async function updateInventory(
   optionsOrProductOptionId: UpdateInventoryOptions | string,
