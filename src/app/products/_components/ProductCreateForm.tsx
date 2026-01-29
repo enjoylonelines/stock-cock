@@ -57,8 +57,6 @@ export default function ProductCreateForm({
     categoryId,
     brandId,
     productType,
-    buyPrice,
-    sellPrice,
     initQuantity,
     boxUnit,
     initLocation,
@@ -118,8 +116,8 @@ export default function ProductCreateForm({
 
   // 저장 핸들러
   const handleSave = async () => {
-    if (!name || !buyPrice || !sellPrice || !categoryId || !brandId || !productType) {
-      alert("필수 정보를 모두 입력해주세요. (제품명, 구매가, 판매가, 카테고리, 브랜드, 제품 유형)");
+    if (!name || !categoryId || !brandId || !productType) {
+      alert("필수 정보를 모두 입력해주세요. (제품명, 카테고리, 브랜드, 제품 유형)");
       return;
     }
 
@@ -251,14 +249,12 @@ export default function ProductCreateForm({
   const isFormValid = useMemo(() => {
     return !!(
       name &&
-      buyPrice &&
-      sellPrice &&
       categoryId &&
       brandId &&
       productType &&
       (mode === "create" ? initLocation : true)
     );
-  }, [name, buyPrice, sellPrice, categoryId, brandId, productType, mode, initLocation]);
+  }, [name, categoryId, brandId, productType, mode, initLocation]);
 
   // localPreviewUrl 정리
   useEffect(() => {
@@ -283,8 +279,6 @@ export default function ProductCreateForm({
         <ProductFormFields
           sku={sku}
           name={name}
-          buyPrice={buyPrice}
-          sellPrice={sellPrice}
           initQuantity={initQuantity}
           boxUnit={boxUnit}
           categoryId={categoryId}
@@ -300,8 +294,6 @@ export default function ProductCreateForm({
           brands={brands}
           warehouses={warehouses}
           onNameChange={value => updateProductForm({ name: value })}
-          onBuyPriceChange={value => updateProductForm({ buyPrice: value })}
-          onSellPriceChange={value => updateProductForm({ sellPrice: value })}
           onInitQuantityChange={value => updateProductForm({ initQuantity: value })}
           onBoxUnitChange={value => updateProductForm({ boxUnit: value })}
           onStorageTypeChange={value => updateProductForm({ storageType: value })}
