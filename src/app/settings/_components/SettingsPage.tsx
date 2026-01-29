@@ -1,0 +1,162 @@
+"use client";
+
+import { logout } from "@/app/auth/actions";
+import ManageView from "@/app/transactions/_components/ManageView";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useSuppliers } from "@/hooks/useSuppliers";
+import { useWarehouses } from "@/hooks/useWarehouses";
+import type { UserInfo } from "@/types/database";
+import { Camera, ChevronRight, LogOut } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
+import PushNotificationSettings from "./PushNotificationSettings";
+import SettingsDrawer from "./SettingsDrawer";
+
+export interface SettingsInfo {
+  productCount: number;
+  memberCount: number;
+  locationCount: number;
+  supplierCount: number;
+}
+
+interface SettingsPageProps {
+  user: UserInfo;
+  info: SettingsInfo;
+}
+
+/**
+ * 설정 페이지 컴포넌트 (순수 UI)
+ */
+export default function SettingsPage({ user, info }: SettingsPageProps) {
+  const [isWarehousesDrawerOpen, setIsWarehousesDrawerOpen] = useState(false);
+  const [isSuppliersDrawerOpen, setIsSuppliersDrawerOpen] = useState(false);
+
+  const { warehouses, addWarehouse, editWarehouse, deleteWarehouse } = useWarehouses();
+  const { suppliers, addSupplier, editSupplier, deleteSupplier } = useSuppliers();
+
+  return (
+    <div className="container p-4 mx-auto space-y-6 max-w-3xl">
+      {/* 팀 정보 */}
+      <Card className="p-0 bg-white">
+        <CardContent className="overflow-hidden relative p-0 h-48 rounded-xl">
+          <Image src="/images/team-cover.png" alt="팀 커버 이미지" fill className="object-cover brightness-[0.85]" />
+          {/* 팀 정보 오버레이 */}
+          <div className="absolute right-0 bottom-0 left-0 p-4 text-white">
+            <h2 className="mb-1 text-2xl font-bold">한끼</h2>
+            <p className="text-sm opacity-90">
+              품목 {info.productCount} · 멤버 {info.memberCount}
+            </p>
+          </div>
+          {/* 사용자 정보 */}
+          <div className="flex absolute top-4 right-4 gap-3 items-center px-4 py-2 rounded-full bg-black/20">
+            <div className="text-right">
+              <p className="text-sm font-medium text-white">{user?.name ?? "이름없음"}</p>
+            </div>
+            <Avatar className="w-8 h-8 border-2 border-white/50">
+              <AvatarImage src="/images/avatar-1.png" alt={user?.name ?? "아바타"} />
+              <AvatarFallback>{user?.name?.[0] ?? "?"}</AvatarFallback>
+            </Avatar>
+          </div>
+          {/* 설정 버튼 */}
+          <div className="absolute top-4 left-4">
+            <Button
+              size="icon"
+              variant="outline"
+              className="w-8 h-8 backdrop-blur-sm bg-white/10 border-white/20 hover:bg-white/20"
+            >
+              <Camera className="w-4 h-4 text-white" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 푸시 알림 설정 */}
+      <div>
+        <h2 className="mb-2 text-lg font-bold">알림 설정</h2>
+        <Card className="p-2">
+          <CardContent className="p-0">
+            <PushNotificationSettings />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 거래처 설정 */}
+      <div>
+        <h2 className="mb-2 text-lg font-bold">거래처 설정</h2>
+        <Card className="p-2">
+          <CardContent className="p-0">
+            <Button
+              variant="ghost"
+              className="flex justify-between items-center px-2 py-3 w-full text-left"
+              onClick={() => setIsWarehousesDrawerOpen(true)}
+            >
+              <h3 className="text-base font-medium">입고처 설정</h3>
+              <div className="flex gap-2 items-center">
+                <p className="text-sm text-gray-500">{info.locationCount}개 입고처</p>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </div>
+            </Button>
+            <Button
+              variant="ghost"
+              className="flex justify-between items-center px-2 py-3 w-full text-left"
+              onClick={() => setIsSuppliersDrawerOpen(true)}
+            >
+              <h3 className="text-base font-medium">출고처 설정</h3>
+              <div className="flex gap-2 items-center">
+                <p className="text-sm text-gray-500">{info.supplierCount}개 출고처</p>
+                <ChevronRight className="w-5 h-5 text-gray-400" />
+              </div>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* 로그아웃 */}
+      <form action={logout}>
+        <h2 className="mb-2 text-lg font-bold">계정</h2>
+        <Card className="p-2">
+          <CardContent className="p-0">
+            <Button
+              variant="ghost"
+              className="flex justify-between items-center px-2 py-3 w-full text-left text-red-600 hover:text-red-700 hover:bg-red-50"
+              type="submit"
+            >
+              <div className="flex gap-3 items-center">
+                <LogOut className="w-5 h-5" />
+                <h3 className="text-base font-medium">로그아웃</h3>
+              </div>
+            </Button>
+          </CardContent>
+        </Card>
+      </form>
+
+      {/* 입고처 관리 드로어 */}
+      <SettingsDrawer isOpen={isWarehousesDrawerOpen} onClose={() => setIsWarehousesDrawerOpen(false)} title="입고처 설정">
+        <ManageView
+          onBack={() => setIsWarehousesDrawerOpen(false)}
+          onSelect={() => {}}
+          title="입고처 선택"
+          items={warehouses}
+          onAdd={addWarehouse}
+          onEdit={editWarehouse}
+          onDelete={deleteWarehouse}
+        />
+      </SettingsDrawer>
+
+      {/* 출고처 관리 드로어 */}
+      <SettingsDrawer isOpen={isSuppliersDrawerOpen} onClose={() => setIsSuppliersDrawerOpen(false)} title="출고처 설정">
+        <ManageView
+          onBack={() => setIsSuppliersDrawerOpen(false)}
+          onSelect={() => {}}
+          title="출고처 선택"
+          items={suppliers}
+          onAdd={addSupplier}
+          onEdit={editSupplier}
+          onDelete={deleteSupplier}
+        />
+      </SettingsDrawer>
+    </div>
+  );
+}
