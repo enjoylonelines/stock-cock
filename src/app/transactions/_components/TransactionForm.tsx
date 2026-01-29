@@ -71,7 +71,10 @@ export default function TransactionForm({ mode, closeDrawer }: TransactionFormPr
   // 출고 모드일 때 해당 위치에 재고가 있는지 확인
   const hasStockInLocation = useMemo(() => {
     if (mode !== "out" || !selectedLocation) return true;
-    return inventories.some(inv => inv.warehouse_id === selectedLocation && inv.quantity > 0);
+    return inventories.some(inv => 
+      inv.warehouse_id === selectedLocation && 
+      ((inv.quantity ?? 0) > 0 || (inv.weight_in_grams ?? 0) > 0)
+    );
   }, [mode, selectedLocation, inventories]);
 
   // 제품 버튼 상태
