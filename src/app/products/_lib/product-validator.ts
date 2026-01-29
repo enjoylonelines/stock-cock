@@ -10,8 +10,6 @@ export const productValidator = {
     categoryId: string;
     brandId: string;
     productType?: string;
-    buyPrice?: number;
-    sellPrice?: number;
   }): { isValid: boolean; error?: string } {
     if (!data.name || data.name.trim().length === 0) {
       return {
@@ -31,20 +29,6 @@ export const productValidator = {
       return {
         isValid: false,
         error: "브랜드를 선택해주세요.",
-      };
-    }
-
-    if (data.buyPrice !== undefined && data.buyPrice < 0) {
-      return {
-        isValid: false,
-        error: "구매 가격은 0 이상이어야 합니다.",
-      };
-    }
-
-    if (data.sellPrice !== undefined && data.sellPrice < 0) {
-      return {
-        isValid: false,
-        error: "판매 가격은 0 이상이어야 합니다.",
       };
     }
 
