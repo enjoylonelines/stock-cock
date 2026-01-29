@@ -9,8 +9,6 @@ import { memo } from "react";
 interface ProductFormFieldsProps {
   sku: string;
   name: string;
-  buyPrice: string;
-  sellPrice: string;
   initQuantity: string;
   boxUnit: string;
   categoryId: string;
@@ -26,8 +24,6 @@ interface ProductFormFieldsProps {
   brands: Array<{ id: string; name: string }>;
   warehouses: Array<{ id: string; name: string }>;
   onNameChange: (value: string) => void;
-  onBuyPriceChange: (value: string) => void;
-  onSellPriceChange: (value: string) => void;
   onInitQuantityChange: (value: string) => void;
   onBoxUnitChange: (value: string) => void;
   onStorageTypeChange: (value: string) => void;
@@ -45,8 +41,6 @@ interface ProductFormFieldsProps {
 export const ProductFormFields = memo(function ProductFormFields({
   sku,
   name,
-  buyPrice,
-  sellPrice,
   initQuantity,
   boxUnit,
   categoryId,
@@ -62,8 +56,6 @@ export const ProductFormFields = memo(function ProductFormFields({
   brands,
   warehouses,
   onNameChange,
-  onBuyPriceChange,
-  onSellPriceChange,
   onInitQuantityChange,
   onBoxUnitChange,
   onStorageTypeChange,
@@ -86,36 +78,6 @@ export const ProductFormFields = memo(function ProductFormFields({
           value={name}
           onChange={e => onNameChange(e.target.value)}
           placeholder="제품명 입력"
-          className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
-        />
-      </div>
-      <div className="flex gap-2 items-center py-2 w-full">
-        <h3 className="w-20 font-medium">구매가</h3>
-        <input
-          value={buyPrice}
-          onChange={e => {
-            const val = e.target.value.replace(/[^0-9]/g, "");
-            onBuyPriceChange(val);
-          }}
-          placeholder="구매가 입력"
-          type="number"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
-        />
-      </div>
-      <div className="flex gap-2 items-center py-2 w-full">
-        <h3 className="w-20 font-medium">판매가</h3>
-        <input
-          value={sellPrice}
-          onChange={e => {
-            const val = e.target.value.replace(/[^0-9]/g, "");
-            onSellPriceChange(val);
-          }}
-          placeholder="판매가 입력"
-          type="number"
-          inputMode="numeric"
-          pattern="[0-9]*"
           className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
         />
       </div>

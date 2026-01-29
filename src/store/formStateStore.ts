@@ -65,8 +65,6 @@ export interface ProductFormState {
   categoryId: string;
   brandId: string;
   productType: ProductType;
-  buyPrice: string;
-  sellPrice: string;
   initQuantity: string;
   boxUnit: string;
   initLocation: string;
@@ -88,8 +86,6 @@ const createDefaultProductFormState = (): ProductFormState => ({
   categoryId: "",
   brandId: "",
   productType: "company",
-  buyPrice: "",
-  sellPrice: "",
   initQuantity: "",
   boxUnit: "",
   initLocation: "",
