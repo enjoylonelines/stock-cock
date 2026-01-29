@@ -10,16 +10,16 @@ import dynamic from "next/dynamic";
 import { Suspense, useEffect, useRef } from "react";
 
 // 동적 임포트로 코드 스플리팅
-const TransactionForm = dynamic(() => import("../transactions/TransactionForm"), {
+const TransactionForm = dynamic(() => import("@/app/transactions/_components/TransactionForm"), {
   loading: () => <div className="p-4">로딩 중...</div>,
 });
-const ProductCreateForm = dynamic(() => import("../products/ProductCreateForm"), {
+const ProductCreateForm = dynamic(() => import("@/components/products/ProductCreateForm"), {
   loading: () => <div className="p-4">로딩 중...</div>,
 });
-const MoveForm = dynamic(() => import("../transactions/MoveForm"), {
+const MoveForm = dynamic(() => import("@/app/transactions/_components/MoveForm"), {
   loading: () => <div className="p-4">로딩 중...</div>,
 });
-const AdjustForm = dynamic(() => import("../transactions/AdjustForm"), {
+const AdjustForm = dynamic(() => import("@/app/transactions/_components/AdjustForm"), {
   loading: () => <div className="p-4">로딩 중...</div>,
 });
 

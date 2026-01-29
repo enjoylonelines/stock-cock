@@ -48,11 +48,25 @@ export async function POST(request: Request) {
     for (const item of items) {
       apiLogger.transaction("이동 항목 처리 시작", item);
 
+      const isMaterial = item.product_type === "material";
+
       // 출발지 재고 차감
-      await updateInventory(item.option_id, from_warehouse_id, -item.quantity);
+      await updateInventory({
+        productOptionId: item.option_id,
+        warehouseId: from_warehouse_id,
+        quantityChange: isMaterial ? undefined : -item.quantity,
+        weightChange: isMaterial ? -item.quantity : undefined,
+        isMaterial,
+      });
 
       // 도착지 재고 추가
-      await updateInventory(item.option_id, to_warehouse_id, item.quantity);
+      await updateInventory({
+        productOptionId: item.option_id,
+        warehouseId: to_warehouse_id,
+        quantityChange: isMaterial ? undefined : item.quantity,
+        weightChange: isMaterial ? item.quantity : undefined,
+        isMaterial,
+      });
 
       // [2] transaction_items 기록 (배치 없이)
       const { error: itemError } = await supabase.from("transaction_items").insert([
