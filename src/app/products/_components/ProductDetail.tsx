@@ -29,21 +29,19 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   const [showOnlyStocked, setShowOnlyStocked] = useState(false);
   const { openDrawer } = useDrawerStore();
   const { updateProductForm, resetProductForm } = useFormStateStore();
-  const { categories } = useCategories();
-  const { brands } = useBrands();
 
   const isMaterial = product.product_type === "material";
 
   const getTotalStock = (productId: string) => {
-    const productInventories = inventories.filter(i => i.product_option_id === productId);
-    
+    const productInventories = inventories.filter((i) => i.product_option_id === productId);
+
     if (isMaterial) {
       return productInventories.reduce((sum, i) => sum + (i.weight_in_grams ?? 0), 0);
     }
     return productInventories.reduce((sum, i) => sum + (typeof i.quantity === "number" ? i.quantity : 0), 0);
   };
 
-  const normalizeQuantity = (inv: typeof inventories[0]) => {
+  const normalizeQuantity = (inv: (typeof inventories)[0]) => {
     if (isMaterial) {
       return inv.weight_in_grams ?? 0;
     }
@@ -52,20 +50,18 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
   const totalStock = getTotalStock(product.product_option_id);
   const totalBoxSummary = isMaterial ? null : formatBoxBreakdown(totalStock, product.box_unit);
-  const getLocationName = (locationId: string) => warehouses.find(loc => loc.id === locationId)?.name || "알 수 없음";
+  const getLocationName = (locationId: string) => warehouses.find((loc) => loc.id === locationId)?.name || "알 수 없음";
 
-  const productInventories = inventories.filter(i => i.product_option_id === product.product_option_id);
-  const filteredInventories = showOnlyStocked
-    ? productInventories.filter(inv => normalizeQuantity(inv) > 0)
-    : productInventories;
+  const productInventories = inventories.filter((i) => i.product_option_id === product.product_option_id);
+  const filteredInventories = showOnlyStocked ? productInventories.filter((inv) => normalizeQuantity(inv) > 0) : productInventories;
 
   // 특정 제품의 재고 변동 내역만 필터링
   const productHistory = grouped
-    .map(group => ({
+    .map((group) => ({
       ...group,
-      transactions: group.transactions.filter(tx => tx.product_option_id === product.product_option_id),
+      transactions: group.transactions.filter((tx) => tx.product_option_id === product.product_option_id),
     }))
-    .filter(group => group.transactions.length > 0);
+    .filter((group) => group.transactions.length > 0);
 
   const handleEdit = async () => {
     try {
@@ -80,10 +76,6 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         alert("제품 정보를 불러오는데 실패했습니다.");
         return;
       }
-
-      // category와 brand를 이름으로 찾기
-      const category = categories.find(c => c.id === productData.category_id);
-      const brand = brands.find(b => b.id === productData.brand_id);
 
       // 중량 단위 결정 (1000g 이상이면 kg)
       const weightUnit: "g" | "kg" = product.weight >= 1000 ? "kg" : "g";
@@ -124,14 +116,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
           <div className="flex gap-4">
             <div className="overflow-hidden relative w-24 h-24 bg-gray-100 rounded-lg shrink-0">
               {product.image_url ? (
-                <Image
-                  src={product.image_url}
-                  alt={product.product_name}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="96px"
-                />
+                <Image src={product.image_url} alt={product.product_name} fill className="object-cover" priority sizes="96px" />
               ) : (
                 <div className="w-full h-full bg-gray-200" />
               )}
@@ -148,11 +133,11 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                   <p className="text-sm text-gray-500">{""}</p>
                 </div>
                 <div className="text-right">
-                                  <div className="text-xl font-bold text-blue-500">
-                                    {isMaterial ? formatWeightDisplay(totalStock) : `${formatNumber(totalStock)}개`}
-                                  </div>
-                                  {totalBoxSummary && <p className="mt-1 text-xs text-gray-500">{totalBoxSummary}</p>}
-                                </div>
+                  <div className="text-xl font-bold text-blue-500">
+                    {isMaterial ? formatWeightDisplay(totalStock) : `${formatNumber(totalStock)}개`}
+                  </div>
+                  {totalBoxSummary && <p className="mt-1 text-xs text-gray-500">{totalBoxSummary}</p>}
+                </div>
               </div>
               <div className="flex flex-wrap mt-2 text-sm text-gray-600">
                 <span>{product.category_name}</span>
@@ -174,7 +159,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                 className={`w-8 h-4 rounded-full transition-colors duration-200 focus:outline-none ${
                   showOnlyStocked ? "bg-blue-500" : "bg-gray-200"
                 }`}
-                onClick={() => setShowOnlyStocked(prev => !prev)}
+                onClick={() => setShowOnlyStocked((prev) => !prev)}
                 aria-pressed={showOnlyStocked}
               >
                 <span
@@ -189,7 +174,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
             {filteredInventories.length === 0 ? (
               <div className="text-sm text-gray-400">재고 없음</div>
             ) : (
-              filteredInventories.map(inv => {
+              filteredInventories.map((inv) => {
                 const locationQuantity = normalizeQuantity(inv);
                 const boxSummary = isMaterial ? null : formatBoxBreakdown(locationQuantity, product.box_unit);
 
