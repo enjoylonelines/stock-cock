@@ -63,17 +63,18 @@ export default function ActivityLogDrawer() {
   };
 
   const formatLogMessage = (transaction: InventoryTransaction) => {
+    const qty = transaction.quantity ?? 0;
     switch (transaction.type) {
       case "in":
-        return `${transaction.product_name} ${transaction.quantity}개를 ${transaction.to_warehouse_name}에 입고`;
+        return `${transaction.product_name} ${qty}개를 ${transaction.to_warehouse_name}에 입고`;
       case "out":
-        return `${transaction.product_name} ${-transaction.quantity}개를 ${transaction.from_warehouse_name}에서 출고`;
+        return `${transaction.product_name} ${-qty}개를 ${transaction.from_warehouse_name}에서 출고`;
       case "move":
-        return `${transaction.product_name} ${transaction.quantity}개를 ${transaction.from_warehouse_name}에서 ${transaction.to_warehouse_name}로 이동`;
+        return `${transaction.product_name} ${qty}개를 ${transaction.from_warehouse_name}에서 ${transaction.to_warehouse_name}로 이동`;
       case "adjust":
-        return `${transaction.product_name} 재고를 ${transaction.quantity > 0 ? "+" : ""}${transaction.quantity}개로 조정`;
+        return `${transaction.product_name} 재고를 ${qty > 0 ? "+" : ""}${qty}개로 조정`;
       default:
-        return `${transaction.product_name} ${transaction.quantity}개 처리`;
+        return `${transaction.product_name} ${qty}개 처리`;
     }
   };
 
@@ -133,14 +134,14 @@ export default function ActivityLogDrawer() {
                     role="button"
                     tabIndex={0}
                   >
-                    <div className="flex-shrink-0 mt-1">{getTypeIcon(transaction.type)}</div>
+                    <div className="flex-shrink-0 mt-1">{getTypeIcon(transaction.type ?? "")}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex gap-2 items-center mb-1">
-                        <span className={`font-medium ${getTypeColor(transaction.type)}`}>
-                          {getTypeLabel(transaction.type)}
+                        <span className={`font-medium ${getTypeColor(transaction.type ?? "")}`}>
+                          {getTypeLabel(transaction.type ?? "")}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {formatDistanceToNow(new Date(transaction.created_at), {
+                          {transaction.created_at && formatDistanceToNow(new Date(transaction.created_at), {
                             addSuffix: true,
                             locale: ko,
                           })}

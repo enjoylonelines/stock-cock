@@ -24,10 +24,11 @@ const supabase = createClient();
 
 const processTransactionData = (
   data: TransactionHistoryView[],
-  inventories: { product_option_id: string; quantity: number | null; weight_in_grams?: number | null }[]
+  inventories: { product_option_id: string | null; quantity: number | null; weight_in_grams?: number | null }[]
 ) => {
   const mergedInventories: Record<string, number> = inventories.reduce(
     (acc, inv) => {
+      if (!inv.product_option_id) return acc;
       if (!acc[inv.product_option_id]) acc[inv.product_option_id] = 0;
       // quantity 또는 weight_in_grams 사용
       acc[inv.product_option_id] += inv.quantity ?? inv.weight_in_grams ?? 0;
@@ -39,9 +40,11 @@ const processTransactionData = (
   // [1] inventories 기준으로 현재고 세팅
   const stockMap: Record<string, number> = { ...mergedInventories };
 
-  const logs: InventoryTransaction[] = data.map((tx, index) => {
-    const product_id = tx.product_option_id;
-    const dateObj = new Date(tx.created_at);
+  const logs: InventoryTransaction[] = data
+    .filter(tx => tx.product_option_id && tx.created_at) // null 필터링
+    .map((tx, index) => {
+    const product_id = tx.product_option_id!;
+    const dateObj = new Date(tx.created_at!);
     const dateStr = `${dateObj.getFullYear()}년 ${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일`;
 
     let type_kr: InventoryTransaction["type_kr"];
@@ -62,7 +65,8 @@ const processTransactionData = (
         type_kr = "입고";
     }
 
-    const signedQuantity = tx.type === "out" ? -tx.quantity : tx.quantity;
+    const qty = tx.quantity ?? 0;
+    const signedQuantity = tx.type === "out" ? -qty : qty;
 
     // [2] 현재 수량 기록 (거래가 적용되기 전 시점)
     const total_stock = stockMap[product_id] ?? 0;
@@ -73,13 +77,13 @@ const processTransactionData = (
     return {
       ...tx,
       product_id,
-      product_name: tx.product_name,
+      product_name: tx.product_name ?? "",
       date: dateStr,
       type_kr,
       quantity: signedQuantity,
       total_stock, // 이 시점에서의 수량
       broadcast_id: data.length - index, // 최신 트랜잭션이 높은 ID
-      image_url: tx.user_image_url, // avatar 이미지 URL
+      image_url: tx.user_image_url ?? "", // avatar 이미지 URL
     };
   });
 

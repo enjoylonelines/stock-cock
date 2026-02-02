@@ -1,5 +1,5 @@
 "use client";
-import { formatNumber, formatWeightDisplay } from "@/lib/utils";
+import { formatMaterialSummary, formatNumber, formatWeightDisplay } from "@/lib/utils";
 import type { ProductOptionView } from "@/types/database";
 import Image from "next/image";
 import { memo } from "react";
@@ -12,19 +12,15 @@ interface ProductListItemProps {
   currentStock?: number; // 조정 모드에서 현재 재고 표시용
 }
 
-export const ProductListItem = memo(function ProductListItem({
-  product,
-  quantity,
-  selected,
-  onClick,
-  currentStock,
-}: ProductListItemProps) {
+export const ProductListItem = memo(function ProductListItem({ product, quantity, selected, onClick, currentStock }: ProductListItemProps) {
   const hasImage = product.image_url && product.image_url.trim() !== "";
   const isMaterial = product.product_type === "material";
 
   // 원재료는 중량으로 표시, 완제품은 개수로 표시
   const formatQuantity = (qty: number) => {
     if (isMaterial) {
+      // 0일 때는 "0"으로 표시
+      if (qty === 0) return "0";
       return formatWeightDisplay(qty);
     }
     return `${formatNumber(Math.abs(qty))}개`;
@@ -41,14 +37,7 @@ export const ProductListItem = memo(function ProductListItem({
       {/* 제품 이미지 */}
       <div className="flex overflow-hidden relative justify-center items-center w-12 h-12 bg-gray-100 rounded-lg shrink-0">
         {hasImage ? (
-          <Image
-            src={product.image_url}
-            alt={product.product_name}
-            fill
-            className="object-cover"
-            loading="lazy"
-            sizes="48px"
-          />
+          <Image src={product.image_url!} alt={product.product_name} fill className="object-cover" loading="lazy" sizes="48px" />
         ) : (
           <div className="flex justify-center items-center w-full h-full text-xs font-medium text-gray-400">
             {product.product_name.charAt(0).toUpperCase()}
@@ -61,33 +50,50 @@ export const ProductListItem = memo(function ProductListItem({
           <div className="flex-1 min-w-0">
             <h3 className="font-medium truncate">
               {product.product_name}
-              {product.weight > 0 && <span className="ml-2 text-gray-500">{formatWeightDisplay(product.weight)}</span>}
+              {product.weight > 0 && product.unit_label && (
+                <span className="ml-2 text-gray-500">{`${product.weight}${product.unit_label}`}</span>
+              )}
             </h3>
           </div>
           <div className="text-center shrink-0">
             {quantity !== undefined ? (
-              <p
-                className={`text-sm font-medium ${
-                  selected
-                    ? quantity < 0
-                      ? "text-red-500"
-                      : "text-orange-500"
-                    : quantity < 0
-                      ? "text-red-500"
-                      : "text-blue-500"
-                }`}
-              >
-                {quantity < 0 ? "-" : ""}
-                {formatQuantity(quantity)}
-              </p>
+              <div>
+                <p
+                  className={`text-sm font-medium ${
+                    selected ? (quantity < 0 ? "text-red-500" : "text-orange-500") : quantity < 0 ? "text-red-500" : "text-blue-500"
+                  }`}
+                >
+                  {quantity < 0 ? "-" : ""}
+                  {formatQuantity(quantity)}
+                </p>
+                {isMaterial && quantity !== 0 && (
+                  <p className="text-xs text-gray-500">{formatMaterialSummary(quantity, product.weight, product.unit_label)}</p>
+                )}
+              </div>
             ) : currentStock !== undefined ? (
-              <p className="text-sm text-gray-600">현재: {isMaterial ? formatWeightDisplay(currentStock) : `${formatNumber(currentStock)}개`}</p>
+              <div>
+                <p className="text-sm text-gray-600">
+                  현재: {isMaterial ? (currentStock === 0 ? "0" : formatWeightDisplay(currentStock)) : `${formatNumber(currentStock)}개`}
+                </p>
+                {isMaterial && currentStock > 0 && (
+                  <p className="text-xs text-gray-500">{formatMaterialSummary(currentStock, product.weight, product.unit_label)}</p>
+                )}
+              </div>
             ) : (
-              <p className="text-sm text-gray-600">
-                {isMaterial 
-                  ? formatWeightDisplay(product.weight_in_grams ?? 0) 
-                  : `${formatNumber(product.quantity ?? 0)}개`}
-              </p>
+              <div>
+                <p className="text-sm text-gray-600">
+                  {isMaterial
+                    ? (product.weight_in_grams ?? 0) === 0
+                      ? "0"
+                      : formatWeightDisplay(product.weight_in_grams ?? 0)
+                    : `${formatNumber(product.quantity ?? 0)}개`}
+                </p>
+                {isMaterial && (product.weight_in_grams ?? 0) > 0 && (
+                  <p className="text-xs text-gray-500">
+                    {formatMaterialSummary(product.weight_in_grams ?? 0, product.weight, product.unit_label)}
+                  </p>
+                )}
+              </div>
             )}
           </div>
         </div>

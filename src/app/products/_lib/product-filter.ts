@@ -29,10 +29,10 @@ export const productFilter = {
       // 검색어 필터
       if (filters.searchQuery) {
         const searchLower = filters.searchQuery.trim().replace(/\s+/g, "").toLowerCase();
-        const matchesName = product.product_name.replace(/\s+/g, "").toLowerCase().includes(searchLower);
-        const matchesSku = product.sku.replace(/\s+/g, "").toLowerCase().includes(searchLower);
-        const matchesBrand = product.brand_name.replace(/\s+/g, "").toLowerCase().includes(searchLower);
-        const matchesCategory = product.category_name.replace(/\s+/g, "").toLowerCase().includes(searchLower);
+        const matchesName = (product.product_name ?? "").replace(/\s+/g, "").toLowerCase().includes(searchLower);
+        const matchesSku = (product.sku ?? "").replace(/\s+/g, "").toLowerCase().includes(searchLower);
+        const matchesBrand = (product.brand_name ?? "").replace(/\s+/g, "").toLowerCase().includes(searchLower);
+        const matchesCategory = (product.category_name ?? "").replace(/\s+/g, "").toLowerCase().includes(searchLower);
 
         if (!matchesName && !matchesSku && !matchesBrand && !matchesCategory) {
           return false;
