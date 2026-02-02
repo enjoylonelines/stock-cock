@@ -75,7 +75,6 @@ export async function POST(request: Request) {
           product_option_id: item.option_id,
           batch_id: null, // 이동은 배치 없음
           quantity: item.quantity,
-          unit_price: item.unit_price,
         },
       ]);
 

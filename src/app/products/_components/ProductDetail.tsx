@@ -11,11 +11,11 @@ import { createClient } from "@/lib/supabase/client";
 import { formatBoxBreakdown, formatNumber, formatWeightDisplay } from "@/lib/utils";
 import { useDrawerStore } from "@/store/drawerStore";
 import { useFormStateStore } from "@/store/formStateStore";
-import type { ProductOptionView } from "@/types/database";
 import { clientLogger } from "@/utils/client-logger";
 import { Edit } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import type { ProductOptionView } from "@/types/database";
 
 interface ProductDetailProps {
   product: ProductOptionView;
@@ -59,7 +59,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   const productHistory = grouped
     .map((group) => ({
       ...group,
-      transactions: group.transactions.filter((tx) => tx.product_option_id === product.product_option_id),
+      transactions: group.transactions.filter((tx) => (tx as { product_option_id?: string }).product_option_id === product.product_option_id),
     }))
     .filter((group) => group.transactions.length > 0);
 
@@ -90,7 +90,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         weight: product.weight,
         weightUnit,
         boxUnit: product.box_unit ? product.box_unit.toString() : "",
-        sku: product.sku,
+        sku: product.sku ?? undefined,
         imagePath: product.image_url || "",
         localPreviewUrl: product.image_url || "",
         editingProductId: product.product_id,
@@ -180,7 +180,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                   <div key={inv.id} className="flex justify-between items-center p-4 w-full text-left">
                     <div className="flex gap-2 items-center">
                       <span className="w-2 h-2 bg-gray-400 rounded-full" />
-                      <span>{getLocationName(inv.warehouse_id)}</span>
+                      <span>{getLocationName(inv.warehouse_id ?? "")}</span>
                     </div>
                     <div className="text-right">
                       <span className="block text-blue-500">

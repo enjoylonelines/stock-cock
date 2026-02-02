@@ -3,7 +3,7 @@ import type { Product, ProductOption } from "@/types/database";
 import type { Insertable } from "@/types/util";
 
 export type ProductFormInput = Insertable<Product> &
-  Insertable<ProductOption> & {
+  Omit<Insertable<ProductOption>, "product_id"> & {
     warehouse_id: string;
     quantity: number;
   };

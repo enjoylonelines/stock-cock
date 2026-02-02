@@ -14,8 +14,9 @@ import { memo, useCallback, useMemo, useState } from "react";
 const groupByTransactionId = (transactions: InventoryTransaction[]): InventoryTransaction[][] => {
   const groups: Record<string, InventoryTransaction[]> = {};
   transactions.forEach(tx => {
-    if (!groups[tx.transaction_id]) groups[tx.transaction_id] = [];
-    groups[tx.transaction_id].push(tx);
+    const txId = tx.transaction_id ?? "";
+    if (!groups[txId]) groups[txId] = [];
+    groups[txId].push(tx);
   });
   // 최신순 유지 (첫 번째 항목의 broadcast_id 기준)
   return Object.values(groups).sort((a, b) => b[0].broadcast_id - a[0].broadcast_id);
@@ -113,8 +114,8 @@ const TransactionItem = memo(function TransactionItem({
         )}
       </div>
       <div className="flex flex-col items-end">
-        <div className={`text-right ${getQuantityColor(transaction.quantity)}`}>
-          {formatQuantityDisplay(transaction.quantity, product)}
+        <div className={`text-right ${getQuantityColor(transaction.quantity ?? 0)}`}>
+          {formatQuantityDisplay(transaction.quantity ?? 0, product)}
         </div>
         {!compact && (
           <div className="text-sm text-gray-500">{transaction.user_name ? transaction.user_name : "이름없음"}</div>
@@ -149,14 +150,14 @@ const TransactionGroup = memo(function TransactionGroup({
     if (hasMultiple) {
       setIsExpanded(prev => !prev);
     } else {
-      onDetailClick(firstTransaction.transaction_id);
+      onDetailClick(firstTransaction.transaction_id ?? "");
     }
   }, [hasMultiple, onDetailClick, firstTransaction.transaction_id]);
 
   const handleDetailClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      onDetailClick(firstTransaction.transaction_id);
+      onDetailClick(firstTransaction.transaction_id ?? "");
     },
     [firstTransaction.transaction_id, onDetailClick]
   );
@@ -235,8 +236,8 @@ const TransactionGroup = memo(function TransactionGroup({
             )}
           </div>
           <div className="flex flex-col gap-2 items-end">
-            <div className={`text-right ${getQuantityColor(firstTransaction.quantity)}`}>
-              {formatQuantityDisplay(firstTransaction.quantity, firstProduct)}
+            <div className={`text-right ${getQuantityColor(firstTransaction.quantity ?? 0)}`}>
+              {formatQuantityDisplay(firstTransaction.quantity ?? 0, firstProduct)}
             </div>
             <div className="text-sm text-gray-500">
               {firstTransaction.user_name ? firstTransaction.user_name : "이름없음"}

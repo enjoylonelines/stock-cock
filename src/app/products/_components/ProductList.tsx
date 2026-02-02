@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { formatBoxBreakdown, formatNumber, formatWeightDisplay } from "@/lib/utils";
+import { formatBoxBreakdown, formatMaterialSummary, formatNumber } from "@/lib/utils";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
 import { useProductSortStore } from "@/store/productSortStore";
 import type { ProductOptionView } from "@/types/database";
@@ -54,92 +54,6 @@ function formatMaterialQuantity(weightInGrams: number | null | undefined): strin
   const weight = weightInGrams ?? 0;
   const kgValue = weight / 1000;
   return kgValue % 1 === 0 ? `${kgValue}kg` : `${Number.parseFloat(kgValue.toFixed(2))}kg`;
-}
-
-// 원재료 summary 포맷팅: 규격(weight) 단위로 나누어 "규격 × 개수 + 잔량" 표시
-function formatMaterialSummary(
-  weightInGrams: number | null | undefined,
-  optionWeight: number,
-  unitLabel: string | null | undefined,
-): string | null {
-  const totalGrams = weightInGrams ?? 0;
-  if (!optionWeight || !unitLabel || totalGrams === 0) {
-    return null;
-  }
-
-  // 규격 weight를 기본 단위로 변환 (g 또는 ml)
-  const normalizedUnit = unitLabel.toLowerCase();
-  let optionWeightInBase: number;
-  const isLiquid = normalizedUnit === "l" || normalizedUnit === "리터";
-
-  if (normalizedUnit === "kg") {
-    optionWeightInBase = optionWeight * 1000; // kg → g
-  } else if (isLiquid) {
-    optionWeightInBase = optionWeight * 1000; // L → ml
-  } else {
-    optionWeightInBase = optionWeight; // g 또는 기타 단위는 그대로
-  }
-
-  // 규격 표시용 (g 단위이고 1kg 미만이면 g 그대로, 아니면 kg)
-  let displayOptionWeight: string;
-  let displayUnit: string;
-
-  if (isLiquid) {
-    displayUnit = "L";
-    displayOptionWeight = optionWeight % 1 === 0 ? optionWeight.toString() : optionWeight.toFixed(1);
-  } else if (normalizedUnit === "g") {
-    if (optionWeight < 1000) {
-      // 1kg 미만: g 그대로 표시 (예: 300g)
-      displayUnit = "g";
-      displayOptionWeight = optionWeight % 1 === 0 ? optionWeight.toString() : optionWeight.toFixed(1);
-    } else {
-      // 1kg 이상: kg로 변환 (예: 1000g → 1kg)
-      displayUnit = "kg";
-      const kgValue = optionWeight / 1000;
-      displayOptionWeight = kgValue % 1 === 0 ? kgValue.toString() : kgValue.toFixed(1);
-    }
-  } else {
-    // kg 단위
-    displayUnit = "kg";
-    displayOptionWeight = optionWeight % 1 === 0 ? optionWeight.toString() : optionWeight.toFixed(1);
-  }
-
-  // 박스 개수와 나머지 계산
-  const boxes = Math.floor(totalGrams / optionWeightInBase);
-  const remainderBase = totalGrams % optionWeightInBase;
-
-  const parts: string[] = [];
-
-  if (boxes > 0) {
-    parts.push(`${displayOptionWeight}${displayUnit} × ${formatNumber(boxes)}`);
-  }
-
-  if (remainderBase > 0) {
-    // 나머지 표시 (액체는 L/ml, 고체는 kg/g)
-    if (isLiquid) {
-      if (remainderBase >= 1000) {
-        const remainderL = remainderBase / 1000;
-        const formattedRemainder = remainderL % 1 === 0 ? remainderL.toString() : remainderL.toFixed(2);
-        parts.push(`${formattedRemainder}L`);
-      } else {
-        parts.push(`${remainderBase}ml`);
-      }
-    } else {
-      if (remainderBase >= 1000) {
-        const remainderKg = remainderBase / 1000;
-        const formattedRemainder = remainderKg % 1 === 0 ? remainderKg.toString() : remainderKg.toFixed(2);
-        parts.push(`${formattedRemainder}kg`);
-      } else {
-        parts.push(`${remainderBase}g`);
-      }
-    }
-  }
-
-  if (parts.length === 0) {
-    return null;
-  }
-
-  return parts.join(" + ");
 }
 
 const ProductList = memo(function ProductList({ products }: ProductListProps) {
@@ -369,8 +283,8 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
                           <div className="flex overflow-hidden relative flex-shrink-0 justify-center items-center w-14 h-14 rounded-md bg-slate-200">
                             {hasImage ? (
                               <Image
-                                src={product.image_url}
-                                alt={product.product_name}
+                                src={product.image_url ?? ""}
+                                alt={product.product_name ?? ""}
                                 fill
                                 className="object-cover"
                                 loading="lazy"
@@ -386,15 +300,8 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
                             <div className="flex gap-2 items-center">
                               <h3 className="font-medium">
                                 {product.product_name}{" "}
-                                {isMaterial ? (
-                                  product.weight &&
-                                  product.unit_label && (
-                                    <span className="text-xs text-gray-500">{`${product.weight}${product.unit_label}`}</span>
-                                  )
-                                ) : (
-                                  <span className="text-xs text-gray-500">
-                                    {formatWeightDisplay(product.weight, product.unit_label as "g" | "kg" | undefined)}
-                                  </span>
+                                {product.weight > 0 && product.unit_label && (
+                                  <span className="text-xs text-gray-500">{`${product.weight}${product.unit_label}`}</span>
                                 )}
                               </h3>
                               {product.storage_type && (
