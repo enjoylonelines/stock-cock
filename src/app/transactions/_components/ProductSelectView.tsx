@@ -2,8 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formatNumber, formatWeightDisplay } from "@/lib/utils";
-import type { ProductOptionView } from "@/types/database";
+import { formatStock } from "@/lib/domain/format";
+import { isMaterialItem } from "@/lib/domain/inventory";
+import { formatNumber } from "@/lib/utils";
+import type { DomainInventoryItem } from "@/types/domain";
 import { ArrowLeft, Filter, Search } from "lucide-react";
 import { useState, useMemo } from "react";
 import Tab from "@/app/products/_components/Tab";
@@ -18,11 +20,11 @@ type TabType = "product" | "material";
 
 interface ProductSelectViewProps {
   onBack: () => void;
-  onSelect: (products: ProductOptionView[]) => void;
-  products: ProductOptionView[];
+  onSelect: (products: DomainInventoryItem[]) => void;
+  products: DomainInventoryItem[];
   allowNegative?: boolean;
   selectedLocationId?: string;
-  initialSelectedProducts?: ProductOptionView[];
+  initialSelectedProducts?: DomainInventoryItem[];
   formType?: FormType;
 }
 
@@ -47,7 +49,7 @@ export default function ProductSelectView({
 
   // 원재료 존재 여부 확인
   const hasMaterials = useMemo(
-    () => products.some(p => p.product_type === "material"),
+    () => products.some(p => isMaterialItem(p)),
     [products]
   );
 
@@ -56,8 +58,8 @@ export default function ProductSelectView({
     if (!showTabs) return products;
     return products.filter(p =>
       selectedTab === "material"
-        ? p.product_type === "material"
-        : p.product_type !== "material"
+        ? isMaterialItem(p)
+        : !isMaterialItem(p)
     );
   }, [products, selectedTab, showTabs]);
 
@@ -89,18 +91,18 @@ export default function ProductSelectView({
   } = productSelection;
 
   // 선택된 제품이 원재료인지 확인
-  const isMaterialProduct = selectedProduct?.product_type === "material";
+  const isMaterialProduct = selectedProduct ? isMaterialItem(selectedProduct) : false;
 
   // 원재료 선택 시 WeightPickerDialog 열기
-  const handleProductItemClick = (product: ProductOptionView) => {
+  const handleProductItemClick = (product: DomainInventoryItem) => {
     handleProductClick(product);
-    if (product.product_type === "material") {
+    if (isMaterialItem(product)) {
       setWeightDialogOpen(true);
     }
   };
 
   // 중량 선택 완료 핸들러
-  const handleWeightConfirm = (product: ProductOptionView, weightInGrams: number) => {
+  const handleWeightConfirm = (product: DomainInventoryItem, weightInGrams: number) => {
     handleQuantityConfirm(product, weightInGrams);
     setWeightDialogOpen(false);
   };
@@ -127,9 +129,9 @@ export default function ProductSelectView({
   };
 
   // 선택 요약 텍스트 생성
-  const getSelectionSummary = (products: ProductOptionView[]) => {
-    const finishedProducts = products.filter(p => p.product_type !== "material");
-    const materials = products.filter(p => p.product_type === "material");
+  const getSelectionSummary = (items: DomainInventoryItem[]) => {
+    const finishedProducts = items.filter(p => !isMaterialItem(p));
+    const materials = items.filter(p => isMaterialItem(p));
     
     const parts: string[] = [];
     
@@ -140,7 +142,7 @@ export default function ProductSelectView({
     
     if (materials.length > 0) {
       const totalWeight = materials.reduce((acc, curr) => acc + (curr.quantity ?? 0), 0);
-      parts.push(`원재료 ${formatWeightDisplay(totalWeight)}`);
+      parts.push(`원재료 ${formatStock(totalWeight, "GRAM")}`);
     }
     
     return parts.length > 0 ? parts.join(", ") : "0개 선택";
@@ -195,12 +197,12 @@ export default function ProductSelectView({
         <div className="p-4 space-y-2">
           {filteredProducts.map(product => (
             <ProductListItem
-              key={product.product_option_id}
+              key={product.productOptionId}
               product={product}
-              quantity={isSelected(product.product_option_id) ? getSelectedQuantity(product.product_option_id) : undefined}
-              selected={isSelected(product.product_option_id)}
+              quantity={isSelected(product.productOptionId) ? getSelectedQuantity(product.productOptionId) : undefined}
+              selected={isSelected(product.productOptionId)}
               onClick={() => handleProductItemClick(product)}
-              currentStock={allowNegative && selectedLocationId ? getCurrentStock(product.product_option_id) : undefined}
+              currentStock={allowNegative && selectedLocationId ? getCurrentStock(product.productOptionId) : undefined}
             />
           ))}
         </div>
@@ -255,7 +257,7 @@ export default function ProductSelectView({
           product={selectedProduct}
           onConfirm={handleWeightConfirm}
           formType={formType === "in" || formType === "adjust" ? formType : "in"}
-          currentStock={getCurrentStock(selectedProduct.product_option_id)}
+          currentStock={getCurrentStock(selectedProduct.productOptionId)}
         />
       )}
     </div>

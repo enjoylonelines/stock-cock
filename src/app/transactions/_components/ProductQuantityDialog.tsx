@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatNumber } from "@/lib/utils";
-import type { ProductOptionView } from "@/types/database";
+import type { DomainInventoryItem } from "@/types/domain";
 import { Minus, Plus } from "lucide-react";
 
 type FormType = "in" | "out" | "move" | "adjust";
@@ -9,8 +9,8 @@ type FormType = "in" | "out" | "move" | "adjust";
 interface ProductQuantityDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  product: ProductOptionView | null;
-  onConfirm: (product: ProductOptionView, quantity: number) => void;
+  product: DomainInventoryItem | null;
+  onConfirm: (product: DomainInventoryItem, quantity: number) => void;
   quantity: number;
   setQuantity: (quantity: number) => void;
   allowNegative?: boolean;
@@ -68,7 +68,7 @@ export default function ProductQuantityDialog({
       <DialogContent className="p-0 w-full max-w-xs bg-white rounded-lg">
         <DialogHeader className="px-4 py-5 text-center border-b">
           <DialogTitle>{FORM_TYPE_TITLES[formType]}</DialogTitle>
-          <p className="text-sm text-gray-500">{product.product_name}</p>
+          <p className="text-sm text-gray-500">{product.name}</p>
         </DialogHeader>
 
         <div className="p-4">

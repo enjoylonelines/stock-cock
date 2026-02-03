@@ -38,7 +38,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
-  ],
+, "src/app/inventory/layout.tsㅌ"  ],
   "exclude": [
     "node_modules"
   ]

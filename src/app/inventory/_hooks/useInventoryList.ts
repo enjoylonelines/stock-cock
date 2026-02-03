@@ -12,6 +12,7 @@ import { useMemo } from "react";
  */
 export function useInventoryList() {
   const { grouped, loading } = useInventoryHistory();
+
   const { filters } = useInventoryFilterDrawerStore();
   const { warehouses } = useWarehouses();
   const { suppliers } = useSuppliers();
@@ -23,21 +24,13 @@ export function useInventoryList() {
     const context = inventoryFilter.createFilterContext(filters);
 
     // 이름 매핑
-    context.selectedLocationName = filters.location
-      ? warehouses.find(l => l.id === filters.location)?.name ?? null
-      : null;
+    context.selectedLocationName = filters.location ? (warehouses.find((l) => l.id === filters.location)?.name ?? null) : null;
 
-    context.selectedSupplierName = filters.supplier
-      ? suppliers.find(s => s.id === filters.supplier)?.name ?? null
-      : null;
+    context.selectedSupplierName = filters.supplier ? (suppliers.find((s) => s.id === filters.supplier)?.name ?? null) : null;
 
-    context.selectedProductName = filters.product
-      ? products.find(p => p.product_option_id === filters.product)?.product_name ?? null
-      : null;
+    context.selectedProductName = filters.product ? (products.find((p) => p.productOptionId === filters.product)?.name ?? null) : null;
 
-    context.selectedMemberName = filters.member
-      ? profiles.find(p => p.id === filters.member)?.name ?? null
-      : null;
+    context.selectedMemberName = filters.member ? (profiles.find((p) => p.id === filters.member)?.name ?? null) : null;
 
     return context;
   }, [filters, warehouses, suppliers, products, profiles]);

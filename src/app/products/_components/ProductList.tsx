@@ -1,15 +1,16 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { formatBoxBreakdown, formatMaterialSummary, formatNumber } from "@/lib/utils";
+import { formatBoxBreakdown, formatMaterialSummary, formatStock } from "@/lib/domain/format";
+import { isMaterialItem } from "@/lib/domain/inventory";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
 import { useProductSortStore } from "@/store/productSortStore";
-import type { ProductOptionView } from "@/types/database";
+import type { DomainInventoryItem } from "@/types/domain";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { memo, useEffect, useMemo, useState } from "react";
 
 type ProductListProps = {
-  products: ProductOptionView[];
+  products: DomainInventoryItem[];
 };
 
 // 우선순위 제품 목록 (상위에 배치할 제품명)
@@ -49,13 +50,6 @@ function getStorageTypePriority(storageType: string | null | undefined): number 
   }
 }
 
-// 원재료 중량 포맷팅: weight_in_grams를 kg로 변환하여 표시
-function formatMaterialQuantity(weightInGrams: number | null | undefined): string {
-  const weight = weightInGrams ?? 0;
-  const kgValue = weight / 1000;
-  return kgValue % 1 === 0 ? `${kgValue}kg` : `${Number.parseFloat(kgValue.toFixed(2))}kg`;
-}
-
 const ProductList = memo(function ProductList({ products }: ProductListProps) {
   const { filters } = useProductFilterDrawerStore();
   const { sortOption } = useProductSortStore();
@@ -69,23 +63,20 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
       const query = filters.searchQuery.trim().replace(/\s+/g, "").toLowerCase();
       filtered = filtered.filter(
         (product) =>
-          product.product_name.replace(/\s+/g, "").toLowerCase().includes(query) ||
-          product.category_name?.replace(/\s+/g, "").toLowerCase().includes(query) ||
-          product.brand_name?.replace(/\s+/g, "").toLowerCase().includes(query),
+          product.name.replace(/\s+/g, "").toLowerCase().includes(query) ||
+          product.categoryName.replace(/\s+/g, "").toLowerCase().includes(query) ||
+          product.brandName.replace(/\s+/g, "").toLowerCase().includes(query),
       );
     }
 
     // 재고 상태 필터
     if (filters.inStock !== undefined) {
       filtered = filtered.filter((product) => {
-        const isMaterial = product.product_type === "material";
-        const stock = isMaterial ? (product.weight_in_grams ?? 0) : product.quantity;
-
         if (filters.inStock === true) {
-          return stock > 0;
+          return product.stock > 0;
         }
         if (filters.inStock === false) {
-          return stock <= 0;
+          return product.stock <= 0;
         }
         return true;
       });
@@ -93,13 +84,13 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
 
     // 정렬 (원재료는 storage_type 우선, 나머지는 카테고리 우선)
     const sorted = [...filtered].sort((a, b) => {
-      const isMaterialA = a.product_type === "material";
-      const isMaterialB = b.product_type === "material";
+      const isMaterialA = isMaterialItem(a);
+      const isMaterialB = isMaterialItem(b);
 
       // 원재료인 경우 storage_type 우선순위 비교 (실온이 최상단)
       if (isMaterialA && isMaterialB) {
-        const storagePriorityA = getStorageTypePriority(a.storage_type);
-        const storagePriorityB = getStorageTypePriority(b.storage_type);
+        const storagePriorityA = getStorageTypePriority(a.storageType);
+        const storagePriorityB = getStorageTypePriority(b.storageType);
 
         if (storagePriorityA !== storagePriorityB) {
           return storagePriorityA - storagePriorityB; // 우선순위가 낮을수록 앞에 배치
@@ -108,22 +99,22 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
 
       // 원재료가 아닌 경우 카테고리명으로 먼저 정렬
       if (!isMaterialA && !isMaterialB) {
-        const categoryCompare = (a.category_name || "기타").localeCompare(b.category_name || "기타", "ko");
+        const categoryCompare = (a.categoryName || "기타").localeCompare(b.categoryName || "기타", "ko");
         if (categoryCompare !== 0) {
           return categoryCompare;
         }
 
         // 같은 카테고리 내에서는 storage_type 우선순위 비교
-        const storagePriorityA = getStorageTypePriority(a.storage_type);
-        const storagePriorityB = getStorageTypePriority(b.storage_type);
+        const storagePriorityA = getStorageTypePriority(a.storageType);
+        const storagePriorityB = getStorageTypePriority(b.storageType);
         if (storagePriorityA !== storagePriorityB) {
           return storagePriorityA - storagePriorityB;
         }
       }
 
       // 2. 우선순위 제품 비교
-      const priorityA = getProductPriority(a.product_name);
-      const priorityB = getProductPriority(b.product_name);
+      const priorityA = getProductPriority(a.name);
+      const priorityB = getProductPriority(b.name);
 
       if (priorityA !== priorityB) {
         return priorityA - priorityB; // 우선순위가 낮을수록 앞에 배치
@@ -132,15 +123,15 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
       // 3. 우선순위가 같으면 기존 정렬 로직 적용
       switch (sortOption) {
         case "name-asc":
-          return a.product_name.localeCompare(b.product_name, "ko");
+          return a.name.localeCompare(b.name, "ko");
         case "name-desc":
-          return b.product_name.localeCompare(a.product_name, "ko");
+          return b.name.localeCompare(a.name, "ko");
         case "quantity-desc":
-          return b.quantity - a.quantity;
+          return b.stock - a.stock;
         case "quantity-asc":
-          return a.quantity - b.quantity;
+          return a.stock - b.stock;
         default:
-          return a.product_name.localeCompare(b.product_name, "ko");
+          return a.name.localeCompare(b.name, "ko");
       }
     });
 
@@ -149,17 +140,17 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
 
   // 제품 타입에 따라 그룹핑 (원재료는 storage_type, 나머지는 category_name)
   const groupedProducts = useMemo(() => {
-    const groups: Record<string, ProductOptionView[]> = {};
+    const groups: Record<string, DomainInventoryItem[]> = {};
 
     filteredAndSortedProducts.forEach((product) => {
       let groupKey: string;
 
-      if (product.product_type === "material") {
+      if (isMaterialItem(product)) {
         // 원재료는 storage_type으로 그룹핑 (실온/냉장/냉동)
-        groupKey = getStorageTypeLabel(product.storage_type);
+        groupKey = getStorageTypeLabel(product.storageType);
       } else {
         // 완제품은 category_name으로 그룹핑
-        groupKey = product.category_name || "기타";
+        groupKey = product.categoryName || "기타";
       }
 
       if (!groups[groupKey]) {
@@ -170,8 +161,8 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
 
     // 그룹 정렬: 원재료 그룹(storage_type)은 실온이 최상단, 나머지는 알파벳 순
     return Object.entries(groups).sort(([groupA, productsA], [groupB, productsB]) => {
-      const isMaterialGroupA = productsA[0]?.product_type === "material";
-      const isMaterialGroupB = productsB[0]?.product_type === "material";
+      const isMaterialGroupA = productsA[0] ? isMaterialItem(productsA[0]) : false;
+      const isMaterialGroupB = productsB[0] ? isMaterialItem(productsB[0]) : false;
 
       // 원재료 그룹인 경우 storage_type 우선순위로 정렬
       if (isMaterialGroupA && isMaterialGroupB) {
@@ -259,32 +250,30 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
             {/* 그룹별 제품 리스트 */}
             {isExpanded &&
               groupProducts.map((product) => {
-                const hasImage = product.image_url && product.image_url.trim() !== "";
-                const isMaterial = product.product_type === "material";
-                const boxSummary = isMaterial ? null : formatBoxBreakdown(product.quantity, product.box_unit);
-                const materialSummary = isMaterial
-                  ? formatMaterialSummary(product.weight_in_grams, product.weight, product.unit_label)
-                  : null;
+                const hasImage = product.imageUrl && product.imageUrl.trim() !== "";
+                const isMaterial = isMaterialItem(product);
+                const boxSummary = isMaterial ? null : formatBoxBreakdown(product.stock, product.boxUnit);
+                const materialSummary = isMaterial ? formatMaterialSummary(product.stock, product.weight, product.unitLabel) : null;
 
                 // 현재 탭 정보를 포함한 URL 생성
                 const getProductUrl = () => {
                   if (typeof window !== "undefined") {
                     const currentTab = sessionStorage.getItem("products_selected_tab") || "company";
-                    return `/products/${product.product_option_id}?tab=${currentTab}`;
+                    return `/products/${product.productOptionId}?tab=${currentTab}`;
                   }
-                  return `/products/${product.product_option_id}`;
+                  return `/products/${product.productOptionId}`;
                 };
 
                 return (
-                  <Link key={product.product_option_id} href={getProductUrl()}>
+                  <Link key={product.productOptionId} href={getProductUrl()}>
                     <Card className="px-4 py-2 transition-colors bg-slate-50 hover:bg-slate-100">
                       <CardContent className="p-0">
                         <div className="flex gap-4 items-center">
                           <div className="flex overflow-hidden relative flex-shrink-0 justify-center items-center w-14 h-14 rounded-md bg-slate-200">
                             {hasImage ? (
                               <Image
-                                src={product.image_url ?? ""}
-                                alt={product.product_name ?? ""}
+                                src={product.imageUrl ?? ""}
+                                alt={product.name}
                                 fill
                                 className="object-cover"
                                 loading="lazy"
@@ -292,55 +281,44 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
                               />
                             ) : (
                               <div className="flex justify-center items-center w-full h-full text-sm font-medium text-gray-400">
-                                {product.product_name.charAt(0).toUpperCase()}
+                                {product.name.charAt(0).toUpperCase()}
                               </div>
                             )}
                           </div>
                           <div className="flex-1">
                             <div className="flex gap-2 items-center">
                               <h3 className="font-medium">
-                                {product.product_name}{" "}
-                                {product.weight > 0 && product.unit_label && (
-                                  <span className="text-xs text-gray-500">{`${product.weight}${product.unit_label}`}</span>
+                                {product.name}{" "}
+                                {product.weight > 0 && product.unitLabel && (
+                                  <span className="text-xs text-gray-500">{`${product.weight}${product.unitLabel}`}</span>
                                 )}
                               </h3>
-                              {product.storage_type && (
+                              {product.storageType && (
                                 <span className="px-2 py-0.5 text-xs font-medium rounded-md bg-blue-100 text-blue-700">
-                                  {getStorageTypeLabel(product.storage_type)}
+                                  {getStorageTypeLabel(product.storageType)}
                                 </span>
                               )}
                             </div>
                             <div className="flex flex-wrap mt-1 text-xs text-gray-600">
                               {isMaterial ? (
                                 <>
-                                  {product.origin && <span>{product.origin}</span>}
-                                  {product.origin && product.brand_name && <span className="mx-1">·</span>}
-                                  {product.brand_name && <span>{product.brand_name}</span>}
-                                  {(product.origin || product.brand_name) && product.warehouse_name && <span className="mx-1">·</span>}
-                                  <span>{product.warehouse_name}</span>
+                                  {product.brandName && <span>{product.brandName}</span>}
+                                  {product.brandName && product.warehouseName && <span className="mx-1">·</span>}
+                                  <span>{product.warehouseName}</span>
                                 </>
                               ) : (
                                 <>
-                                  <span>{product.brand_name}</span>
+                                  <span>{product.brandName}</span>
                                   <span className="mx-1">·</span>
-                                  <span>{product.warehouse_name}</span>
+                                  <span>{product.warehouseName}</span>
                                 </>
                               )}
                             </div>
                           </div>
                           <div className="text-right">
-                            {isMaterial ? (
-                              <>
-                                <div className="text-2xl font-semibold text-blue-600">
-                                  {formatMaterialQuantity(product.weight_in_grams)}
-                                </div>
-                                {materialSummary && <p className="mt-1 text-xs text-gray-500">{materialSummary}</p>}
-                              </>
-                            ) : (
-                              <>
-                                <div className="text-2xl font-semibold text-blue-600">{formatNumber(product.quantity)}봉</div>
-                                {boxSummary && <p className="mt-1 text-xs text-gray-500">{boxSummary}</p>}
-                              </>
+                            <div className="text-2xl font-semibold text-blue-600">{formatStock(product.stock, product.stockUnit)}</div>
+                            {(materialSummary || boxSummary) && (
+                              <p className="mt-1 text-xs text-gray-500">{materialSummary || boxSummary}</p>
                             )}
                           </div>
                         </div>

@@ -2,23 +2,23 @@
 
 import InventoryList from "@/app/inventory/_components/InventoryList";
 import { Button } from "@/components/ui/button";
-import { useBrands } from "@/app/products/_hooks/useBrands";
-import { useCategories } from "@/app/products/_hooks/useCategories";
+import { formatBoxBreakdown, formatStock } from "@/lib/domain/format";
+import { isMaterialItem } from "@/lib/domain/inventory";
 import { useInventories } from "@/hooks/useInventories";
 import { useInventoryHistory } from "@/hooks/useInventoryHistory";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { createClient } from "@/lib/supabase/client";
-import { formatBoxBreakdown, formatNumber, formatWeightDisplay } from "@/lib/utils";
+import { formatNumber } from "@/lib/utils";
 import { useDrawerStore } from "@/store/drawerStore";
 import { useFormStateStore } from "@/store/formStateStore";
+import type { DomainInventoryItem } from "@/types/domain";
 import { clientLogger } from "@/utils/client-logger";
 import { Edit } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import type { ProductOptionView } from "@/types/database";
 
 interface ProductDetailProps {
-  product: ProductOptionView;
+  product: DomainInventoryItem;
 }
 
 export default function ProductDetail({ product }: ProductDetailProps) {
@@ -30,10 +30,10 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   const { openDrawer } = useDrawerStore();
   const { updateProductForm, resetProductForm } = useFormStateStore();
 
-  const isMaterial = product.product_type === "material";
+  const isMaterial = isMaterialItem(product);
 
-  const getTotalStock = (productId: string) => {
-    const productInventories = inventories.filter((i) => i.product_option_id === productId);
+  const getTotalStock = (productOptionId: string) => {
+    const productInventories = inventories.filter((i) => i.product_option_id === productOptionId);
 
     if (isMaterial) {
       return productInventories.reduce((sum, i) => sum + (i.weight_in_grams ?? 0), 0);
@@ -48,18 +48,18 @@ export default function ProductDetail({ product }: ProductDetailProps) {
     return typeof inv.quantity === "number" ? inv.quantity : 0;
   };
 
-  const totalStock = getTotalStock(product.product_option_id);
-  const totalBoxSummary = isMaterial ? null : formatBoxBreakdown(totalStock, product.box_unit);
+  const totalStock = getTotalStock(product.productOptionId);
+  const totalBoxSummary = isMaterial ? null : formatBoxBreakdown(totalStock, product.boxUnit);
   const getLocationName = (locationId: string) => warehouses.find((loc) => loc.id === locationId)?.name || "알 수 없음";
 
-  const productInventories = inventories.filter((i) => i.product_option_id === product.product_option_id);
+  const productInventories = inventories.filter((i) => i.product_option_id === product.productOptionId);
   const filteredInventories = showOnlyStocked ? productInventories.filter((inv) => normalizeQuantity(inv) > 0) : productInventories;
 
   // 특정 제품의 재고 변동 내역만 필터링
   const productHistory = grouped
     .map((group) => ({
       ...group,
-      transactions: group.transactions.filter((tx) => (tx as { product_option_id?: string }).product_option_id === product.product_option_id),
+      transactions: group.transactions.filter((tx) => (tx as { product_option_id?: string }).product_option_id === product.productOptionId),
     }))
     .filter((group) => group.transactions.length > 0);
 
@@ -69,7 +69,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
       const { data: productData, error } = await supabase
         .from("products")
         .select("category_id, brand_id, product_type, image_url")
-        .eq("id", product.product_id)
+        .eq("id", product.productId)
         .single();
 
       if (error) {
@@ -83,18 +83,18 @@ export default function ProductDetail({ product }: ProductDetailProps) {
       // formStateStore에 제품 데이터 로드
       resetProductForm(); // 먼저 초기화
       updateProductForm({
-        name: product.product_name,
+        name: product.name,
         categoryId: productData.category_id,
         brandId: productData.brand_id,
         productType: (productData.product_type as "company" | "franchise" | "pb") || "company",
         weight: product.weight,
         weightUnit,
-        boxUnit: product.box_unit ? product.box_unit.toString() : "",
+        boxUnit: product.boxUnit ? product.boxUnit.toString() : "",
         sku: product.sku ?? undefined,
-        imagePath: product.image_url || "",
-        localPreviewUrl: product.image_url || "",
-        editingProductId: product.product_id,
-        editingProductOptionId: product.product_option_id,
+        imagePath: product.imageUrl || "",
+        localPreviewUrl: product.imageUrl || "",
+        editingProductId: product.productId,
+        editingProductOptionId: product.productOptionId,
       });
 
       // 수정 모드로 드로어 열기
@@ -113,8 +113,8 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         <div className="p-4 bg-white rounded-lg">
           <div className="flex gap-4">
             <div className="overflow-hidden relative w-24 h-24 bg-gray-100 rounded-lg shrink-0">
-              {product.image_url ? (
-                <Image src={product.image_url} alt={product.product_name} fill className="object-cover" priority sizes="96px" />
+              {product.imageUrl ? (
+                <Image src={product.imageUrl} alt={product.name} fill className="object-cover" priority sizes="96px" />
               ) : (
                 <div className="w-full h-full bg-gray-200" />
               )}
@@ -123,7 +123,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
               <div className="flex justify-between items-center">
                 <div className="flex-1">
                   <div className="flex gap-2 items-center">
-                    <h2 className="text-lg font-semibold">{product.product_name}</h2>
+                    <h2 className="text-lg font-semibold">{product.name}</h2>
                     <Button variant="ghost" size="icon" className="w-8 h-8" onClick={handleEdit}>
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -132,15 +132,15 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                 </div>
                 <div className="text-right">
                   <div className="text-xl font-bold text-blue-500">
-                    {isMaterial ? formatWeightDisplay(totalStock) : `${formatNumber(totalStock)}개`}
+                    {formatStock(totalStock, product.stockUnit)}
                   </div>
                   {totalBoxSummary && <p className="mt-1 text-xs text-gray-500">{totalBoxSummary}</p>}
                 </div>
               </div>
               <div className="flex flex-wrap mt-2 text-sm text-gray-600">
-                <span>{product.category_name}</span>
+                <span>{product.categoryName}</span>
                 <span className="mx-1">·</span>
-                <span>{product.brand_name}</span>
+                <span>{product.brandName}</span>
               </div>
             </div>
           </div>
@@ -174,7 +174,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
             ) : (
               filteredInventories.map((inv) => {
                 const locationQuantity = normalizeQuantity(inv);
-                const boxSummary = isMaterial ? null : formatBoxBreakdown(locationQuantity, product.box_unit);
+                const boxSummary = isMaterial ? null : formatBoxBreakdown(locationQuantity, product.boxUnit);
 
                 return (
                   <div key={inv.id} className="flex justify-between items-center p-4 w-full text-left">
@@ -184,7 +184,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                     </div>
                     <div className="text-right">
                       <span className="block text-blue-500">
-                        {isMaterial ? formatWeightDisplay(locationQuantity) : `${formatNumber(locationQuantity)}개`}
+                        {formatStock(locationQuantity, product.stockUnit)}
                       </span>
                       {boxSummary && <span className="text-xs text-gray-500">{boxSummary}</span>}
                     </div>

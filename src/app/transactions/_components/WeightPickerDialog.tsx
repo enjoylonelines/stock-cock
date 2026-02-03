@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import type { ProductOptionView } from "@/types/database";
+import type { DomainInventoryItem } from "@/types/domain";
 import { useCallback, useEffect, useState } from "react";
 
 type FormType = "in" | "adjust";
@@ -10,8 +10,8 @@ type FormType = "in" | "adjust";
 interface WeightPickerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  product: ProductOptionView | null;
-  onConfirm: (product: ProductOptionView, weightInGrams: number) => void;
+  product: DomainInventoryItem | null;
+  onConfirm: (product: DomainInventoryItem, weightInGrams: number) => void;
   formType?: FormType;
   currentStock?: number; // 현재 재고 (g 단위)
 }
@@ -150,7 +150,7 @@ export default function WeightPickerDialog({
       <DialogContent className="p-0 w-full max-w-xs bg-white rounded-lg">
         <DialogHeader className="px-4 py-5 text-center border-b">
           <DialogTitle>{FORM_TYPE_TITLES[formType]}</DialogTitle>
-          <p className="text-sm text-gray-500">{product.product_name}</p>
+          <p className="text-sm text-gray-500">{product.name}</p>
         </DialogHeader>
 
         <div className="p-4">
