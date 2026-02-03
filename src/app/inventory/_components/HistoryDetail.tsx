@@ -1,10 +1,10 @@
 "use client";
+import { useProducts } from "@/hooks/useProducts";
+import { formatSpecWeight, formatStock } from "@/lib/domain/format";
 import { createClient } from "@/lib/supabase/client";
 import type { TransactionHistoryView } from "@/types/database";
 import { clientLogger } from "@/utils/client-logger";
-import { ChevronLeft } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface HistoryDetailProps {
@@ -25,9 +25,9 @@ const getTypeColor = (type: string) => {
 
 export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
   const supabase = createClient();
+  const { products } = useProducts();
   const [data, setData] = useState<TransactionHistoryView[] | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,7 +41,7 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
       clientLogger.debug("트랜잭션 이력 데이터 로드", { count: data?.length });
     };
     fetchData();
-  }, [transactionId]);
+  }, [transactionId, supabase]);
 
   if (loading) return <div className="p-8 text-center">로딩중...</div>;
   if (!data) return <div className="p-8 text-center">데이터 없음</div>;
@@ -119,25 +119,37 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
         </div>
       </div>
       <hr className="my-2" />
-      {/* 품목 리스트 */}
+      {/* 품목 리스트 (수량·규격 도메인 포맷 중앙화) */}
       <div className="mb-2">
         <div className="mb-2 text-sm font-medium text-gray-700">{data.length}품목</div>
         <div className="space-y-3">
-          {data.map(item => (
-            <div key={`${item.transaction_id ?? ""}-${item.product_name ?? ""}`} className="flex gap-3 items-center">
-              <div className="overflow-hidden relative w-12 h-12 bg-gray-100 rounded-lg">
-                <div className="w-full h-full bg-gray-200" />
+          {data.map(item => {
+            const product = products.find(p => p.productOptionId === item.product_option_id);
+            const stockUnit = product?.stockUnit ?? "EA";
+            const qty = Math.abs(item.quantity ?? 0);
+            const sign = item.type === "in" ? "+" : item.type === "out" ? "-" : "";
+            const weightGrams = item.weight ?? 0;
+            return (
+              <div
+                key={`${item.transaction_id ?? ""}-${item.product_name ?? ""}`}
+                className="flex gap-3 items-center"
+              >
+                <div className="overflow-hidden relative w-12 h-12 bg-gray-100 rounded-lg">
+                  <div className="w-full h-full bg-gray-200" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-gray-900">{item.product_name}</div>
+                  {weightGrams > 0 && (
+                    <div className="text-xs text-gray-500">{formatSpecWeight(weightGrams, item.unit_label)}</div>
+                  )}
+                </div>
+                <div className={`text-right ${getTypeColor(item.type ?? "")}`}>
+                  {sign}
+                  {formatStock(qty, stockUnit)}
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-medium text-gray-900">{item.product_name}</div>
-                <div className="text-xs text-gray-500">{item.weight && `${item.weight}g`}</div>
-              </div>
-              <div className={`text-right ${getTypeColor(item.type ?? "")}`}>
-                {item.type === "in" ? "+" : item.type === "out" ? "-" : ""}
-                {(item.quantity ?? 0).toLocaleString()}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       <hr className="my-2" />

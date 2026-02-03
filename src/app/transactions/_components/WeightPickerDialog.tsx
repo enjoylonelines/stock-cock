@@ -2,8 +2,9 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { formatWeight } from "@/lib/domain/format";
 import type { DomainInventoryItem } from "@/types/domain";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 type FormType = "in" | "adjust";
 
@@ -35,16 +36,7 @@ export default function WeightPickerDialog({
   const [inputValue, setInputValue] = useState("");
   const [selectedUnit, setSelectedUnit] = useState<"g" | "kg">("kg");
 
-  // 현재 재고를 kg/g로 변환하여 표시
-  const formatWeight = useCallback((weightInGrams: number) => {
-    if (weightInGrams >= 1000) {
-      const kgValue = weightInGrams / 1000;
-      return kgValue % 1 === 0 ? `${kgValue}kg` : `${Number.parseFloat(kgValue.toFixed(2))}kg`;
-    }
-    return `${weightInGrams}g`;
-  }, []);
-
-  // 다이얼로그 열릴 때 초기화 - 현재 재고를 기본값으로 설정
+  // 다이얼로그 열릴 때 초기화 (표시는 formatWeight로 중앙화) - 현재 재고를 기본값으로 설정
   useEffect(() => {
     if (open) {
       // 조정 모드에서는 현재 재고가 0이어도 "0"으로 표시
@@ -137,12 +129,13 @@ export default function WeightPickerDialog({
     onOpenChange(false);
   };
 
-  // 표시용 값 포맷팅
+  // 표시용 값 포맷팅 (1kg 미만은 g, 이상은 kg - 도메인 formatWeight)
   const formatDisplayValue = (): string => {
     if (!inputValue) return "";
     const num = Number(inputValue);
     if (Number.isNaN(num)) return "";
-    return selectedUnit === "kg" ? `${num}kg` : `${num}g`;
+    const grams = selectedUnit === "kg" ? Math.round(num * 1000) : Math.round(num);
+    return formatWeight(grams);
   };
 
   if (!product) return null;

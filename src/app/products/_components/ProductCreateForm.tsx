@@ -166,7 +166,7 @@ export default function ProductCreateForm({
           storage_type: productType === "material" ? storageType || null : null,
           origin: productType === "material" ? origin || null : null,
           weight,
-          unit_label: weightUnit, // 선택한 단위(g 또는 kg)로 저장
+          unit_label: weightUnit, // 규격 표시용(kg/g). weight는 항상 g으로 저장됨
           box_unit: boxUnit ? Number(boxUnit) : null,
           sku,
           image_url: finalImageUrl,
@@ -195,7 +195,7 @@ export default function ProductCreateForm({
           storage_type: productType === "material" ? storageType || null : null,
           origin: productType === "material" ? origin || null : null,
           weight,
-          unit_label: weightUnit, // 선택한 단위(g 또는 kg)로 저장
+          unit_label: weightUnit, // 규격 표시용(kg/g). weight는 항상 g으로 저장됨
           box_unit: boxUnit ? Number(boxUnit) : null,
           sku,
           image_url: finalImageUrl,

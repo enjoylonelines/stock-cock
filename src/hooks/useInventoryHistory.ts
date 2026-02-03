@@ -22,6 +22,12 @@ export interface GroupedTransactions {
 
 const supabase = createClient();
 
+/**
+ * transaction_history_view.quantity = 도메인 단위 통일
+ * - 원재료(material): g 단위 (API에서 weight_in_grams 대신 quantity에 g 저장)
+ * - 완제품: 개수(EA)
+ * 표시는 UI에서 product.stockUnit으로 formatStock(quantity, stockUnit) 사용.
+ */
 const processTransactionData = (
   data: TransactionHistoryView[],
   inventories: { product_option_id: string | null; quantity: number | null; weight_in_grams?: number | null }[],

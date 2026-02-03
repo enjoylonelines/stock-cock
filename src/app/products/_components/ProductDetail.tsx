@@ -77,8 +77,8 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         return;
       }
 
-      // 중량 단위 결정 (1000g 이상이면 kg)
-      const weightUnit: "g" | "kg" = product.weight >= 1000 ? "kg" : "g";
+      // DB: weight는 항상 g, unitLabel은 규격 표시용(kg/g)
+      const weightUnit: "g" | "kg" = (product.unitLabel === "kg" ? "kg" : "g") as "g" | "kg";
 
       // formStateStore에 제품 데이터 로드
       resetProductForm(); // 먼저 초기화

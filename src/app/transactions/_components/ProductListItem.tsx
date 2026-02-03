@@ -1,5 +1,5 @@
 "use client";
-import { formatMaterialSummary, formatStock } from "@/lib/domain/format";
+import { formatMaterialSummary, formatSpecWeight, formatStock } from "@/lib/domain/format";
 import { isMaterialItem } from "@/lib/domain/inventory";
 import { formatNumber } from "@/lib/utils";
 import type { DomainInventoryItem } from "@/types/domain";
@@ -59,7 +59,7 @@ export const ProductListItem = memo(function ProductListItem({
             <h3 className="font-medium truncate">
               {product.name}
               {product.weight > 0 && product.unitLabel && (
-                <span className="ml-2 text-gray-500">{`${product.weight}${product.unitLabel}`}</span>
+                <span className="ml-2 text-gray-500">{formatSpecWeight(product.weight, product.unitLabel)}</span>
               )}
             </h3>
           </div>

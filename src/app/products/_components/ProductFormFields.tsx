@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { formatWeightDisplay } from "@/lib/utils";
+import { formatSpecWeight } from "@/lib/domain/format";
 import type { ProductType } from "@/store/formStateStore";
 import { ChevronRight } from "lucide-react";
 import { memo } from "react";
@@ -195,7 +195,7 @@ export const ProductFormFields = memo(function ProductFormFields({
       >
         <div className="flex justify-between w-full">
           <h3 className="font-medium">중량</h3>
-          <p className="text-sm text-gray-500">{formatWeightDisplay(weight, weightUnit)}</p>
+          <p className="text-sm text-gray-500">{formatSpecWeight(weight, weightUnit)}</p>
         </div>
         <ChevronRight className="w-5 h-5 text-gray-400" />
       </Button>
