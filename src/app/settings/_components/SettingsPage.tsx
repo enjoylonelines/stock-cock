@@ -133,7 +133,11 @@ export default function SettingsPage({ user, info }: SettingsPageProps) {
       </form>
 
       {/* 입고처 관리 드로어 */}
-      <SettingsDrawer isOpen={isWarehousesDrawerOpen} onClose={() => setIsWarehousesDrawerOpen(false)} title="입고처 설정">
+      <SettingsDrawer
+        isOpen={isWarehousesDrawerOpen}
+        onClose={() => setIsWarehousesDrawerOpen(false)}
+        title="입고처 설정"
+      >
         <ManageView
           onBack={() => setIsWarehousesDrawerOpen(false)}
           onSelect={() => {}}
@@ -146,7 +150,11 @@ export default function SettingsPage({ user, info }: SettingsPageProps) {
       </SettingsDrawer>
 
       {/* 출고처 관리 드로어 */}
-      <SettingsDrawer isOpen={isSuppliersDrawerOpen} onClose={() => setIsSuppliersDrawerOpen(false)} title="출고처 설정">
+      <SettingsDrawer
+        isOpen={isSuppliersDrawerOpen}
+        onClose={() => setIsSuppliersDrawerOpen(false)}
+        title="출고처 설정"
+      >
         <ManageView
           onBack={() => setIsSuppliersDrawerOpen(false)}
           onSelect={() => {}}

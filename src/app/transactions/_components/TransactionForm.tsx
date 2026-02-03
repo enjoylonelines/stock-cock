@@ -1,19 +1,19 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import DrawerView from "@/components/ui/drawer-view";
+import { useInventories } from "@/hooks/useInventories";
 import { useProducts } from "@/hooks/useProducts";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useWarehouses } from "@/hooks/useWarehouses";
-import { useInventories } from "@/hooks/useInventories";
-import { transactionFormatter } from "../_lib/transaction-formatter";
+import { useMemo, useState } from "react";
 import { useTransactionForm } from "../_hooks/useTransactionForm";
-import DrawerView from "@/components/ui/drawer-view";
+import { transactionFormatter } from "../_lib/transaction-formatter";
 import DatePickerDialog from "./DatePickerDialog";
 import ManageView from "./ManageView";
 import MemoView from "./MemoView";
 import ProductSelectView from "./ProductSelectView";
 import { TransactionFormFields } from "./TransactionFormFields";
-import { useState, useMemo } from "react";
 
 interface TransactionFormProps {
   mode: "in" | "out";
@@ -52,29 +52,23 @@ export default function TransactionForm({ mode, closeDrawer }: TransactionFormPr
 
   // 선택된 창고 이름
   const selectedWarehouseName = useMemo(
-    () => warehouses.find(loc => loc.id === selectedLocation)?.name || "선택",
-    [warehouses, selectedLocation]
+    () => warehouses.find((loc) => loc.id === selectedLocation)?.name || "선택",
+    [warehouses, selectedLocation],
   );
 
   // 선택된 거래처 이름
   const selectedSupplierName = useMemo(
-    () => suppliers.find(sup => sup.id === selectedSupplier)?.name || "선택",
-    [suppliers, selectedSupplier]
+    () => suppliers.find((sup) => sup.id === selectedSupplier)?.name || "선택",
+    [suppliers, selectedSupplier],
   );
 
   // 날짜 포맷팅
-  const formattedDate = useMemo(
-    () => transactionFormatter.formatDate(selectedDate),
-    [selectedDate]
-  );
+  const formattedDate = useMemo(() => transactionFormatter.formatDate(selectedDate), [selectedDate]);
 
   // 출고 모드일 때 해당 위치에 재고가 있는지 확인
   const hasStockInLocation = useMemo(() => {
     if (mode !== "out" || !selectedLocation) return true;
-    return inventories.some(inv => 
-      inv.warehouse_id === selectedLocation && 
-      ((inv.quantity ?? 0) > 0 || (inv.weight_in_grams ?? 0) > 0)
-    );
+    return inventories.some((inv) => inv.warehouse_id === selectedLocation && ((inv.quantity ?? 0) > 0 || (inv.weight_in_grams ?? 0) > 0));
   }, [mode, selectedLocation, inventories]);
 
   // 제품 버튼 상태
@@ -202,7 +196,7 @@ export default function TransactionForm({ mode, closeDrawer }: TransactionFormPr
       <DrawerView isVisible={isMemoViewVisible}>
         <MemoView
           value={memo}
-          onChange={value => updateTransactionForm({ memo: value })}
+          onChange={(value) => updateTransactionForm({ memo: value })}
           onBack={() => setIsMemoViewVisible(false)}
           onDone={handleMemoDone}
         />

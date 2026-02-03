@@ -1,8 +1,8 @@
-import { productFilter, type ProductType } from "../_lib/product-filter";
 import { useProducts } from "@/hooks/useProducts";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { type ProductType, productFilter } from "../_lib/product-filter";
 
 const TAB_STORAGE_KEY = "products_selected_tab";
 const SCROLL_STORAGE_KEY = "products_scroll_position";

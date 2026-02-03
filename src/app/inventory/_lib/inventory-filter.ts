@@ -70,6 +70,7 @@ export const inventoryFilter = {
           }
 
           // 날짜 범위
+          if (!tx.created_at) return false;
           const createdAt = new Date(tx.created_at);
           if (context.start && createdAt < context.start) return false;
           if (context.end && createdAt > context.end) return false;

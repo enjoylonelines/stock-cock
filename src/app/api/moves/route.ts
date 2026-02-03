@@ -1,9 +1,9 @@
+import { createClient } from "@/lib/supabase/server";
 import type { MoveInput } from "@/types/api";
 import { APIError } from "@/utils/api-error";
 import { handleAPIError } from "@/utils/api-handler";
 import { updateInventory } from "@/utils/inventory";
 import { apiLogger } from "@/utils/logger";
-import { createClient } from "@/lib/supabase/server";
 import { sendTransactionNotification } from "@/utils/transaction-notification";
 import { NextResponse } from "next/server";
 
@@ -75,7 +75,6 @@ export async function POST(request: Request) {
           product_option_id: item.option_id,
           batch_id: null, // 이동은 배치 없음
           quantity: item.quantity,
-          unit_price: item.unit_price,
         },
       ]);
 

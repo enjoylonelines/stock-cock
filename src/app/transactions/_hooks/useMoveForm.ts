@@ -1,12 +1,12 @@
 import { useUser } from "@/contexts/UserContext";
+import { useInventories } from "@/hooks/useInventories";
+import { stockCalculator } from "@/lib/inventory/stock-calculator";
+import { useFormStateStore } from "@/store/formStateStore";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 import { transactionFormatter } from "../_lib/transaction-formatter";
 import { transactionValidator } from "../_lib/transaction-validator";
 import { moveService } from "../_services/transaction-service";
-import { stockCalculator } from "@/lib/inventory/stock-calculator";
-import { useFormStateStore } from "@/store/formStateStore";
-import { useInventories } from "@/hooks/useInventories";
-import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
 
 /**
  * 재고 이동 폼 비즈니스 로직 훅
@@ -16,9 +16,9 @@ export function useMoveForm(closeDrawer: () => void) {
   const router = useRouter();
   const user = useUser();
   const { inventories } = useInventories();
-  const moveForm = useFormStateStore((state) => state.moveForm);
-  const updateMoveForm = useFormStateStore((state) => state.updateMoveForm);
-  const resetMoveForm = useFormStateStore((state) => state.resetMoveForm);
+  const moveForm = useFormStateStore(state => state.moveForm);
+  const updateMoveForm = useFormStateStore(state => state.updateMoveForm);
+  const resetMoveForm = useFormStateStore(state => state.resetMoveForm);
   const { fromLocation, toLocation, selectedProducts, selectedDate, memo } = moveForm;
 
   // 폼 검증
@@ -65,7 +65,18 @@ export function useMoveForm(closeDrawer: () => void) {
     } finally {
       setIsLoading(false);
     }
-  }, [validation, fromLocation, toLocation, selectedProducts, selectedDate, memo, user?.id, resetMoveForm, closeDrawer, router]);
+  }, [
+    validation,
+    fromLocation,
+    toLocation,
+    selectedProducts,
+    selectedDate,
+    memo,
+    user?.id,
+    resetMoveForm,
+    closeDrawer,
+    router,
+  ]);
 
   return {
     // 상태
