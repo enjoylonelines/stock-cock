@@ -39,7 +39,7 @@ export const transactionFormatter = {
       supplier_id: data.supplier_id,
       memo: data.memo,
       created_at: this.formatDateForAPI(data.selectedDate),
-      items: data.selectedProducts.map(product => ({
+      items: data.selectedProducts.map((product) => ({
         option_id: product.productOptionId,
         quantity: product.quantity || 1,
         product_type: product.productType,
@@ -64,7 +64,7 @@ export const transactionFormatter = {
       to_warehouse_id: data.to_warehouse_id,
       memo: data.memo,
       created_at: this.formatDateForAPI(data.selectedDate),
-      items: data.selectedProducts.map(product => ({
+      items: data.selectedProducts.map((product) => ({
         option_id: product.productOptionId,
         quantity: product.quantity || 1,
         product_type: product.productType,
@@ -87,7 +87,7 @@ export const transactionFormatter = {
       warehouse_id: data.warehouse_id,
       memo: data.memo,
       created_at: this.formatDateForAPI(data.selectedDate),
-      items: data.selectedProducts.map(product => ({
+      items: data.selectedProducts.map((product) => ({
         option_id: product.productOptionId,
         quantity: product.quantity ?? 0,
         product_type: product.productType,
