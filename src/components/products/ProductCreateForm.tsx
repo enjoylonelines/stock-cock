@@ -1,10 +1,16 @@
 "use client";
 
+import { CommonInputView } from "@/app/products/_components/CommonInputView";
+import { ProductFormFields } from "@/app/products/_components/ProductFormFields";
+import { ProductImageUpload } from "@/app/products/_components/ProductImageUpload";
+import { ProductTypeSelectView } from "@/app/products/_components/ProductTypeSelectView";
+import { WeightPickerView } from "@/app/products/_components/WeightPickerView";
+import { useBrands } from "@/app/products/_hooks/useBrands";
+import { useCategories } from "@/app/products/_hooks/useCategories";
+import ManageView from "@/app/transactions/_components/ManageView";
 import { Button } from "@/components/ui/button";
 import DrawerView from "@/components/ui/drawer-view";
 import { useUser } from "@/contexts/UserContext";
-import { useBrands } from "@/app/products/_hooks/useBrands";
-import { useCategories } from "@/app/products/_hooks/useCategories";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { createClient } from "@/lib/supabase/client";
 import { generateSKU, generateUniqueFileName } from "@/lib/utils";
@@ -15,12 +21,6 @@ import { clientLogger } from "@/utils/client-logger";
 import { useRouter } from "next/navigation";
 import { type RefObject, useCallback, useEffect, useMemo, useState } from "react";
 import { mutate } from "swr";
-import ManageView from "@/app/transactions/_components/ManageView";
-import { CommonInputView } from "@/app/products/_components/CommonInputView";
-import { ProductFormFields } from "@/app/products/_components/ProductFormFields";
-import { ProductImageUpload } from "@/app/products/_components/ProductImageUpload";
-import { ProductTypeSelectView } from "@/app/products/_components/ProductTypeSelectView";
-import { WeightPickerView } from "@/app/products/_components/WeightPickerView";
 interface ProductCreateFormProps {
   scrollRef?: RefObject<HTMLDivElement | null>;
   closeDrawer: () => void;

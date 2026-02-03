@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import type { ProductOptionView } from "@/types/database";
+import type { DomainInventoryItem } from "@/types/domain";
 import { ChevronRight } from "lucide-react";
 import { memo } from "react";
 import ProductListItem from "./ProductListItem";
@@ -10,7 +10,7 @@ interface TransactionFormFieldsProps {
   formattedDate: string;
   selectedWarehouseName: string;
   selectedSupplierName: string;
-  selectedProducts: ProductOptionView[];
+  selectedProducts: DomainInventoryItem[];
   memo: string;
   mode: "in" | "out";
   onDateClick: () => void;
@@ -90,9 +90,7 @@ export const TransactionFormFields = memo(function TransactionFormFields({
       >
         <div className="flex justify-between w-full">
           <h3 className="font-medium">제품</h3>
-          <p className="text-sm text-gray-500">
-            {productStatusText || `${selectedProducts.length}개 품목`}
-          </p>
+          <p className="text-sm text-gray-500">{productStatusText || `${selectedProducts.length}개 품목`}</p>
         </div>
         <ChevronRight className="w-5 h-5 text-gray-400" />
       </Button>
@@ -102,7 +100,7 @@ export const TransactionFormFields = memo(function TransactionFormFields({
         <div className="mt-2 space-y-2">
           {selectedProducts.map(product => (
             <ProductListItem
-              key={product.product_option_id}
+              key={product.productOptionId}
               product={product}
               quantity={product.quantity}
               selected={false}

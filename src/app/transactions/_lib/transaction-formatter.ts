@@ -1,7 +1,7 @@
+import type { AdjustmentInput, MoveInput, TransactionInput } from "@/types/api";
+import type { DomainInventoryItem } from "@/types/domain";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import type { TransactionInput, MoveInput, AdjustmentInput } from "@/types/api";
-import type { ProductOptionView } from "@/types/database";
 
 /**
  * 거래 데이터 포맷팅 로직 (Transactions 전용)
@@ -30,7 +30,7 @@ export const transactionFormatter = {
     supplier_id: string;
     memo: string;
     selectedDate: Date;
-    selectedProducts: ProductOptionView[];
+    selectedProducts: DomainInventoryItem[];
     user_id: string;
   }): TransactionInput {
     return {
@@ -39,11 +39,10 @@ export const transactionFormatter = {
       supplier_id: data.supplier_id,
       memo: data.memo,
       created_at: this.formatDateForAPI(data.selectedDate),
-      items: data.selectedProducts.map(product => ({
-        option_id: product.product_option_id,
+      items: data.selectedProducts.map((product) => ({
+        option_id: product.productOptionId,
         quantity: product.quantity || 1,
-        unit_price: 0, // API에서 null 대신 0 사용
-        product_type: product.product_type ?? undefined, // 원재료 구분용
+        product_type: product.productType,
       })),
       user_id: data.user_id,
     };
@@ -57,7 +56,7 @@ export const transactionFormatter = {
     to_warehouse_id: string;
     memo: string;
     selectedDate: Date;
-    selectedProducts: ProductOptionView[];
+    selectedProducts: DomainInventoryItem[];
     user_id: string;
   }): MoveInput {
     return {
@@ -65,11 +64,10 @@ export const transactionFormatter = {
       to_warehouse_id: data.to_warehouse_id,
       memo: data.memo,
       created_at: this.formatDateForAPI(data.selectedDate),
-      items: data.selectedProducts.map(product => ({
-        option_id: product.product_option_id,
+      items: data.selectedProducts.map((product) => ({
+        option_id: product.productOptionId,
         quantity: product.quantity || 1,
-        unit_price: 0, // API에서 null 대신 0 사용
-        product_type: product.product_type ?? undefined, // 원재료 구분용
+        product_type: product.productType,
       })),
       user_id: data.user_id,
     };
@@ -82,18 +80,17 @@ export const transactionFormatter = {
     warehouse_id: string;
     memo: string;
     selectedDate: Date;
-    selectedProducts: ProductOptionView[];
+    selectedProducts: DomainInventoryItem[];
     user_id: string;
   }): AdjustmentInput {
     return {
       warehouse_id: data.warehouse_id,
       memo: data.memo,
       created_at: this.formatDateForAPI(data.selectedDate),
-      items: data.selectedProducts.map(product => ({
-        option_id: product.product_option_id,
+      items: data.selectedProducts.map((product) => ({
+        option_id: product.productOptionId,
         quantity: product.quantity ?? 0,
-        unit_price: 0, // API에서 null 대신 0 사용
-        product_type: product.product_type ?? undefined, // 원재료 구분용
+        product_type: product.productType,
       })),
       user_id: data.user_id,
     };

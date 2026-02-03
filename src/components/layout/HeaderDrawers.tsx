@@ -25,7 +25,11 @@ interface HeaderDrawersProps {
 
 export default function HeaderDrawers({ isSortDialogOpen, onSortDialogClose }: HeaderDrawersProps) {
   const { isOpen, close, setFilters } = useInventoryFilterDrawerStore();
-  const { isOpen: isProductFilterOpen, close: closeProductFilter, setFilters: setProductFilters } = useProductFilterDrawerStore();
+  const {
+    isOpen: isProductFilterOpen,
+    close: closeProductFilter,
+    setFilters: setProductFilters,
+  } = useProductFilterDrawerStore();
 
   return (
     <>

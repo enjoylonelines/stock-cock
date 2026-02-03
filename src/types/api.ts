@@ -36,7 +36,6 @@ export type TransactionType = "in" | "out" | "move" | "adjust";
  */
 export interface TransactionItemInput {
   quantity: number; // 완제품: 개수, 원재료: g 단위 중량
-  unit_price: number;
   option_id: string;
   expiration_date?: string | null;
   product_type?: "company" | "franchise" | "pb" | "material"; // 원재료 구분용

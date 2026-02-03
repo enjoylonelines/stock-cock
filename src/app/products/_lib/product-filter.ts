@@ -1,4 +1,4 @@
-import type { ProductOptionView } from "@/types/database";
+import type { DomainInventoryItem } from "@/types/domain";
 
 export type ProductType = "all" | "company" | "franchise" | "pb" | "material";
 
@@ -17,11 +17,11 @@ export const productFilter = {
   /**
    * 제품 목록 필터링
    */
-  filterProducts(products: ProductOptionView[], filters: ProductFilters): ProductOptionView[] {
+  filterProducts(products: DomainInventoryItem[], filters: ProductFilters): DomainInventoryItem[] {
     return products.filter(product => {
       // 제품 타입 필터
       if (filters.productType && filters.productType !== "all") {
-        if (product.product_type !== filters.productType) {
+        if (product.productType !== filters.productType) {
           return false;
         }
       }
@@ -29,10 +29,10 @@ export const productFilter = {
       // 검색어 필터
       if (filters.searchQuery) {
         const searchLower = filters.searchQuery.trim().replace(/\s+/g, "").toLowerCase();
-        const matchesName = product.product_name.replace(/\s+/g, "").toLowerCase().includes(searchLower);
-        const matchesSku = product.sku.replace(/\s+/g, "").toLowerCase().includes(searchLower);
-        const matchesBrand = product.brand_name.replace(/\s+/g, "").toLowerCase().includes(searchLower);
-        const matchesCategory = product.category_name.replace(/\s+/g, "").toLowerCase().includes(searchLower);
+        const matchesName = product.name.replace(/\s+/g, "").toLowerCase().includes(searchLower);
+        const matchesSku = (product.sku ?? "").replace(/\s+/g, "").toLowerCase().includes(searchLower);
+        const matchesBrand = product.brandName.replace(/\s+/g, "").toLowerCase().includes(searchLower);
+        const matchesCategory = product.categoryName.replace(/\s+/g, "").toLowerCase().includes(searchLower);
 
         if (!matchesName && !matchesSku && !matchesBrand && !matchesCategory) {
           return false;
@@ -40,20 +40,17 @@ export const productFilter = {
       }
 
       // 카테고리 필터
-      if (filters.categoryId && product.category_name !== filters.categoryId) {
-        // categoryId는 실제로는 category name과 비교해야 할 수도 있음
-        // 타입에 따라 조정 필요
+      if (filters.categoryId && product.categoryName !== filters.categoryId) {
         return false;
       }
 
       // 브랜드 필터
-      if (filters.brandId && product.brand_name !== filters.brandId) {
-        // brandId는 실제로는 brand name과 비교해야 할 수도 있음
+      if (filters.brandId && product.brandName !== filters.brandId) {
         return false;
       }
 
       // 창고 필터
-      if (filters.warehouseId && product.warehouse_id !== filters.warehouseId) {
+      if (filters.warehouseId && product.warehouseId !== filters.warehouseId) {
         return false;
       }
 

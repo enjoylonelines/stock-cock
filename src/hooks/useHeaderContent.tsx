@@ -26,7 +26,11 @@ const NotificationBadge = dynamic(() => import("@/components/layout/Notification
 
 export function useHeaderContent(): UseHeaderContentReturn {
   const { isOpen, close, open } = useInventoryFilterDrawerStore();
-  const { isOpen: isProductFilterOpen, close: closeProductFilter, open: openProductFilter } = useProductFilterDrawerStore();
+  const {
+    isOpen: isProductFilterOpen,
+    close: closeProductFilter,
+    open: openProductFilter,
+  } = useProductFilterDrawerStore();
   const { open: openActivityLog } = useActivityLogStore();
   const pathname = usePathname();
   const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
