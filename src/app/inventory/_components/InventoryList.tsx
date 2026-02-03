@@ -1,8 +1,8 @@
 "use client";
 import type { GroupedTransactions, InventoryTransaction } from "@/hooks/useInventoryHistory";
 import { useProducts } from "@/hooks/useProducts";
+import { formatSpecWeight, formatStock } from "@/lib/domain/format";
 import { isMaterialItem } from "@/lib/domain/inventory";
-import { formatWeightDisplay } from "@/lib/utils";
 import type { DomainInventoryItem } from "@/types/domain";
 import {
   ArrowDownToLine,
@@ -32,20 +32,14 @@ const groupByTransactionId = (transactions: InventoryTransaction[]): InventoryTr
 };
 
 /**
- * 수량 포매팅 (원재료: kg, 완제품: 봉)
+ * 입출고 수량 표시 (도메인 formatStock 사용: 원재료 g→kg, 완제품 개)
  */
 const formatQuantityDisplay = (quantity: number, product: DomainInventoryItem | undefined): string => {
-  const sign = quantity > 0 ? "+" : "";
+  const sign = quantity >= 0 ? "+" : "-";
   const absQuantity = Math.abs(quantity);
-
-  if (product && isMaterialItem(product)) {
-    // 원재료: g → kg 변환
-    const kg = absQuantity / 1000;
-    const formatted = kg % 1 === 0 ? kg.toString() : kg.toFixed(2).replace(/\.?0+$/, "");
-    return `${sign}${quantity < 0 ? "-" : ""}${formatted}kg`;
-  }
-  // 완제품: n봉
-  return `${sign}${quantity.toLocaleString()}봉`;
+  const unit = product?.stockUnit ?? "EA";
+  const formatted = formatStock(absQuantity, unit);
+  return `${sign}${formatted}`;
 };
 
 /**
@@ -109,7 +103,7 @@ const TransactionItem = memo(function TransactionItem({
             {transaction.product_name}
             {product && product.weight > 0 && (
               <span className="ml-2 text-gray-400">
-                {formatWeightDisplay(product.weight, product.unitLabel as "g" | "kg" | undefined)}
+                {formatSpecWeight(product.weight, product.unitLabel)}
               </span>
             )}
           </span>
@@ -118,7 +112,9 @@ const TransactionItem = memo(function TransactionItem({
           <span className="text-sm text-gray-500">{transaction.to_warehouse_name}</span>
         )}
         {!compact && transaction.type_kr !== "이동" && (
-          <div className="mt-1 text-sm text-gray-500">총 재고: {transaction.total_stock.toLocaleString()}</div>
+          <div className="mt-1 text-sm text-gray-500">
+            총 재고: {formatStock(transaction.total_stock, product?.stockUnit ?? "EA")}
+          </div>
         )}
       </div>
       <div className="flex flex-col items-end">
@@ -224,7 +220,7 @@ const TransactionGroup = memo(function TransactionGroup({
                 {firstTransaction.product_name}
                 {firstProduct && firstProduct.weight > 0 && (
                   <span className="ml-2 text-gray-400">
-                    {formatWeightDisplay(firstProduct.weight, firstProduct.unitLabel as "g" | "kg" | undefined)}
+                    {formatSpecWeight(firstProduct.weight, firstProduct.unitLabel)}
                   </span>
                 )}
               </span>
@@ -238,7 +234,9 @@ const TransactionGroup = memo(function TransactionGroup({
               <span className="text-sm text-gray-500">{firstTransaction.to_warehouse_name}</span>
             )}
             {firstTransaction.type_kr !== "이동" && (
-              <div className="mt-1 text-sm text-gray-500">총 재고: {firstTransaction.total_stock.toLocaleString()}</div>
+              <div className="mt-1 text-sm text-gray-500">
+                총 재고: {formatStock(firstTransaction.total_stock, firstProduct?.stockUnit ?? "EA")}
+              </div>
             )}
           </div>
           <div className="flex flex-col gap-2 items-end">

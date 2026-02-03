@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { formatBoxBreakdown, formatMaterialSummary, formatStock } from "@/lib/domain/format";
+import { formatBoxBreakdown, formatMaterialSummary, formatSpecWeight, formatStock } from "@/lib/domain/format";
 import { isMaterialItem } from "@/lib/domain/inventory";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
 import { useProductSortStore } from "@/store/productSortStore";
@@ -311,7 +311,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
                               <h3 className="font-medium">
                                 {product.name}{" "}
                                 {product.weight > 0 && product.unitLabel && (
-                                  <span className="text-xs text-gray-500">{`${product.weight}${product.unitLabel}`}</span>
+                                  <span className="text-xs text-gray-500">{formatSpecWeight(product.weight, product.unitLabel)}</span>
                                 )}
                               </h3>
                               {product.storageType && (

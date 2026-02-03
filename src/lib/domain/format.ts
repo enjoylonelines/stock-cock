@@ -7,7 +7,7 @@
 import type { StockUnit } from "@/types/domain";
 
 // ============================================
-// 1. 재고 표시 포맷
+// 1. 재고 표시 포맷 (1kg 미만 = g, 이상 = kg)
 // ============================================
 export function formatStock(value: number, unit: StockUnit): string {
   if (unit === "GRAM") {
@@ -61,23 +61,18 @@ export function formatBoxBreakdown(quantity: number, boxUnit: number | null): st
 // ============================================
 // 4. 원재료 규격 기준 계산 (GRAM용)
 // ============================================
-export function formatMaterialSummary(totalGrams: number, specWeight: number, unitLabel: string | null): string | null {
-  if (totalGrams <= 0 || specWeight <= 0) {
+export function formatMaterialSummary(totalGrams: number, specWeightInGrams: number, unitLabel: string | null): string | null {
+  const total = Math.round(totalGrams);
+  const specGrams = Math.round(specWeightInGrams);
+  if (total <= 0 || specGrams <= 0) {
     return null;
   }
 
-  // 규격 중량을 그램으로 변환
-  const specGrams = unitLabel === "kg" ? specWeight * 1000 : specWeight;
+  // 정수 나눗셈으로 부동소수점 오차 방지 (324000g ÷ 2000g = 162 나머지 0)
+  const units = Math.floor(total / specGrams);
+  const remainderGrams = Math.round(total - units * specGrams);
 
-  if (specGrams <= 0) {
-    return null;
-  }
-
-  const units = Math.floor(totalGrams / specGrams);
-  const remainderGrams = totalGrams % specGrams;
-
-  // 표시용 규격 문자열
-  const specStr = `${specWeight}${unitLabel ?? "g"}`;
+  const specStr = formatSpecWeight(specGrams, unitLabel);
 
   if (units === 0) {
     // 1개 미만
@@ -105,7 +100,7 @@ export function formatNumber(value: number): string {
 }
 
 // ============================================
-// 6. 중량 표시 (그램 입력 → 적절한 단위)
+// 6. 중량 표시 (그램 입력 → 1kg 미만 g, 이상 kg)
 // ============================================
 export function formatWeight(grams: number): string {
   if (grams >= 1000) {
@@ -113,4 +108,16 @@ export function formatWeight(grams: number): string {
     return `${kg % 1 === 0 ? kg : kg.toFixed(2).replace(/\.?0+$/, "")}kg`;
   }
   return `${grams}g`;
+}
+
+// ============================================
+// 7. 규격 중량 표시 (DB: weight는 항상 g, unit_label은 kg/g)
+// ============================================
+export function formatSpecWeight(weightInGrams: number, unitLabel: string | null): string {
+  if (!weightInGrams || weightInGrams <= 0) return "";
+  if (unitLabel === "kg") {
+    const kg = weightInGrams / 1000;
+    return `${kg % 1 === 0 ? kg : kg.toFixed(2).replace(/\.?0+$/, "")}kg`;
+  }
+  return formatWeight(weightInGrams);
 }
