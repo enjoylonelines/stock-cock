@@ -46,9 +46,9 @@ export default function ProductCreateForm({
   const { brands, addBrand, editBrand, deleteBrand } = useBrands();
   const router = useRouter();
   const user = useUser();
-  const productForm = useFormStateStore(state => state.productForm);
-  const updateProductForm = useFormStateStore(state => state.updateProductForm);
-  const resetProductForm = useFormStateStore(state => state.resetProductForm);
+  const productForm = useFormStateStore((state) => state.productForm);
+  const updateProductForm = useFormStateStore((state) => state.updateProductForm);
+  const resetProductForm = useFormStateStore((state) => state.resetProductForm);
   const {
     imageFile,
     imagePath,
@@ -111,7 +111,7 @@ export default function ProductCreateForm({
         localPreviewUrl: localUrl,
       });
     },
-    [user, localPreviewUrl, updateProductForm]
+    [user, localPreviewUrl, updateProductForm],
   );
 
   // 저장 핸들러
@@ -242,7 +242,7 @@ export default function ProductCreateForm({
       }
       setActiveDrawer(drawerName);
     },
-    [scrollRef]
+    [scrollRef],
   );
 
   // 폼 유효성 검사 - 메모이제이션
@@ -262,12 +262,7 @@ export default function ProductCreateForm({
   return (
     <div className="flex relative flex-col self-stretch h-full">
       {/* 제품 이미지 */}
-      <ProductImageUpload
-        localPreviewUrl={localPreviewUrl}
-        isUploading={isUploading}
-        user={user}
-        onImageChange={handleImageChange}
-      />
+      <ProductImageUpload localPreviewUrl={localPreviewUrl} isUploading={isUploading} user={user} onImageChange={handleImageChange} />
       {/* 제품 등록 정보 */}
       <div className="flex-1 p-4">
         <ProductFormFields
@@ -287,11 +282,11 @@ export default function ProductCreateForm({
           categories={categories}
           brands={brands}
           warehouses={warehouses}
-          onNameChange={value => updateProductForm({ name: value })}
-          onInitQuantityChange={value => updateProductForm({ initQuantity: value })}
-          onBoxUnitChange={value => updateProductForm({ boxUnit: value })}
-          onStorageTypeChange={value => updateProductForm({ storageType: value })}
-          onOriginChange={value => updateProductForm({ origin: value })}
+          onNameChange={(value) => updateProductForm({ name: value })}
+          onInitQuantityChange={(value) => updateProductForm({ initQuantity: value })}
+          onBoxUnitChange={(value) => updateProductForm({ boxUnit: value })}
+          onStorageTypeChange={(value) => updateProductForm({ storageType: value })}
+          onOriginChange={(value) => updateProductForm({ origin: value })}
           onCategoryClick={() => openDrawer("category")}
           onBrandClick={() => openDrawer("brand")}
           onProductTypeClick={() => openDrawer("productType")}
@@ -315,7 +310,7 @@ export default function ProductCreateForm({
         <CommonInputView
           title="제품명 입력"
           value={name}
-          onChange={e => updateProductForm({ name: e.target.value })}
+          onChange={(e) => updateProductForm({ name: e.target.value })}
           placeholder="제품명 입력"
           onClose={closeDrawer}
         />
@@ -326,7 +321,7 @@ export default function ProductCreateForm({
           title="카테고리 선택"
           items={categories}
           onBack={closeDrawer}
-          onSelect={item => {
+          onSelect={(item) => {
             updateProductForm({ categoryId: item.id });
             closeDrawer();
           }}
@@ -340,7 +335,7 @@ export default function ProductCreateForm({
           title="브랜드 선택"
           items={brands}
           onBack={closeDrawer}
-          onSelect={item => {
+          onSelect={(item) => {
             updateProductForm({ brandId: item.id });
             closeDrawer();
           }}
@@ -352,7 +347,7 @@ export default function ProductCreateForm({
       <DrawerView isVisible={activeDrawer === "productType"} scrollRef={scrollRef}>
         <ProductTypeSelectView
           currentType={productType}
-          onSelect={type => {
+          onSelect={(type) => {
             updateProductForm({ productType: type });
             closeDrawer();
           }}
@@ -364,7 +359,7 @@ export default function ProductCreateForm({
           title="위치 선택"
           items={warehouses}
           onBack={closeDrawer}
-          onSelect={item => {
+          onSelect={(item) => {
             updateProductForm({ initLocation: item.id });
             closeDrawer();
           }}

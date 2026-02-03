@@ -35,16 +35,8 @@ export default function AdjustForm({ closeDrawer }: AdjustFormProps) {
   // 조정: 원재료 포함
   const products = allProducts;
 
-  const {
-    isLoading,
-    isFormValid,
-    selectedLocation,
-    selectedProducts,
-    selectedDate,
-    memo,
-    updateAdjustForm,
-    handleSubmit,
-  } = useAdjustForm(closeDrawer);
+  const { isLoading, isFormValid, selectedLocation, selectedProducts, selectedDate, memo, updateAdjustForm, handleSubmit } =
+    useAdjustForm(closeDrawer);
 
   // 날짜 포맷팅
   const formattedDate = useMemo(() => transactionFormatter.formatDate(selectedDate), [selectedDate]);
@@ -52,9 +44,7 @@ export default function AdjustForm({ closeDrawer }: AdjustFormProps) {
   // 해당 위치에 재고가 있는지 확인
   const hasStockInLocation = useMemo(() => {
     if (!selectedLocation) return true;
-    return inventories.some(
-      inv => inv.warehouse_id === selectedLocation && ((inv.quantity ?? 0) > 0 || (inv.weight_in_grams ?? 0) > 0)
-    );
+    return inventories.some((inv) => inv.warehouse_id === selectedLocation && ((inv.quantity ?? 0) > 0 || (inv.weight_in_grams ?? 0) > 0));
   }, [selectedLocation, inventories]);
 
   // 제품 버튼 상태
@@ -112,9 +102,7 @@ export default function AdjustForm({ closeDrawer }: AdjustFormProps) {
           >
             <div className="flex justify-between w-full">
               <h3 className="font-medium">위치</h3>
-              <p className="text-sm text-gray-500">
-                {warehouses.find(loc => loc.id === selectedLocation)?.name || "선택"}
-              </p>
+              <p className="text-sm text-gray-500">{warehouses.find((loc) => loc.id === selectedLocation)?.name || "선택"}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </Button>
@@ -136,13 +124,8 @@ export default function AdjustForm({ closeDrawer }: AdjustFormProps) {
           {/* 선택된 제품 리스트 */}
           {selectedProducts.length > 0 && (
             <div className="mt-2 space-y-2">
-              {selectedProducts.map(product => (
-                <ProductListItem
-                  key={product.productOptionId}
-                  product={product}
-                  quantity={product.quantity}
-                  selected={false}
-                />
+              {selectedProducts.map((product) => (
+                <ProductListItem key={product.productOptionId} product={product} quantity={product.quantity} selected={false} />
               ))}
             </div>
           )}
@@ -211,7 +194,7 @@ export default function AdjustForm({ closeDrawer }: AdjustFormProps) {
       <DrawerView isVisible={isMemoViewVisible}>
         <MemoView
           value={memo}
-          onChange={value => updateAdjustForm({ memo: value })}
+          onChange={(value) => updateAdjustForm({ memo: value })}
           onBack={() => setIsMemoViewVisible(false)}
           onDone={handleMemoDone}
         />
