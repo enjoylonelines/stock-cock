@@ -1,5 +1,5 @@
-import { stockCalculator } from "@/lib/inventory/stock-calculator";
 import { useInventories } from "@/hooks/useInventories";
+import { stockCalculator } from "@/lib/inventory/stock-calculator";
 import type { DomainInventoryItem } from "@/types/domain";
 import { useEffect, useRef, useState } from "react";
 

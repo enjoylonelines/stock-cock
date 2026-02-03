@@ -1,7 +1,7 @@
+import type { AdjustmentInput, MoveInput, TransactionInput } from "@/types/api";
+import type { DomainInventoryItem } from "@/types/domain";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-import type { TransactionInput, MoveInput, AdjustmentInput } from "@/types/api";
-import type { DomainInventoryItem } from "@/types/domain";
 
 /**
  * 거래 데이터 포맷팅 로직 (Transactions 전용)

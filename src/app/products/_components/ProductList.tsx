@@ -14,11 +14,18 @@ type ProductListProps = {
 };
 
 // 우선순위 제품 목록 (상위에 배치할 제품명)
-const PRIORITY_PRODUCTS = ["수제 고기왕만두", "수제 김치왕만두", "수제 고기만두", "수제 김치만두", "호떡쌀군만두", "호떡쌀김치군만두"];
+const PRIORITY_PRODUCTS = [
+  "수제 고기왕만두",
+  "수제 김치왕만두",
+  "수제 고기만두",
+  "수제 김치만두",
+  "호떡쌀군만두",
+  "호떡쌀김치군만두",
+];
 
 // 제품의 우선순위를 반환하는 함수
 function getProductPriority(productName: string): number {
-  const index = PRIORITY_PRODUCTS.findIndex((priorityName) => productName.includes(priorityName));
+  const index = PRIORITY_PRODUCTS.findIndex(priorityName => productName.includes(priorityName));
   return index === -1 ? PRIORITY_PRODUCTS.length : index; // 우선순위 제품이 아니면 가장 낮은 우선순위
 }
 
@@ -62,16 +69,16 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
     if (filters.searchQuery) {
       const query = filters.searchQuery.trim().replace(/\s+/g, "").toLowerCase();
       filtered = filtered.filter(
-        (product) =>
+        product =>
           product.name.replace(/\s+/g, "").toLowerCase().includes(query) ||
           product.categoryName.replace(/\s+/g, "").toLowerCase().includes(query) ||
-          product.brandName.replace(/\s+/g, "").toLowerCase().includes(query),
+          product.brandName.replace(/\s+/g, "").toLowerCase().includes(query)
       );
     }
 
     // 재고 상태 필터
     if (filters.inStock !== undefined) {
-      filtered = filtered.filter((product) => {
+      filtered = filtered.filter(product => {
         if (filters.inStock === true) {
           return product.stock > 0;
         }
@@ -142,7 +149,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
   const groupedProducts = useMemo(() => {
     const groups: Record<string, DomainInventoryItem[]> = {};
 
-    filteredAndSortedProducts.forEach((product) => {
+    filteredAndSortedProducts.forEach(product => {
       let groupKey: string;
 
       if (isMaterialItem(product)) {
@@ -167,10 +174,22 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
       // 원재료 그룹인 경우 storage_type 우선순위로 정렬
       if (isMaterialGroupA && isMaterialGroupB) {
         const priorityA = getStorageTypePriority(
-          groupA === "실온" ? "room_temperature" : groupA === "냉장" ? "refrigerated" : groupA === "냉동" ? "frozen" : null,
+          groupA === "실온"
+            ? "room_temperature"
+            : groupA === "냉장"
+              ? "refrigerated"
+              : groupA === "냉동"
+                ? "frozen"
+                : null
         );
         const priorityB = getStorageTypePriority(
-          groupB === "실온" ? "room_temperature" : groupB === "냉장" ? "refrigerated" : groupB === "냉동" ? "frozen" : null,
+          groupB === "실온"
+            ? "room_temperature"
+            : groupB === "냉장"
+              ? "refrigerated"
+              : groupB === "냉동"
+                ? "frozen"
+                : null
         );
 
         if (priorityA !== priorityB) {
@@ -190,22 +209,22 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
   // 그룹 목록이 변경될 때 냉장/냉동을 제외한 모든 그룹을 펼친 상태로 초기화
   useEffect(() => {
     const initialExpanded = new Set<string>();
-    groupNames.forEach((name) => {
+    groupNames.forEach(name => {
       if (name !== "냉장" && name !== "냉동") {
         initialExpanded.add(name);
       }
     });
 
     // 기존에 펼쳐진 그룹 중에서 여전히 존재하는 그룹만 유지하고, 새로운 그룹 추가
-    setExpandedGroups((prev) => {
+    setExpandedGroups(prev => {
       const newSet = new Set<string>();
-      prev.forEach((name) => {
+      prev.forEach(name => {
         if (groupNames.includes(name)) {
           newSet.add(name);
         }
       });
       // 새로운 그룹 중 냉장/냉동이 아닌 것은 추가
-      initialExpanded.forEach((name) => {
+      initialExpanded.forEach(name => {
         if (!newSet.has(name)) {
           newSet.add(name);
         }
@@ -216,7 +235,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
 
   // 그룹 토글 함수
   const toggleGroup = (groupName: string) => {
-    setExpandedGroups((prev) => {
+    setExpandedGroups(prev => {
       const newSet = new Set(prev);
       if (newSet.has(groupName)) {
         newSet.delete(groupName);
@@ -249,11 +268,13 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
             </button>
             {/* 그룹별 제품 리스트 */}
             {isExpanded &&
-              groupProducts.map((product) => {
+              groupProducts.map(product => {
                 const hasImage = product.imageUrl && product.imageUrl.trim() !== "";
                 const isMaterial = isMaterialItem(product);
                 const boxSummary = isMaterial ? null : formatBoxBreakdown(product.stock, product.boxUnit);
-                const materialSummary = isMaterial ? formatMaterialSummary(product.stock, product.weight, product.unitLabel) : null;
+                const materialSummary = isMaterial
+                  ? formatMaterialSummary(product.stock, product.weight, product.unitLabel)
+                  : null;
 
                 // 현재 탭 정보를 포함한 URL 생성
                 const getProductUrl = () => {
@@ -316,7 +337,9 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-2xl font-semibold text-blue-600">{formatStock(product.stock, product.stockUnit)}</div>
+                            <div className="text-2xl font-semibold text-blue-600">
+                              {formatStock(product.stock, product.stockUnit)}
+                            </div>
                             {(materialSummary || boxSummary) && (
                               <p className="mt-1 text-xs text-gray-500">{materialSummary || boxSummary}</p>
                             )}

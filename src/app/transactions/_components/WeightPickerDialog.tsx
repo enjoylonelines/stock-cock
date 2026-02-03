@@ -89,7 +89,8 @@ export default function WeightPickerDialog({
     // 단위 변경 시 값 조정
     if (oldUnit === "g" && newUnit === "kg") {
       const newValue = currentNumValue / 1000;
-      const formattedValue = newValue % 1 === 0 ? newValue.toString() : Number.parseFloat(newValue.toFixed(2)).toString();
+      const formattedValue =
+        newValue % 1 === 0 ? newValue.toString() : Number.parseFloat(newValue.toFixed(2)).toString();
       setInputValue(formattedValue);
     } else if (oldUnit === "kg" && newUnit === "g") {
       const newValue = Math.round(currentNumValue * 1000);
@@ -104,12 +105,13 @@ export default function WeightPickerDialog({
     if (!product) return;
 
     const numValue = Number(inputValue);
-    
+
     // 조정 모드에서는 0 허용, 입고 모드에서는 0보다 커야 함
-    const isInvalidValue = formType === "adjust" 
-      ? Number.isNaN(numValue) || numValue < 0
-      : !inputValue || Number.isNaN(numValue) || numValue <= 0;
-    
+    const isInvalidValue =
+      formType === "adjust"
+        ? Number.isNaN(numValue) || numValue < 0
+        : !inputValue || Number.isNaN(numValue) || numValue <= 0;
+
     if (isInvalidValue) {
       alert("올바른 중량을 입력해주세요.");
       return;
@@ -124,7 +126,7 @@ export default function WeightPickerDialog({
       alert(`중량은 0g부터 ${maxGrams / 1000}kg까지 입력 가능합니다.`);
       return;
     }
-    
+
     // 입고 모드에서는 0보다 커야 함
     if (formType === "in" && weightInGrams < 1) {
       alert("입고할 중량은 1g 이상이어야 합니다.");

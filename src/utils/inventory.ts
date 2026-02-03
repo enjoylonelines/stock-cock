@@ -13,13 +13,17 @@ interface UpdateInventoryOptions {
  * @param options 업데이트 옵션
  * @throws 에러 발생 시 throw
  */
-export async function updateInventory(productOptionId: string, warehouseId: string, quantityChange: number): Promise<void>;
+export async function updateInventory(
+  productOptionId: string,
+  warehouseId: string,
+  quantityChange: number
+): Promise<void>;
 export async function updateInventory(options: UpdateInventoryOptions): Promise<void>;
 
 export async function updateInventory(
   optionsOrProductOptionId: UpdateInventoryOptions | string,
   warehouseId?: string,
-  quantityChange?: number,
+  quantityChange?: number
 ): Promise<void> {
   // 옵션 객체 형식으로 변환
   const options: UpdateInventoryOptions =
@@ -49,7 +53,10 @@ export async function updateInventory(
     const newWeight = (inventory?.weight_in_grams ?? 0) + (options.weightChange ?? 0);
 
     if (inventory) {
-      const { error: updateError } = await supabase.from("inventory").update({ weight_in_grams: newWeight }).eq("id", inventory.id);
+      const { error: updateError } = await supabase
+        .from("inventory")
+        .update({ weight_in_grams: newWeight })
+        .eq("id", inventory.id);
 
       if (updateError) {
         throw new Error(`재고 업데이트 실패: ${updateError.message}`);
@@ -73,7 +80,10 @@ export async function updateInventory(
     const newQty = (inventory?.quantity ?? 0) + (options.quantityChange ?? 0);
 
     if (inventory) {
-      const { error: updateError } = await supabase.from("inventory").update({ quantity: newQty }).eq("id", inventory.id);
+      const { error: updateError } = await supabase
+        .from("inventory")
+        .update({ quantity: newQty })
+        .eq("id", inventory.id);
 
       if (updateError) {
         throw new Error(`재고 업데이트 실패: ${updateError.message}`);

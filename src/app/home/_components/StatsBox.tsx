@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useStats } from "@/app/home/_hooks/useStats";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 
@@ -25,7 +25,6 @@ export default function StatsBox() {
         <CardTitle className="flex justify-between items-center">
           <span>재고 현황</span>
           <span className="text-base font-normal text-muted-foreground">{todayStr}</span>
-          
         </CardTitle>
       </CardHeader>
       <CardContent>

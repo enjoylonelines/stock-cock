@@ -1,5 +1,5 @@
-import { stockCalculator } from "@/lib/inventory/stock-calculator";
 import { useInventories } from "@/hooks/useInventories";
+import { stockCalculator } from "@/lib/inventory/stock-calculator";
 import type { DomainInventoryItem } from "@/types/domain";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -191,7 +191,7 @@ export function useProductSelection({
   const getSelectedQuantity = useCallback(
     (productOptionId: string) => {
       const selected = selectedProducts.find(p => p.productOptionId === productOptionId);
-      return selected ? selected.quantity ?? 0 : 0;
+      return selected ? (selected.quantity ?? 0) : 0;
     },
     [selectedProducts]
   );

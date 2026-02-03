@@ -6,16 +6,10 @@
  */
 
 import type { Database } from "@/types/database";
-import type {
-  DomainInventoryItem,
-  ProductType,
-  StockUnit,
-  StorageType,
-} from "@/types/domain";
+import type { DomainInventoryItem, ProductType, StockUnit, StorageType } from "@/types/domain";
 
 // Supabase View Row 타입
-type ProductOptionInventoryViewRow =
-  Database["public"]["Views"]["product_option_inventory_view"]["Row"];
+type ProductOptionInventoryViewRow = Database["public"]["Views"]["product_option_inventory_view"]["Row"];
 
 // ============================================
 // 1. StockUnit 추론 함수
@@ -28,12 +22,7 @@ export function getStockUnit(productType: string | null): StockUnit {
 // 2. ProductType 정규화
 // ============================================
 export function normalizeProductType(raw: string | null): ProductType {
-  if (
-    raw === "material" ||
-    raw === "franchise" ||
-    raw === "pb" ||
-    raw === "company"
-  ) {
+  if (raw === "material" || raw === "franchise" || raw === "pb" || raw === "company") {
     return raw;
   }
   return "company"; // 기본값
@@ -43,11 +32,7 @@ export function normalizeProductType(raw: string | null): ProductType {
 // 3. StorageType 정규화
 // ============================================
 export function normalizeStorageType(raw: string | null): StorageType | null {
-  if (
-    raw === "room_temperature" ||
-    raw === "refrigerated" ||
-    raw === "frozen"
-  ) {
+  if (raw === "room_temperature" || raw === "refrigerated" || raw === "frozen") {
     return raw;
   }
   return null;
@@ -56,9 +41,7 @@ export function normalizeStorageType(raw: string | null): StorageType | null {
 // ============================================
 // 4. View → Domain 변환 함수 (중앙화)
 // ============================================
-export function toInventoryItem(
-  view: ProductOptionInventoryViewRow
-): DomainInventoryItem | null {
+export function toInventoryItem(view: ProductOptionInventoryViewRow): DomainInventoryItem | null {
   // 필수 필드 검증 (null 처리 중앙화)
   if (!view.product_option_id || !view.product_id || !view.product_name) {
     return null;
@@ -68,10 +51,7 @@ export function toInventoryItem(
   const stockUnit = getStockUnit(view.product_type);
 
   // 재고값 결정 (정수)
-  const stock =
-    stockUnit === "GRAM"
-      ? Math.round(view.weight_in_grams ?? 0)
-      : Math.round(view.quantity ?? 0);
+  const stock = stockUnit === "GRAM" ? Math.round(view.weight_in_grams ?? 0) : Math.round(view.quantity ?? 0);
 
   return {
     // 식별자
@@ -111,21 +91,14 @@ export function toInventoryItem(
 // ============================================
 // 5. 배열 변환 (null 필터링 포함)
 // ============================================
-export function toInventoryItems(
-  views: ProductOptionInventoryViewRow[]
-): DomainInventoryItem[] {
-  return views
-    .map(toInventoryItem)
-    .filter((item): item is DomainInventoryItem => item !== null);
+export function toInventoryItems(views: ProductOptionInventoryViewRow[]): DomainInventoryItem[] {
+  return views.map(toInventoryItem).filter((item): item is DomainInventoryItem => item !== null);
 }
 
 // ============================================
 // 6. 선택 수량 설정 (immutable)
 // ============================================
-export function withQuantity(
-  item: DomainInventoryItem,
-  quantity: number
-): DomainInventoryItem {
+export function withQuantity(item: DomainInventoryItem, quantity: number): DomainInventoryItem {
   return {
     ...item,
     quantity: Math.round(quantity), // 항상 정수

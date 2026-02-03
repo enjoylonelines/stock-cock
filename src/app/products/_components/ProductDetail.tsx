@@ -2,11 +2,11 @@
 
 import InventoryList from "@/app/inventory/_components/InventoryList";
 import { Button } from "@/components/ui/button";
-import { formatBoxBreakdown, formatStock } from "@/lib/domain/format";
-import { isMaterialItem } from "@/lib/domain/inventory";
 import { useInventories } from "@/hooks/useInventories";
 import { useInventoryHistory } from "@/hooks/useInventoryHistory";
 import { useWarehouses } from "@/hooks/useWarehouses";
+import { formatBoxBreakdown, formatStock } from "@/lib/domain/format";
+import { isMaterialItem } from "@/lib/domain/inventory";
 import { createClient } from "@/lib/supabase/client";
 import { formatNumber } from "@/lib/utils";
 import { useDrawerStore } from "@/store/drawerStore";
@@ -33,7 +33,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   const isMaterial = isMaterialItem(product);
 
   const getTotalStock = (productOptionId: string) => {
-    const productInventories = inventories.filter((i) => i.product_option_id === productOptionId);
+    const productInventories = inventories.filter(i => i.product_option_id === productOptionId);
 
     if (isMaterial) {
       return productInventories.reduce((sum, i) => sum + (i.weight_in_grams ?? 0), 0);
@@ -50,18 +50,22 @@ export default function ProductDetail({ product }: ProductDetailProps) {
 
   const totalStock = getTotalStock(product.productOptionId);
   const totalBoxSummary = isMaterial ? null : formatBoxBreakdown(totalStock, product.boxUnit);
-  const getLocationName = (locationId: string) => warehouses.find((loc) => loc.id === locationId)?.name || "알 수 없음";
+  const getLocationName = (locationId: string) => warehouses.find(loc => loc.id === locationId)?.name || "알 수 없음";
 
-  const productInventories = inventories.filter((i) => i.product_option_id === product.productOptionId);
-  const filteredInventories = showOnlyStocked ? productInventories.filter((inv) => normalizeQuantity(inv) > 0) : productInventories;
+  const productInventories = inventories.filter(i => i.product_option_id === product.productOptionId);
+  const filteredInventories = showOnlyStocked
+    ? productInventories.filter(inv => normalizeQuantity(inv) > 0)
+    : productInventories;
 
   // 특정 제품의 재고 변동 내역만 필터링
   const productHistory = grouped
-    .map((group) => ({
+    .map(group => ({
       ...group,
-      transactions: group.transactions.filter((tx) => (tx as { product_option_id?: string }).product_option_id === product.productOptionId),
+      transactions: group.transactions.filter(
+        tx => (tx as { product_option_id?: string }).product_option_id === product.productOptionId
+      ),
     }))
-    .filter((group) => group.transactions.length > 0);
+    .filter(group => group.transactions.length > 0);
 
   const handleEdit = async () => {
     try {
@@ -131,9 +135,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                   <p className="text-sm text-gray-500">{""}</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-xl font-bold text-blue-500">
-                    {formatStock(totalStock, product.stockUnit)}
-                  </div>
+                  <div className="text-xl font-bold text-blue-500">{formatStock(totalStock, product.stockUnit)}</div>
                   {totalBoxSummary && <p className="mt-1 text-xs text-gray-500">{totalBoxSummary}</p>}
                 </div>
               </div>
@@ -157,7 +159,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                 className={`w-8 h-4 rounded-full transition-colors duration-200 focus:outline-none ${
                   showOnlyStocked ? "bg-blue-500" : "bg-gray-200"
                 }`}
-                onClick={() => setShowOnlyStocked((prev) => !prev)}
+                onClick={() => setShowOnlyStocked(prev => !prev)}
                 aria-pressed={showOnlyStocked}
               >
                 <span
@@ -172,7 +174,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
             {filteredInventories.length === 0 ? (
               <div className="text-sm text-gray-400">재고 없음</div>
             ) : (
-              filteredInventories.map((inv) => {
+              filteredInventories.map(inv => {
                 const locationQuantity = normalizeQuantity(inv);
                 const boxSummary = isMaterial ? null : formatBoxBreakdown(locationQuantity, product.boxUnit);
 
@@ -183,9 +185,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                       <span>{getLocationName(inv.warehouse_id ?? "")}</span>
                     </div>
                     <div className="text-right">
-                      <span className="block text-blue-500">
-                        {formatStock(locationQuantity, product.stockUnit)}
-                      </span>
+                      <span className="block text-blue-500">{formatStock(locationQuantity, product.stockUnit)}</span>
                       {boxSummary && <span className="text-xs text-gray-500">{boxSummary}</span>}
                     </div>
                   </div>

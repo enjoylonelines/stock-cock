@@ -1,10 +1,11 @@
 "use client";
 
+import { useBrands } from "@/app/products/_hooks/useBrands";
+import { useCategories } from "@/app/products/_hooks/useCategories";
+import ManageView from "@/app/transactions/_components/ManageView";
 import { Button } from "@/components/ui/button";
 import DrawerView from "@/components/ui/drawer-view";
 import { useUser } from "@/contexts/UserContext";
-import { useBrands } from "@/app/products/_hooks/useBrands";
-import { useCategories } from "@/app/products/_hooks/useCategories";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { createClient } from "@/lib/supabase/client";
 import { generateSKU, generateUniqueFileName } from "@/lib/utils";
@@ -16,7 +17,6 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type RefObject, useCallback, useEffect, useMemo, useState } from "react";
 import { mutate } from "swr";
-import ManageView from "@/app/transactions/_components/ManageView";
 import { CommonInputView } from "./CommonInputView";
 import { ProductFormFields } from "./ProductFormFields";
 import { ProductImageUpload } from "./ProductImageUpload";
@@ -247,13 +247,7 @@ export default function ProductCreateForm({
 
   // 폼 유효성 검사 - 메모이제이션
   const isFormValid = useMemo(() => {
-    return !!(
-      name &&
-      categoryId &&
-      brandId &&
-      productType &&
-      (mode === "create" ? initLocation : true)
-    );
+    return !!(name && categoryId && brandId && productType && (mode === "create" ? initLocation : true));
   }, [name, categoryId, brandId, productType, mode, initLocation]);
 
   // localPreviewUrl 정리

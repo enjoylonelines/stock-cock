@@ -1,9 +1,9 @@
+import { createClient } from "@/lib/supabase/server";
 import type { AdjustmentInput } from "@/types/api";
 import { APIError } from "@/utils/api-error";
 import { handleAPIError } from "@/utils/api-handler";
 import { setInventory } from "@/utils/inventory";
 import { apiLogger } from "@/utils/logger";
-import { createClient } from "@/lib/supabase/server";
 import { sendTransactionNotification } from "@/utils/transaction-notification";
 import { NextResponse } from "next/server";
 
@@ -78,9 +78,7 @@ export async function POST(request: Request) {
       }
 
       const isMaterial = item.product_type === "material";
-      const currentQuantity = isMaterial 
-        ? (currentInventory?.weight_in_grams ?? 0) 
-        : (currentInventory?.quantity ?? 0);
+      const currentQuantity = isMaterial ? (currentInventory?.weight_in_grams ?? 0) : (currentInventory?.quantity ?? 0);
       const adjustmentQuantity = item.quantity - currentQuantity; // 목표 재고 - 현재 재고 = 조정량
 
       await setInventory({

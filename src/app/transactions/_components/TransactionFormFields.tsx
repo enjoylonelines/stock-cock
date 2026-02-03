@@ -90,9 +90,7 @@ export const TransactionFormFields = memo(function TransactionFormFields({
       >
         <div className="flex justify-between w-full">
           <h3 className="font-medium">제품</h3>
-          <p className="text-sm text-gray-500">
-            {productStatusText || `${selectedProducts.length}개 품목`}
-          </p>
+          <p className="text-sm text-gray-500">{productStatusText || `${selectedProducts.length}개 품목`}</p>
         </div>
         <ChevronRight className="w-5 h-5 text-gray-400" />
       </Button>

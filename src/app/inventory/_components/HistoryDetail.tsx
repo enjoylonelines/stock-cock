@@ -107,13 +107,14 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
         <div className="flex justify-between mb-1">
           <span className="font-medium text-gray-500">{typeInfo.label}일</span>
           <span>
-            {data[0].created_at && new Date(data[0].created_at).toLocaleString("ko-KR", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {data[0].created_at &&
+              new Date(data[0].created_at).toLocaleString("ko-KR", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
           </span>
         </div>
       </div>
@@ -123,15 +124,13 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
         <div className="mb-2 text-sm font-medium text-gray-700">{data.length}품목</div>
         <div className="space-y-3">
           {data.map(item => (
-            <div key={`${item.transaction_id ?? ''}-${item.product_name ?? ''}`} className="flex gap-3 items-center">
+            <div key={`${item.transaction_id ?? ""}-${item.product_name ?? ""}`} className="flex gap-3 items-center">
               <div className="overflow-hidden relative w-12 h-12 bg-gray-100 rounded-lg">
                 <div className="w-full h-full bg-gray-200" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-medium text-gray-900">{item.product_name}</div>
-                <div className="text-xs text-gray-500">
-                  {item.weight && `${item.weight}g`}
-                </div>
+                <div className="text-xs text-gray-500">{item.weight && `${item.weight}g`}</div>
               </div>
               <div className={`text-right ${getTypeColor(item.type ?? "")}`}>
                 {item.type === "in" ? "+" : item.type === "out" ? "-" : ""}
