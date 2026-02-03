@@ -101,7 +101,11 @@ export async function registerProduct(form: ProductFormInput) {
 /**
  * 제품 업데이트 API
  */
-export async function updateProduct(productId: string, productOptionId: string, form: Omit<ProductFormInput, "warehouse_id" | "quantity">) {
+export async function updateProduct(
+  productId: string,
+  productOptionId: string,
+  form: Omit<ProductFormInput, "warehouse_id" | "quantity">
+) {
   const supabase = createClient();
   // 1. products 테이블 업데이트
   const { error: productError } = await supabase

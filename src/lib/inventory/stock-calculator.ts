@@ -22,11 +22,7 @@ export const stockCalculator = {
    * 특정 위치의 제품 재고 계산
    * 완제품: 개수 반환, 원재료: g 단위 중량 반환
    */
-  getCurrentStock(
-    productOptionId: string,
-    inventories: Inventory[],
-    warehouseId?: string
-  ): number {
+  getCurrentStock(productOptionId: string, inventories: Inventory[], warehouseId?: string): number {
     if (warehouseId) {
       // 특정 위치의 재고
       const inv = inventories.find(
@@ -51,9 +47,7 @@ export const stockCalculator = {
     isMaterial?: boolean
   ): number {
     const inv = warehouseId
-      ? inventories.find(
-          i => i.product_option_id === productOptionId && i.warehouse_id === warehouseId
-        )
+      ? inventories.find(i => i.product_option_id === productOptionId && i.warehouse_id === warehouseId)
       : inventories.find(i => i.product_option_id === productOptionId);
 
     if (!inv) return 0;
@@ -77,7 +71,7 @@ export const stockCalculator = {
         inv => inv.product_option_id === product.productOptionId && inv.warehouse_id === fromWarehouseId
       );
       if (!inventory) return false;
-      
+
       // 원재료는 weight_in_grams, 완제품은 quantity 확인
       if (isMaterialItem(product)) {
         return (inventory.weight_in_grams ?? 0) > 0;

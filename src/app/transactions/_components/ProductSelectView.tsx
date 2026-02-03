@@ -1,5 +1,6 @@
 "use client";
 
+import Tab from "@/app/products/_components/Tab";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatStock } from "@/lib/domain/format";
@@ -7,13 +8,12 @@ import { isMaterialItem } from "@/lib/domain/inventory";
 import { formatNumber } from "@/lib/utils";
 import type { DomainInventoryItem } from "@/types/domain";
 import { ArrowLeft, Filter, Search } from "lucide-react";
-import { useState, useMemo } from "react";
-import Tab from "@/app/products/_components/Tab";
+import { useMemo, useState } from "react";
+import { useProductQuantityDialog } from "../_hooks/useProductQuantityDialog";
+import { useProductSelection } from "../_hooks/useProductSelection";
 import ProductListItem from "./ProductListItem";
 import ProductQuantityDialog from "./ProductQuantityDialog";
 import WeightPickerDialog from "./WeightPickerDialog";
-import { useProductSelection } from "../_hooks/useProductSelection";
-import { useProductQuantityDialog } from "../_hooks/useProductQuantityDialog";
 
 type FormType = "in" | "out" | "move" | "adjust";
 type TabType = "product" | "material";
@@ -48,19 +48,12 @@ export default function ProductSelectView({
   const showTabs = true;
 
   // 원재료 존재 여부 확인
-  const hasMaterials = useMemo(
-    () => products.some(p => isMaterialItem(p)),
-    [products]
-  );
+  const hasMaterials = useMemo(() => products.some(p => isMaterialItem(p)), [products]);
 
   // 탭에 따른 제품 필터링
   const tabFilteredProducts = useMemo(() => {
     if (!showTabs) return products;
-    return products.filter(p =>
-      selectedTab === "material"
-        ? isMaterialItem(p)
-        : !isMaterialItem(p)
-    );
+    return products.filter(p => (selectedTab === "material" ? isMaterialItem(p) : !isMaterialItem(p)));
   }, [products, selectedTab, showTabs]);
 
   const productSelection = useProductSelection({
@@ -132,19 +125,19 @@ export default function ProductSelectView({
   const getSelectionSummary = (items: DomainInventoryItem[]) => {
     const finishedProducts = items.filter(p => !isMaterialItem(p));
     const materials = items.filter(p => isMaterialItem(p));
-    
+
     const parts: string[] = [];
-    
+
     if (finishedProducts.length > 0) {
       const totalQty = finishedProducts.reduce((acc, curr) => acc + (curr.quantity ?? 0), 0);
       parts.push(`완제품 ${formatNumber(totalQty)}개`);
     }
-    
+
     if (materials.length > 0) {
       const totalWeight = materials.reduce((acc, curr) => acc + (curr.quantity ?? 0), 0);
       parts.push(`원재료 ${formatStock(totalWeight, "GRAM")}`);
     }
-    
+
     return parts.length > 0 ? parts.join(", ") : "0개 선택";
   };
 
@@ -184,11 +177,7 @@ export default function ProductSelectView({
       {/* 탭 (입고/조정에서만, 원재료가 있을 때만) */}
       {showTabs && hasMaterials && (
         <div className="px-4 pt-2">
-          <Tab
-            items={tabItems}
-            value={selectedTab}
-            onValueChange={value => setSelectedTab(value as TabType)}
-          />
+          <Tab items={tabItems} value={selectedTab} onValueChange={value => setSelectedTab(value as TabType)} />
         </div>
       )}
 

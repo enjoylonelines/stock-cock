@@ -4,8 +4,7 @@ import type { Database } from "@/types/database";
 import type { DomainInventoryItem } from "@/types/domain";
 import useSWR from "swr";
 
-type ProductOptionInventoryViewRow =
-  Database["public"]["Views"]["product_option_inventory_view"]["Row"];
+type ProductOptionInventoryViewRow = Database["public"]["Views"]["product_option_inventory_view"]["Row"];
 
 /**
  * View Row → Domain Item 변환 후 product_option_id 기준 그룹핑
@@ -33,10 +32,7 @@ function groupAndConvert(rows: ProductOptionInventoryViewRow[]): DomainInventory
 const supabase = createClient();
 
 const fetcher = async () => {
-  const { data, error } = await supabase
-    .from("product_option_inventory_view")
-    .select("*")
-    .order("product_name");
+  const { data, error } = await supabase.from("product_option_inventory_view").select("*").order("product_name");
   if (error) throw error;
   return groupAndConvert(data || []);
 };

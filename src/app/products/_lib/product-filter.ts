@@ -17,10 +17,7 @@ export const productFilter = {
   /**
    * 제품 목록 필터링
    */
-  filterProducts(
-    products: DomainInventoryItem[],
-    filters: ProductFilters
-  ): DomainInventoryItem[] {
+  filterProducts(products: DomainInventoryItem[], filters: ProductFilters): DomainInventoryItem[] {
     return products.filter(product => {
       // 제품 타입 필터
       if (filters.productType && filters.productType !== "all") {

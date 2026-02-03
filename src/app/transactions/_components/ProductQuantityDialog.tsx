@@ -111,7 +111,12 @@ export default function ProductQuantityDialog({
               </div>
             </div>
 
-            <Button variant="outline" size="icon" className="w-10 h-10 rounded-full" onClick={() => handleQuantityChange(1)}>
+            <Button
+              variant="outline"
+              size="icon"
+              className="w-10 h-10 rounded-full"
+              onClick={() => handleQuantityChange(1)}
+            >
               <Plus className="w-4 h-4" />
             </Button>
           </div>

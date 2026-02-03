@@ -4,7 +4,15 @@ import { useProducts } from "@/hooks/useProducts";
 import { isMaterialItem } from "@/lib/domain/inventory";
 import { formatWeightDisplay } from "@/lib/utils";
 import type { DomainInventoryItem } from "@/types/domain";
-import { ArrowDownToLine, ArrowLeftRight, ArrowUpDown, ArrowUpToLine, ChevronDown, ChevronRight, ChevronUp } from "lucide-react";
+import {
+  ArrowDownToLine,
+  ArrowLeftRight,
+  ArrowUpDown,
+  ArrowUpToLine,
+  ChevronDown,
+  ChevronRight,
+  ChevronUp,
+} from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { memo, useCallback, useMemo, useState } from "react";
@@ -14,7 +22,7 @@ import { memo, useCallback, useMemo, useState } from "react";
  */
 const groupByTransactionId = (transactions: InventoryTransaction[]): InventoryTransaction[][] => {
   const groups: Record<string, InventoryTransaction[]> = {};
-  transactions.forEach((tx) => {
+  transactions.forEach(tx => {
     const txId = tx.transaction_id ?? "";
     if (!groups[txId]) groups[txId] = [];
     groups[txId].push(tx);
@@ -58,14 +66,21 @@ const TransactionItem = memo(function TransactionItem({
   showType?: boolean;
   compact?: boolean;
 }) {
-  const product = products.find((p) => p.productOptionId === transaction.product_option_id);
+  const product = products.find(p => p.productOptionId === transaction.product_option_id);
   return (
     <div className={`flex gap-4 items-center ${compact ? "py-2" : ""}`}>
       {showType && <div className="shrink-0">{getTypeIcon(transaction.type_kr)}</div>}
       <div className="shrink-0">
         <div className={`overflow-hidden relative rounded-md bg-slate-100 ${compact ? "w-10 h-10" : "w-12 h-12"}`}>
           {product?.imageUrl ? (
-            <Image src={product.imageUrl} alt={transaction.product_name} fill className="object-cover" loading="lazy" sizes="48px" />
+            <Image
+              src={product.imageUrl}
+              alt={transaction.product_name}
+              fill
+              className="object-cover"
+              loading="lazy"
+              sizes="48px"
+            />
           ) : (
             <div className="flex justify-center items-center w-full h-full text-xs font-medium text-gray-400">
               {transaction.product_name?.charAt(0).toUpperCase() || "?"}
@@ -93,11 +108,15 @@ const TransactionItem = memo(function TransactionItem({
           <span className="text-sm text-gray-500">
             {transaction.product_name}
             {product && product.weight > 0 && (
-              <span className="ml-2 text-gray-400">{formatWeightDisplay(product.weight, product.unitLabel as "g" | "kg" | undefined)}</span>
+              <span className="ml-2 text-gray-400">
+                {formatWeightDisplay(product.weight, product.unitLabel as "g" | "kg" | undefined)}
+              </span>
             )}
           </span>
         </div>
-        {!compact && transaction.to_warehouse_name && <span className="text-sm text-gray-500">{transaction.to_warehouse_name}</span>}
+        {!compact && transaction.to_warehouse_name && (
+          <span className="text-sm text-gray-500">{transaction.to_warehouse_name}</span>
+        )}
         {!compact && transaction.type_kr !== "이동" && (
           <div className="mt-1 text-sm text-gray-500">총 재고: {transaction.total_stock.toLocaleString()}</div>
         )}
@@ -106,7 +125,9 @@ const TransactionItem = memo(function TransactionItem({
         <div className={`text-right ${getQuantityColor(transaction.quantity ?? 0)}`}>
           {formatQuantityDisplay(transaction.quantity ?? 0, product)}
         </div>
-        {!compact && <div className="text-sm text-gray-500">{transaction.user_name ? transaction.user_name : "이름없음"}</div>}
+        {!compact && (
+          <div className="text-sm text-gray-500">{transaction.user_name ? transaction.user_name : "이름없음"}</div>
+        )}
       </div>
     </div>
   );
@@ -131,11 +152,11 @@ const TransactionGroup = memo(function TransactionGroup({
   const [isExpanded, setIsExpanded] = useState(false);
   const firstTransaction = transactions[0];
   const hasMultiple = transactions.length > 1;
-  const firstProduct = products.find((p) => p.productOptionId === firstTransaction.product_option_id);
+  const firstProduct = products.find(p => p.productOptionId === firstTransaction.product_option_id);
 
   const handleCardClick = useCallback(() => {
     if (hasMultiple) {
-      setIsExpanded((prev) => !prev);
+      setIsExpanded(prev => !prev);
     } else {
       onDetailClick(firstTransaction.transaction_id ?? "");
     }
@@ -146,7 +167,7 @@ const TransactionGroup = memo(function TransactionGroup({
       e.stopPropagation();
       onDetailClick(firstTransaction.transaction_id ?? "");
     },
-    [firstTransaction.transaction_id, onDetailClick],
+    [firstTransaction.transaction_id, onDetailClick]
   );
 
   return (
@@ -155,7 +176,7 @@ const TransactionGroup = memo(function TransactionGroup({
       <div
         className="p-4 cursor-pointer hover:bg-gray-50"
         onClick={handleCardClick}
-        onKeyDown={(e) => {
+        onKeyDown={e => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             handleCardClick();
@@ -213,7 +234,9 @@ const TransactionGroup = memo(function TransactionGroup({
                 </span>
               )}
             </div>
-            {firstTransaction.to_warehouse_name && <span className="text-sm text-gray-500">{firstTransaction.to_warehouse_name}</span>}
+            {firstTransaction.to_warehouse_name && (
+              <span className="text-sm text-gray-500">{firstTransaction.to_warehouse_name}</span>
+            )}
             {firstTransaction.type_kr !== "이동" && (
               <div className="mt-1 text-sm text-gray-500">총 재고: {firstTransaction.total_stock.toLocaleString()}</div>
             )}
@@ -222,7 +245,9 @@ const TransactionGroup = memo(function TransactionGroup({
             <div className={`text-right ${getQuantityColor(firstTransaction.quantity ?? 0)}`}>
               {formatQuantityDisplay(firstTransaction.quantity ?? 0, firstProduct)}
             </div>
-            <div className="text-sm text-gray-500">{firstTransaction.user_name ? firstTransaction.user_name : "이름없음"}</div>
+            <div className="text-sm text-gray-500">
+              {firstTransaction.user_name ? firstTransaction.user_name : "이름없음"}
+            </div>
           </div>
           {/* 오른쪽 아이콘 영역 - 레이아웃 일관성 유지 */}
           <div className="w-5 text-gray-400 shrink-0">
@@ -259,7 +284,11 @@ const TransactionGroup = memo(function TransactionGroup({
           ))}
           {/* 상세보기 버튼 */}
           <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
-            <button type="button" className="py-2 w-full text-sm text-center text-gray-600 hover:text-gray-900" onClick={handleDetailClick}>
+            <button
+              type="button"
+              className="py-2 w-full text-sm text-center text-gray-600 hover:text-gray-900"
+              onClick={handleDetailClick}
+            >
               상세보기
             </button>
           </div>
@@ -299,12 +328,12 @@ const InventoryList = memo(function InventoryList({ grouped }: { grouped: Groupe
     (transactionId: string) => {
       router.push(`/inventory/${transactionId}`);
     },
-    [router],
+    [router]
   );
 
   // 날짜별 그룹 내에서 transaction_id별로 그룹화
   const groupedByDate = useMemo(() => {
-    return grouped.map((dateGroup) => ({
+    return grouped.map(dateGroup => ({
       date: dateGroup.date,
       transactionGroups: groupByTransactionId(dateGroup.transactions),
     }));
@@ -312,11 +341,11 @@ const InventoryList = memo(function InventoryList({ grouped }: { grouped: Groupe
 
   return (
     <div className="overflow-auto space-y-6 custom-scrollbar">
-      {groupedByDate.map((dateGroup) => (
+      {groupedByDate.map(dateGroup => (
         <div key={dateGroup.date} className="space-y-2">
           <h2 className="text-sm font-medium text-gray-500">{dateGroup.date}</h2>
           <div className="space-y-2">
-            {dateGroup.transactionGroups.map((transactions) => (
+            {dateGroup.transactionGroups.map(transactions => (
               <TransactionGroup
                 key={transactions[0].transaction_id}
                 transactions={transactions}

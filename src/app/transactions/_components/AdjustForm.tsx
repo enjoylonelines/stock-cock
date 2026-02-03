@@ -1,19 +1,19 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import DrawerView from "@/components/ui/drawer-view";
+import { useInventories } from "@/hooks/useInventories";
 import { useProducts } from "@/hooks/useProducts";
 import { useWarehouses } from "@/hooks/useWarehouses";
-import { useInventories } from "@/hooks/useInventories";
-import { transactionFormatter } from "../_lib/transaction-formatter";
+import { ChevronRight } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useAdjustForm } from "../_hooks/useAdjustForm";
-import DrawerView from "@/components/ui/drawer-view";
+import { transactionFormatter } from "../_lib/transaction-formatter";
 import DatePickerDialog from "./DatePickerDialog";
 import ManageView from "./ManageView";
 import MemoView from "./MemoView";
 import ProductListItem from "./ProductListItem";
 import ProductSelectView from "./ProductSelectView";
-import { ChevronRight } from "lucide-react";
-import { useState, useMemo } from "react";
 
 interface AdjustFormProps {
   closeDrawer: () => void;
@@ -47,17 +47,13 @@ export default function AdjustForm({ closeDrawer }: AdjustFormProps) {
   } = useAdjustForm(closeDrawer);
 
   // 날짜 포맷팅
-  const formattedDate = useMemo(
-    () => transactionFormatter.formatDate(selectedDate),
-    [selectedDate]
-  );
+  const formattedDate = useMemo(() => transactionFormatter.formatDate(selectedDate), [selectedDate]);
 
   // 해당 위치에 재고가 있는지 확인
   const hasStockInLocation = useMemo(() => {
     if (!selectedLocation) return true;
-    return inventories.some(inv => 
-      inv.warehouse_id === selectedLocation && 
-      ((inv.quantity ?? 0) > 0 || (inv.weight_in_grams ?? 0) > 0)
+    return inventories.some(
+      inv => inv.warehouse_id === selectedLocation && ((inv.quantity ?? 0) > 0 || (inv.weight_in_grams ?? 0) > 0)
     );
   }, [selectedLocation, inventories]);
 
@@ -141,8 +137,8 @@ export default function AdjustForm({ closeDrawer }: AdjustFormProps) {
           {selectedProducts.length > 0 && (
             <div className="mt-2 space-y-2">
               {selectedProducts.map(product => (
-              <ProductListItem
-                key={product.productOptionId}
+                <ProductListItem
+                  key={product.productOptionId}
                   product={product}
                   quantity={product.quantity}
                   selected={false}

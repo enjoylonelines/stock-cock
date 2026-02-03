@@ -141,10 +141,11 @@ export default function ActivityLogDrawer() {
                           {getTypeLabel(transaction.type ?? "")}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {transaction.created_at && formatDistanceToNow(new Date(transaction.created_at), {
-                            addSuffix: true,
-                            locale: ko,
-                          })}
+                          {transaction.created_at &&
+                            formatDistanceToNow(new Date(transaction.created_at), {
+                              addSuffix: true,
+                              locale: ko,
+                            })}
                         </span>
                       </div>
                       <p className="mb-1 text-sm text-gray-700">{formatLogMessage(transaction)}</p>

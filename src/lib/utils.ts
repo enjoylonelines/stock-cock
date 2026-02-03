@@ -53,7 +53,7 @@ export function formatBoxBreakdown(quantity?: number | null, boxUnit?: number | 
 export function formatMaterialSummary(
   weightInGrams: number | null | undefined,
   optionWeight: number,
-  unitLabel: string | null | undefined,
+  unitLabel: string | null | undefined
 ): string | null {
   const totalGrams = weightInGrams ?? 0;
   if (!optionWeight || !unitLabel || totalGrams === 0) {

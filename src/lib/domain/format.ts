@@ -24,11 +24,7 @@ export function formatStock(value: number, unit: StockUnit): string {
 // ============================================
 // 2. 수량 입력 파싱 (항상 정수로 반환)
 // ============================================
-export function parseQuantityInput(
-  value: string,
-  inputUnit: "g" | "kg",
-  stockUnit: StockUnit
-): number {
+export function parseQuantityInput(value: string, inputUnit: "g" | "kg", stockUnit: StockUnit): number {
   const num = Number.parseFloat(value) || 0;
 
   if (stockUnit === "GRAM") {
@@ -43,10 +39,7 @@ export function parseQuantityInput(
 // ============================================
 // 3. 규격 기준 박스/봉 계산 (완제품용)
 // ============================================
-export function formatBoxBreakdown(
-  quantity: number,
-  boxUnit: number | null
-): string | null {
+export function formatBoxBreakdown(quantity: number, boxUnit: number | null): string | null {
   if (!boxUnit || boxUnit <= 0 || quantity <= 0) {
     return null;
   }
@@ -68,11 +61,7 @@ export function formatBoxBreakdown(
 // ============================================
 // 4. 원재료 규격 기준 계산 (GRAM용)
 // ============================================
-export function formatMaterialSummary(
-  totalGrams: number,
-  specWeight: number,
-  unitLabel: string | null
-): string | null {
+export function formatMaterialSummary(totalGrams: number, specWeight: number, unitLabel: string | null): string | null {
   if (totalGrams <= 0 || specWeight <= 0) {
     return null;
   }
@@ -103,9 +92,7 @@ export function formatMaterialSummary(
 
   // 잔량 포맷팅
   const remainderStr =
-    remainderGrams >= 1000
-      ? `${(remainderGrams / 1000).toFixed(2).replace(/\.?0+$/, "")}kg`
-      : `${remainderGrams}g`;
+    remainderGrams >= 1000 ? `${(remainderGrams / 1000).toFixed(2).replace(/\.?0+$/, "")}kg` : `${remainderGrams}g`;
 
   return `${specStr} × ${units} + ${remainderStr}`;
 }

@@ -24,7 +24,7 @@ const supabase = createClient();
 
 const processTransactionData = (
   data: TransactionHistoryView[],
-  inventories: { product_option_id: string | null; quantity: number | null; weight_in_grams?: number | null }[],
+  inventories: { product_option_id: string | null; quantity: number | null; weight_in_grams?: number | null }[]
 ) => {
   const mergedInventories: Record<string, number> = inventories.reduce(
     (acc, inv) => {
@@ -34,7 +34,7 @@ const processTransactionData = (
       acc[inv.product_option_id] += inv.quantity ?? inv.weight_in_grams ?? 0;
       return acc;
     },
-    {} as Record<string, number>,
+    {} as Record<string, number>
   );
 
   // [1] inventories 기준으로 현재고 세팅
@@ -90,7 +90,7 @@ const processTransactionData = (
 
   // 최신순 → 날짜별 그룹화
   const groupedObj: { [date: string]: InventoryTransaction[] } = {};
-  logs.forEach((tx) => {
+  logs.forEach(tx => {
     if (!groupedObj[tx.date]) groupedObj[tx.date] = [];
     groupedObj[tx.date].push(tx);
   });
@@ -141,7 +141,7 @@ export function useInventoryHistory() {
           schema: "public",
           table: "transactions",
         },
-        () => mutate(swrKeyRef.current),
+        () => mutate(swrKeyRef.current)
       )
       .subscribe();
 

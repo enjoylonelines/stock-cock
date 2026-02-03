@@ -1,8 +1,5 @@
 "use client";
-import {
-  formatMaterialSummary,
-  formatStock,
-} from "@/lib/domain/format";
+import { formatMaterialSummary, formatStock } from "@/lib/domain/format";
 import { isMaterialItem } from "@/lib/domain/inventory";
 import { formatNumber } from "@/lib/utils";
 import type { DomainInventoryItem } from "@/types/domain";
@@ -17,7 +14,13 @@ interface ProductListItemProps {
   currentStock?: number; // 조정 모드에서 현재 재고 표시용
 }
 
-export const ProductListItem = memo(function ProductListItem({ product, quantity, selected, onClick, currentStock }: ProductListItemProps) {
+export const ProductListItem = memo(function ProductListItem({
+  product,
+  quantity,
+  selected,
+  onClick,
+  currentStock,
+}: ProductListItemProps) {
   const hasImage = product.imageUrl && product.imageUrl.trim() !== "";
   const isMaterial = isMaterialItem(product);
 
@@ -65,30 +68,43 @@ export const ProductListItem = memo(function ProductListItem({ product, quantity
               <div>
                 <p
                   className={`text-sm font-medium ${
-                    selected ? (quantity < 0 ? "text-red-500" : "text-orange-500") : quantity < 0 ? "text-red-500" : "text-blue-500"
+                    selected
+                      ? quantity < 0
+                        ? "text-red-500"
+                        : "text-orange-500"
+                      : quantity < 0
+                        ? "text-red-500"
+                        : "text-blue-500"
                   }`}
                 >
                   {quantity < 0 ? "-" : ""}
                   {formatQuantity(quantity)}
                 </p>
                 {isMaterial && quantity !== 0 && (
-                  <p className="text-xs text-gray-500">{formatMaterialSummary(quantity, product.weight, product.unitLabel)}</p>
+                  <p className="text-xs text-gray-500">
+                    {formatMaterialSummary(quantity, product.weight, product.unitLabel)}
+                  </p>
                 )}
               </div>
             ) : currentStock !== undefined ? (
               <div>
                 <p className="text-sm text-gray-600">
-                  현재: {isMaterial ? (currentStock === 0 ? "0" : formatStock(currentStock, "GRAM")) : `${formatNumber(currentStock)}개`}
+                  현재:{" "}
+                  {isMaterial
+                    ? currentStock === 0
+                      ? "0"
+                      : formatStock(currentStock, "GRAM")
+                    : `${formatNumber(currentStock)}개`}
                 </p>
                 {isMaterial && currentStock > 0 && (
-                  <p className="text-xs text-gray-500">{formatMaterialSummary(currentStock, product.weight, product.unitLabel)}</p>
+                  <p className="text-xs text-gray-500">
+                    {formatMaterialSummary(currentStock, product.weight, product.unitLabel)}
+                  </p>
                 )}
               </div>
             ) : (
               <div>
-                <p className="text-sm text-gray-600">
-                  {formatStock(product.stock, product.stockUnit)}
-                </p>
+                <p className="text-sm text-gray-600">{formatStock(product.stock, product.stockUnit)}</p>
                 {isMaterial && product.stock > 0 && (
                   <p className="text-xs text-gray-500">
                     {formatMaterialSummary(product.stock, product.weight, product.unitLabel)}
