@@ -1,8 +1,8 @@
+import { createClient } from "@/lib/supabase/server";
 import type { PushNotificationInput } from "@/types/api";
 import { APIError } from "@/utils/api-error";
 import { handleAPIError } from "@/utils/api-handler";
 import { apiLogger } from "@/utils/logger";
-import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import webpush from "web-push";
 

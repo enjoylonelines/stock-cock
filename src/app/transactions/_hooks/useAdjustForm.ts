@@ -1,10 +1,10 @@
 import { useUser } from "@/contexts/UserContext";
-import { transactionFormatter } from "../_lib/transaction-formatter";
-import { transactionValidator } from "../_lib/transaction-validator";
-import { adjustmentService } from "../_services/transaction-service";
 import { useFormStateStore } from "@/store/formStateStore";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
+import { transactionFormatter } from "../_lib/transaction-formatter";
+import { transactionValidator } from "../_lib/transaction-validator";
+import { adjustmentService } from "../_services/transaction-service";
 
 /**
  * 재고 조정 폼 비즈니스 로직 훅
@@ -13,9 +13,9 @@ export function useAdjustForm(closeDrawer: () => void) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const user = useUser();
-  const adjustForm = useFormStateStore((state) => state.adjustForm);
-  const updateAdjustForm = useFormStateStore((state) => state.updateAdjustForm);
-  const resetAdjustForm = useFormStateStore((state) => state.resetAdjustForm);
+  const adjustForm = useFormStateStore(state => state.adjustForm);
+  const updateAdjustForm = useFormStateStore(state => state.updateAdjustForm);
+  const resetAdjustForm = useFormStateStore(state => state.resetAdjustForm);
   const { selectedLocation, selectedProducts, selectedDate, memo } = adjustForm;
 
   // 폼 검증
@@ -60,7 +60,17 @@ export function useAdjustForm(closeDrawer: () => void) {
     } finally {
       setIsLoading(false);
     }
-  }, [validation, selectedLocation, selectedProducts, selectedDate, memo, user?.id, resetAdjustForm, closeDrawer, router]);
+  }, [
+    validation,
+    selectedLocation,
+    selectedProducts,
+    selectedDate,
+    memo,
+    user?.id,
+    resetAdjustForm,
+    closeDrawer,
+    router,
+  ]);
 
   return {
     // 상태

@@ -1,4 +1,4 @@
-import type { ProductCreateInput, APIResponse } from "@/types/api";
+import type { APIResponse, ProductCreateInput } from "@/types/api";
 import { clientLogger } from "@/utils/client-logger";
 
 /**

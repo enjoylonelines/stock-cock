@@ -1,8 +1,8 @@
+import { createClient } from "@/lib/supabase/server";
 import type { TransactionInput } from "@/types/api";
 import { APIError } from "@/utils/api-error";
 import { handleAPIError } from "@/utils/api-handler";
 import { apiLogger } from "@/utils/logger";
-import { createClient } from "@/lib/supabase/server";
 import { sendTransactionNotification } from "@/utils/transaction-notification";
 import { NextResponse } from "next/server";
 
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
             product_option_id: item.option_id,
             warehouse_id,
             quantity: item.quantity,
-            unit_price: item.unit_price,
+            unit_price: null,
             expiration_date: item.expiration_date || null,
           },
         ])
@@ -148,7 +148,6 @@ export async function POST(request: Request) {
           product_option_id: item.option_id,
           batch_id: batch.id,
           quantity: item.quantity,
-          unit_price: item.unit_price,
         },
       ]);
 
