@@ -5,6 +5,7 @@ import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 import { SWRProvider } from "@/components/providers/SWRProvider";
 import { SessionRestore } from "@/components/providers/SessionRestore";
+import { ServiceWorkerReload } from "@/components/providers/ServiceWorkerReload";
 import { UserProvider } from "@/contexts/UserContext";
 import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
@@ -38,6 +39,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="ko" className="custom-scrollbar">
       <head>
         <meta name="theme-color" content="#ffffff" />
+        {/* iOS: 첫 번째 '홈 화면에 추가'부터 앱처럼(주소창 없음) 동작하도록 필수 */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="한끼재고" />
         <link rel="icon" href="/icons/logo.png" />
         <link rel="apple-touch-icon" href="/icons/logo-192x192.png" />
         {/* DNS 프리페치 및 프리커넥트로 외부 리소스 로딩 최적화 */}
@@ -53,6 +58,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <body className={`${inter.className} antialiased bg-slate-200`}>
             {/* iOS PWA 세션 복원 - localStorage의 세션을 서버 쿠키로 복원 */}
             <SessionRestore />
+            <ServiceWorkerReload />
             <Header />
             <main className="pt-14 pb-20 min-h-screen">{children}</main>
             <Footer />
