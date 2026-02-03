@@ -180,7 +180,7 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
           onClick={() => setIsProductViewVisible(true)}
         >
           <span className="text-gray-500">
-            {selectedProduct ? products.find(prod => prod.product_option_id === selectedProduct)?.product_name : "전체"}
+            {selectedProduct ? products.find(prod => prod.productOptionId === selectedProduct)?.name : "전체"}
           </span>
           <ChevronRight className="w-5 h-5 text-gray-400" />
         </Button>
@@ -246,8 +246,8 @@ export default function FilterDrawer({ isOpen, onClose, onApplyFilter, initialFi
           onSelect={handleProductSelect}
           title="제품 선택"
           items={products.map(product => ({
-            id: product.product_option_id,
-            name: product.product_name,
+            id: product.productOptionId,
+            name: product.name,
           }))}
         />
       </DrawerView>

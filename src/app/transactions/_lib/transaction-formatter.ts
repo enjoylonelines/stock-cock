@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import type { TransactionInput, MoveInput, AdjustmentInput } from "@/types/api";
-import type { ProductOptionView } from "@/types/database";
+import type { DomainInventoryItem } from "@/types/domain";
 
 /**
  * 거래 데이터 포맷팅 로직 (Transactions 전용)
@@ -30,7 +30,7 @@ export const transactionFormatter = {
     supplier_id: string;
     memo: string;
     selectedDate: Date;
-    selectedProducts: ProductOptionView[];
+    selectedProducts: DomainInventoryItem[];
     user_id: string;
   }): TransactionInput {
     return {
@@ -40,9 +40,9 @@ export const transactionFormatter = {
       memo: data.memo,
       created_at: this.formatDateForAPI(data.selectedDate),
       items: data.selectedProducts.map(product => ({
-        option_id: product.product_option_id,
+        option_id: product.productOptionId,
         quantity: product.quantity || 1,
-        product_type: (product.product_type as "company" | "franchise" | "pb" | "material") ?? undefined, // 원재료 구분용
+        product_type: product.productType,
       })),
       user_id: data.user_id,
     };
@@ -56,7 +56,7 @@ export const transactionFormatter = {
     to_warehouse_id: string;
     memo: string;
     selectedDate: Date;
-    selectedProducts: ProductOptionView[];
+    selectedProducts: DomainInventoryItem[];
     user_id: string;
   }): MoveInput {
     return {
@@ -65,9 +65,9 @@ export const transactionFormatter = {
       memo: data.memo,
       created_at: this.formatDateForAPI(data.selectedDate),
       items: data.selectedProducts.map(product => ({
-        option_id: product.product_option_id,
+        option_id: product.productOptionId,
         quantity: product.quantity || 1,
-        product_type: (product.product_type as "company" | "franchise" | "pb" | "material") ?? undefined, // 원재료 구분용
+        product_type: product.productType,
       })),
       user_id: data.user_id,
     };
@@ -80,7 +80,7 @@ export const transactionFormatter = {
     warehouse_id: string;
     memo: string;
     selectedDate: Date;
-    selectedProducts: ProductOptionView[];
+    selectedProducts: DomainInventoryItem[];
     user_id: string;
   }): AdjustmentInput {
     return {
@@ -88,9 +88,9 @@ export const transactionFormatter = {
       memo: data.memo,
       created_at: this.formatDateForAPI(data.selectedDate),
       items: data.selectedProducts.map(product => ({
-        option_id: product.product_option_id,
+        option_id: product.productOptionId,
         quantity: product.quantity ?? 0,
-        product_type: (product.product_type as "company" | "franchise" | "pb" | "material") ?? undefined, // 원재료 구분용
+        product_type: product.productType,
       })),
       user_id: data.user_id,
     };

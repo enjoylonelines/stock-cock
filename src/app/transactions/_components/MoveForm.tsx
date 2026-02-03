@@ -156,8 +156,8 @@ export default function MoveForm({ closeDrawer }: MoveFormProps) {
           {selectedProducts.length > 0 && (
             <div className="mt-2 space-y-2">
               {selectedProducts.map(product => (
-                <ProductListItem
-                  key={product.product_option_id}
+              <ProductListItem
+                key={product.productOptionId}
                   product={product}
                   quantity={product.quantity}
                   selected={false}

@@ -1,5 +1,6 @@
-import type { ProductOptionView } from "@/types/database";
+import { isMaterialItem } from "@/lib/domain/inventory";
 import type { Inventory } from "@/types/database";
+import type { DomainInventoryItem } from "@/types/domain";
 
 /**
  * 인벤토리에서 유효한 재고 값 반환
@@ -67,19 +68,18 @@ export const stockCalculator = {
    * 출발지에 재고가 있는 제품만 필터링
    */
   getAvailableProducts(
-    products: ProductOptionView[],
+    products: DomainInventoryItem[],
     inventories: Inventory[],
     fromWarehouseId: string
-  ): ProductOptionView[] {
+  ): DomainInventoryItem[] {
     return products.filter(product => {
       const inventory = inventories.find(
-        inv => inv.product_option_id === product.product_option_id && inv.warehouse_id === fromWarehouseId
+        inv => inv.product_option_id === product.productOptionId && inv.warehouse_id === fromWarehouseId
       );
       if (!inventory) return false;
       
       // 원재료는 weight_in_grams, 완제품은 quantity 확인
-      const isMaterial = product.product_type === "material";
-      if (isMaterial) {
+      if (isMaterialItem(product)) {
         return (inventory.weight_in_grams ?? 0) > 0;
       }
       return (inventory.quantity ?? 0) > 0;

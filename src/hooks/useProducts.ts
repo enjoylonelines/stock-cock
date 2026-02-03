@@ -1,30 +1,44 @@
+import { toInventoryItems } from "@/lib/domain/inventory";
 import { createClient } from "@/lib/supabase/client";
-import type { ProductOptionView } from "@/types/database";
+import type { Database } from "@/types/database";
+import type { DomainInventoryItem } from "@/types/domain";
 import useSWR from "swr";
 
-function groupProductsByOption(products: ProductOptionView[]) {
-  const map: Record<string, ProductOptionView> = {};
+type ProductOptionInventoryViewRow =
+  Database["public"]["Views"]["product_option_inventory_view"]["Row"];
 
-  products.forEach(p => {
-    if (!map[p.product_option_id]) {
-      // 처음 들어온 상품이면 복사해서 넣음
-      map[p.product_option_id] = { ...p };
+/**
+ * View Row → Domain Item 변환 후 product_option_id 기준 그룹핑
+ * (동일 제품의 여러 창고 재고를 합산)
+ */
+function groupAndConvert(rows: ProductOptionInventoryViewRow[]): DomainInventoryItem[] {
+  // 먼저 도메인 타입으로 변환
+  const items = toInventoryItems(rows);
+
+  // product_option_id 기준 그룹핑 및 재고 합산
+  const map: Record<string, DomainInventoryItem> = {};
+
+  items.forEach(item => {
+    if (!map[item.productOptionId]) {
+      map[item.productOptionId] = { ...item };
     } else {
-      // 이미 있으면 quantity 누적
-      map[p.product_option_id].quantity += p.quantity;
+      // 이미 있으면 stock 누적
+      map[item.productOptionId].stock += item.stock;
     }
   });
 
-  // 다시 배열로 변환
   return Object.values(map);
 }
 
 const supabase = createClient();
 
 const fetcher = async () => {
-  const { data, error } = await supabase.from("product_option_inventory_view").select("*").order("product_name");
+  const { data, error } = await supabase
+    .from("product_option_inventory_view")
+    .select("*")
+    .order("product_name");
   if (error) throw error;
-  return groupProductsByOption(data || []);
+  return groupAndConvert(data || []);
 };
 
 export function useProducts() {
@@ -32,7 +46,7 @@ export function useProducts() {
     data: products = [],
     isLoading,
     error,
-  } = useSWR<ProductOptionView[]>("products", fetcher, {
+  } = useSWR<DomainInventoryItem[]>("products", fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
   });
@@ -46,7 +60,7 @@ export function useProducts() {
 
 // 개별 제품만 가져오는 hook (성능 최적화)
 export function useProduct(productOptionId: string | null) {
-  const fetcher = async (id: string) => {
+  const fetcher = async (id: string): Promise<DomainInventoryItem | null> => {
     const { data, error } = await supabase
       .from("product_option_inventory_view")
       .select("*")
@@ -56,14 +70,17 @@ export function useProduct(productOptionId: string | null) {
       .single();
 
     if (error) throw error;
-    return data as ProductOptionView;
+
+    // 도메인 타입으로 변환
+    const items = toInventoryItems(data ? [data] : []);
+    return items[0] ?? null;
   };
 
   const {
     data: product,
     isLoading,
     error,
-  } = useSWR<ProductOptionView>(
+  } = useSWR<DomainInventoryItem | null>(
     productOptionId ? ["product", productOptionId] : null,
     ([, id]: [string, string]) => fetcher(id),
     {

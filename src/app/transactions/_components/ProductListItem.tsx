@@ -1,11 +1,16 @@
 "use client";
-import { formatMaterialSummary, formatNumber, formatWeightDisplay } from "@/lib/utils";
-import type { ProductOptionView } from "@/types/database";
+import {
+  formatMaterialSummary,
+  formatStock,
+} from "@/lib/domain/format";
+import { isMaterialItem } from "@/lib/domain/inventory";
+import { formatNumber } from "@/lib/utils";
+import type { DomainInventoryItem } from "@/types/domain";
 import Image from "next/image";
 import { memo } from "react";
 
 interface ProductListItemProps {
-  product: ProductOptionView;
+  product: DomainInventoryItem;
   quantity?: number;
   selected?: boolean;
   onClick?: () => void;
@@ -13,15 +18,15 @@ interface ProductListItemProps {
 }
 
 export const ProductListItem = memo(function ProductListItem({ product, quantity, selected, onClick, currentStock }: ProductListItemProps) {
-  const hasImage = product.image_url && product.image_url.trim() !== "";
-  const isMaterial = product.product_type === "material";
+  const hasImage = product.imageUrl && product.imageUrl.trim() !== "";
+  const isMaterial = isMaterialItem(product);
 
   // 원재료는 중량으로 표시, 완제품은 개수로 표시
   const formatQuantity = (qty: number) => {
     if (isMaterial) {
       // 0일 때는 "0"으로 표시
       if (qty === 0) return "0";
-      return formatWeightDisplay(qty);
+      return formatStock(qty, "GRAM");
     }
     return `${formatNumber(Math.abs(qty))}개`;
   };
@@ -36,11 +41,11 @@ export const ProductListItem = memo(function ProductListItem({ product, quantity
     >
       {/* 제품 이미지 */}
       <div className="flex overflow-hidden relative justify-center items-center w-12 h-12 bg-gray-100 rounded-lg shrink-0">
-        {hasImage ? (
-          <Image src={product.image_url!} alt={product.product_name} fill className="object-cover" loading="lazy" sizes="48px" />
+        {hasImage && product.imageUrl ? (
+          <Image src={product.imageUrl} alt={product.name} fill className="object-cover" loading="lazy" sizes="48px" />
         ) : (
           <div className="flex justify-center items-center w-full h-full text-xs font-medium text-gray-400">
-            {product.product_name.charAt(0).toUpperCase()}
+            {product.name.charAt(0).toUpperCase()}
           </div>
         )}
       </div>
@@ -49,9 +54,9 @@ export const ProductListItem = memo(function ProductListItem({ product, quantity
         <div className="flex gap-2 justify-between items-center">
           <div className="flex-1 min-w-0">
             <h3 className="font-medium truncate">
-              {product.product_name}
-              {product.weight > 0 && product.unit_label && (
-                <span className="ml-2 text-gray-500">{`${product.weight}${product.unit_label}`}</span>
+              {product.name}
+              {product.weight > 0 && product.unitLabel && (
+                <span className="ml-2 text-gray-500">{`${product.weight}${product.unitLabel}`}</span>
               )}
             </h3>
           </div>
@@ -67,30 +72,26 @@ export const ProductListItem = memo(function ProductListItem({ product, quantity
                   {formatQuantity(quantity)}
                 </p>
                 {isMaterial && quantity !== 0 && (
-                  <p className="text-xs text-gray-500">{formatMaterialSummary(quantity, product.weight, product.unit_label)}</p>
+                  <p className="text-xs text-gray-500">{formatMaterialSummary(quantity, product.weight, product.unitLabel)}</p>
                 )}
               </div>
             ) : currentStock !== undefined ? (
               <div>
                 <p className="text-sm text-gray-600">
-                  현재: {isMaterial ? (currentStock === 0 ? "0" : formatWeightDisplay(currentStock)) : `${formatNumber(currentStock)}개`}
+                  현재: {isMaterial ? (currentStock === 0 ? "0" : formatStock(currentStock, "GRAM")) : `${formatNumber(currentStock)}개`}
                 </p>
                 {isMaterial && currentStock > 0 && (
-                  <p className="text-xs text-gray-500">{formatMaterialSummary(currentStock, product.weight, product.unit_label)}</p>
+                  <p className="text-xs text-gray-500">{formatMaterialSummary(currentStock, product.weight, product.unitLabel)}</p>
                 )}
               </div>
             ) : (
               <div>
                 <p className="text-sm text-gray-600">
-                  {isMaterial
-                    ? (product.weight_in_grams ?? 0) === 0
-                      ? "0"
-                      : formatWeightDisplay(product.weight_in_grams ?? 0)
-                    : `${formatNumber(product.quantity ?? 0)}개`}
+                  {formatStock(product.stock, product.stockUnit)}
                 </p>
-                {isMaterial && (product.weight_in_grams ?? 0) > 0 && (
+                {isMaterial && product.stock > 0 && (
                   <p className="text-xs text-gray-500">
-                    {formatMaterialSummary(product.weight_in_grams ?? 0, product.weight, product.unit_label)}
+                    {formatMaterialSummary(product.stock, product.weight, product.unitLabel)}
                   </p>
                 )}
               </div>
@@ -98,9 +99,9 @@ export const ProductListItem = memo(function ProductListItem({ product, quantity
           </div>
         </div>
         <div className="flex gap-1 items-center text-xs text-gray-500">
-          <span>{product.brand_name}</span>
+          <span>{product.brandName}</span>
           <span>·</span>
-          <span>{product.warehouse_name}</span>
+          <span>{product.warehouseName}</span>
         </div>
       </div>
     </button>

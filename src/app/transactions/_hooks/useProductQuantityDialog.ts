@@ -1,13 +1,13 @@
 import { stockCalculator } from "@/lib/inventory/stock-calculator";
 import { useInventories } from "@/hooks/useInventories";
-import type { ProductOptionView } from "@/types/database";
+import type { DomainInventoryItem } from "@/types/domain";
 import { useEffect, useRef, useState } from "react";
 
 type FormType = "in" | "out" | "move" | "adjust";
 
 interface UseProductQuantityDialogProps {
   open: boolean;
-  product: ProductOptionView | null;
+  product: DomainInventoryItem | null;
   quantity: number;
   setQuantity: (quantity: number) => void;
   allowNegative?: boolean;
@@ -36,7 +36,7 @@ export function useProductQuantityDialog({
 
   // 현재 재고 계산 (stock-calculator 사용)
   const currentStock = product
-    ? stockCalculator.getCurrentStock(product.product_option_id, inventories, selectedLocationId)
+    ? stockCalculator.getCurrentStock(product.productOptionId, inventories, selectedLocationId)
     : 0;
 
   // formType에 따른 최종 재고 및 표시 재고 계산
@@ -124,7 +124,7 @@ export function useProductQuantityDialog({
   };
 
   const handleConfirm = (
-    onConfirm: (product: ProductOptionView, quantity: number) => void,
+    onConfirm: (product: DomainInventoryItem, quantity: number) => void,
     onOpenChange: (open: boolean) => void
   ) => {
     if (!product) return;
