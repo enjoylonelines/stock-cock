@@ -33,22 +33,25 @@ const fetcher = async () => {
   if (transactionsResult.error) throw transactionsResult.error;
   if (inventoryResult.error) throw inventoryResult.error;
 
+  // Supabase 조인: product_options/products 는 단일 객체로 올 수 있음 (배열 아님)
+  const getProductType = (item: unknown): string | undefined => {
+    const raw = item as { product_options?: unknown };
+    const po = raw.product_options;
+    const option = Array.isArray(po) ? po[0] : po;
+    const opts = option as { products?: unknown } | null | undefined;
+    const p = opts?.products;
+    const product = Array.isArray(p) ? p[0] : p;
+    return (product as { product_type?: string } | null)?.product_type;
+  };
+
   let inTotal = 0;
   let outTotal = 0;
+  let materialOutGrams = 0;
 
-  // 원재료가 아닌 transaction_items만 계산
   for (const tx of transactionsResult.data || []) {
-    const items = tx.transaction_items || [];
-    const nonMaterialItems = items.filter(item => {
-      const productOptions = (
-        item as unknown as {
-          product_options?: Array<{ products?: Array<{ product_type?: string }> }>;
-        }
-      ).product_options;
-      const firstOption = productOptions?.[0];
-      const firstProduct = firstOption?.products?.[0];
-      return firstProduct?.product_type !== "material";
-    });
+    const items = Array.isArray(tx.transaction_items) ? tx.transaction_items : [];
+    const nonMaterialItems = items.filter(item => getProductType(item) !== "material");
+    const materialItems = items.filter(item => getProductType(item) === "material");
 
     const qtySum = nonMaterialItems.reduce((sum: number, item) => {
       const quantity = (item as unknown as { quantity: number | string }).quantity;
@@ -56,6 +59,13 @@ const fetcher = async () => {
     }, 0);
     if (tx.type === "in") inTotal += qtySum;
     if (tx.type === "out") outTotal += qtySum;
+
+    if (tx.type === "out") {
+      materialOutGrams += materialItems.reduce((sum: number, item) => {
+        const quantity = (item as unknown as { quantity: number | string }).quantity;
+        return sum + Number(quantity);
+      }, 0);
+    }
   }
 
   // 원재료가 아닌 inventory만 계산
@@ -73,7 +83,7 @@ const fetcher = async () => {
     }
   }
 
-  return { total: sum, in: inTotal, out: outTotal };
+  return { total: sum, in: inTotal, out: outTotal, materialOutGrams };
 };
 
 /**
@@ -81,7 +91,7 @@ const fetcher = async () => {
  */
 export function useStats() {
   const {
-    data: summary = { total: 0, in: 0, out: 0 },
+    data: summary = { total: 0, in: 0, out: 0, materialOutGrams: 0 },
     isLoading,
     error,
   } = useSWR("stats", fetcher, {

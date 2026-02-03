@@ -1,6 +1,7 @@
 "use client";
 
 import { useStats } from "@/app/home/_hooks/useStats";
+import { formatStock } from "@/lib/domain/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -28,18 +29,24 @@ export default function StatsBox() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="space-y-1">
+        <div className="grid grid-cols-4 gap-3 min-w-0">
+          <div className="space-y-1 min-w-0">
             <p className="text-sm font-medium text-muted-foreground">총 재고</p>
-            <p className="text-2xl font-bold">{summary.total.toLocaleString()}</p>
+            <p className="text-xl font-bold truncate">{summary.total.toLocaleString()}</p>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 min-w-0">
             <p className="text-sm font-medium text-muted-foreground">입고</p>
-            <p className="text-2xl font-bold text-green-600">{summary.in.toLocaleString()}</p>
+            <p className="text-xl font-bold text-green-600 truncate">{summary.in.toLocaleString()}</p>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 min-w-0">
             <p className="text-sm font-medium text-muted-foreground">출고</p>
-            <p className="text-2xl font-bold text-red-600">{summary.out.toLocaleString()}</p>
+            <p className="text-xl font-bold text-red-600 truncate">{summary.out.toLocaleString()}</p>
+          </div>
+          <div className="space-y-1 min-w-0">
+            <p className="text-sm font-medium text-muted-foreground">원재료 사용량</p>
+            <p className="text-xl font-bold text-red-600 truncate">
+              {formatStock(summary.materialOutGrams ?? 0, "GRAM")}
+            </p>
           </div>
         </div>
       </CardContent>
