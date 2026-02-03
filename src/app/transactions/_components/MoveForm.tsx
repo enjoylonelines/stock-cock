@@ -1,20 +1,20 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import DrawerView from "@/components/ui/drawer-view";
+import { useInventories } from "@/hooks/useInventories";
 import { useProducts } from "@/hooks/useProducts";
 import { useWarehouses } from "@/hooks/useWarehouses";
-import { useInventories } from "@/hooks/useInventories";
-import { transactionFormatter } from "../_lib/transaction-formatter";
 import { stockCalculator } from "@/lib/inventory/stock-calculator";
+import { ChevronRight } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useMoveForm } from "../_hooks/useMoveForm";
-import DrawerView from "@/components/ui/drawer-view";
+import { transactionFormatter } from "../_lib/transaction-formatter";
 import DatePickerDialog from "./DatePickerDialog";
 import ManageView from "./ManageView";
 import MemoView from "./MemoView";
 import ProductListItem from "./ProductListItem";
 import ProductSelectView from "./ProductSelectView";
-import { ChevronRight } from "lucide-react";
-import { useState, useMemo } from "react";
 
 interface MoveFormProps {
   closeDrawer: () => void;
@@ -56,10 +56,7 @@ export default function MoveForm({ closeDrawer }: MoveFormProps) {
   );
 
   // 날짜 포맷팅
-  const formattedDate = useMemo(
-    () => transactionFormatter.formatDate(selectedDate),
-    [selectedDate]
-  );
+  const formattedDate = useMemo(() => transactionFormatter.formatDate(selectedDate), [selectedDate]);
 
   const handleFromLocationSelect = (location: { id: string; name: string }) => {
     updateMoveForm({ fromLocation: location.id });
@@ -157,7 +154,7 @@ export default function MoveForm({ closeDrawer }: MoveFormProps) {
             <div className="mt-2 space-y-2">
               {selectedProducts.map(product => (
                 <ProductListItem
-                  key={product.product_option_id}
+                  key={product.productOptionId}
                   product={product}
                   quantity={product.quantity}
                   selected={false}

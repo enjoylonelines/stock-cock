@@ -1,4 +1,4 @@
-import type { ProductOptionView } from "@/types/database";
+import type { DomainInventoryItem } from "@/types/domain";
 
 /**
  * 거래 폼 검증 로직 (Transactions 전용)
@@ -10,7 +10,7 @@ export const transactionValidator = {
   validateTransactionForm(data: {
     selectedLocation: string | null;
     selectedSupplier: string | null;
-    selectedProducts: ProductOptionView[];
+    selectedProducts: DomainInventoryItem[];
     mode: "in" | "out";
   }): { isValid: boolean; error?: string } {
     if (!data.selectedLocation) {
@@ -43,7 +43,7 @@ export const transactionValidator = {
   validateMoveForm(data: {
     fromLocation: string | null;
     toLocation: string | null;
-    selectedProducts: ProductOptionView[];
+    selectedProducts: DomainInventoryItem[];
   }): { isValid: boolean; error?: string } {
     if (!data.fromLocation || !data.toLocation) {
       return {
@@ -74,7 +74,7 @@ export const transactionValidator = {
    */
   validateAdjustmentForm(data: {
     selectedLocation: string | null;
-    selectedProducts: ProductOptionView[];
+    selectedProducts: DomainInventoryItem[];
   }): { isValid: boolean; error?: string } {
     if (!data.selectedLocation) {
       return {

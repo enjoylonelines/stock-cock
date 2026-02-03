@@ -1,5 +1,5 @@
-import type { Category } from "@/types/database";
 import { useCRUD } from "@/hooks/useCRUD";
+import type { Category } from "@/types/database";
 
 /**
  * 카테고리 훅 (Products 전용)

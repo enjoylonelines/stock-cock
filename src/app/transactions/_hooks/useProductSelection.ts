@@ -1,13 +1,13 @@
-import { stockCalculator } from "@/lib/inventory/stock-calculator";
 import { useInventories } from "@/hooks/useInventories";
-import type { ProductOptionView } from "@/types/database";
+import { stockCalculator } from "@/lib/inventory/stock-calculator";
+import type { DomainInventoryItem } from "@/types/domain";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseProductSelectionOptions {
-  products: ProductOptionView[];
+  products: DomainInventoryItem[];
   allowNegative?: boolean;
   selectedLocationId?: string;
-  initialSelectedProducts?: ProductOptionView[];
+  initialSelectedProducts?: DomainInventoryItem[];
 }
 
 /**
@@ -20,9 +20,9 @@ export function useProductSelection({
   initialSelectedProducts = [],
 }: UseProductSelectionOptions) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProducts, setSelectedProducts] = useState<ProductOptionView[]>(initialSelectedProducts);
+  const [selectedProducts, setSelectedProducts] = useState<DomainInventoryItem[]>(initialSelectedProducts);
   const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<ProductOptionView | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<DomainInventoryItem | null>(null);
   const [currentQuantity, setCurrentQuantity] = useState(0);
   const [initialQuantity, setInitialQuantity] = useState(0);
   const { inventories } = useInventories();
@@ -110,7 +110,7 @@ export function useProductSelection({
 
   // 필터링된 제품 목록
   const filteredProducts = products.filter(product =>
-    product.product_name.replace(/\s+/g, "").toLowerCase().includes(searchTerm.trim().replace(/\s+/g, "").toLowerCase())
+    product.name.replace(/\s+/g, "").toLowerCase().includes(searchTerm.trim().replace(/\s+/g, "").toLowerCase())
   );
 
   // 제품별 현재 재고 계산
@@ -123,16 +123,16 @@ export function useProductSelection({
 
   // 제품 클릭 핸들러
   const handleProductClick = useCallback(
-    (product: ProductOptionView) => {
+    (product: DomainInventoryItem) => {
       setSelectedProduct(product);
-      const existing = selectedProducts.find(p => p.product_option_id === product.product_option_id);
+      const existing = selectedProducts.find(p => p.productOptionId === product.productOptionId);
       let initialQty = 0;
 
       if (existing) {
         initialQty = existing.quantity ?? 0;
       } else {
         if (allowNegative) {
-          initialQty = getCurrentStock(product.product_option_id);
+          initialQty = getCurrentStock(product.productOptionId);
         } else {
           initialQty = 0;
         }
@@ -147,16 +147,16 @@ export function useProductSelection({
 
   // 수량 확인 핸들러
   const handleQuantityConfirm = useCallback(
-    (product: ProductOptionView, quantity: number) => {
+    (product: DomainInventoryItem, quantity: number) => {
       if (!allowNegative && !quantity) {
-        setSelectedProducts(prev => prev.filter(p => p.product_option_id !== product.product_option_id));
+        setSelectedProducts(prev => prev.filter(p => p.productOptionId !== product.productOptionId));
         return;
       }
 
       setSelectedProducts(prev => {
-        const existing = prev.find(p => p.product_option_id === product.product_option_id);
+        const existing = prev.find(p => p.productOptionId === product.productOptionId);
         if (existing) {
-          return prev.map(p => (p.product_option_id === product.product_option_id ? { ...p, quantity } : p));
+          return prev.map(p => (p.productOptionId === product.productOptionId ? { ...p, quantity } : p));
         }
         return [...prev, { ...product, quantity }];
       });
@@ -182,7 +182,7 @@ export function useProductSelection({
   // 선택 여부 확인
   const isSelected = useCallback(
     (productOptionId: string) => {
-      return selectedProducts.some(p => p.product_option_id === productOptionId);
+      return selectedProducts.some(p => p.productOptionId === productOptionId);
     },
     [selectedProducts]
   );
@@ -190,8 +190,8 @@ export function useProductSelection({
   // 선택된 수량 가져오기
   const getSelectedQuantity = useCallback(
     (productOptionId: string) => {
-      const selected = selectedProducts.find(p => p.product_option_id === productOptionId);
-      return selected ? selected.quantity ?? 0 : 0;
+      const selected = selectedProducts.find(p => p.productOptionId === productOptionId);
+      return selected ? (selected.quantity ?? 0) : 0;
     },
     [selectedProducts]
   );

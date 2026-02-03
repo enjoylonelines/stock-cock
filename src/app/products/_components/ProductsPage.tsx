@@ -1,17 +1,18 @@
 "use client";
 
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import { useProductList } from "../_hooks/useProductList";
 import ProductList from "./ProductList";
 import ProductListSkeleton from "./ProductListSkeleton";
 import Tab from "./Tab";
-import { Input } from "@/components/ui/input";
-import { useProductList } from "../_hooks/useProductList";
-import { Search } from "lucide-react";
 
 /**
  * 제품 목록 페이지 컴포넌트 (순수 UI)
  */
 export default function ProductsPage() {
-  const { isLoading, searchInput, selectedTab, filteredProducts, handleSearchChange, handleTabChange } = useProductList();
+  const { isLoading, searchInput, selectedTab, filteredProducts, handleSearchChange, handleTabChange } =
+    useProductList();
 
   const tabItems = [
     {

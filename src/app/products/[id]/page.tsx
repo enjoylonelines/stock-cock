@@ -1,9 +1,9 @@
 "use client";
 
-import ProductDetail from "../_components/ProductDetail";
-import ProductDetailSkeleton from "../_components/ProductDetailSkeleton";
 import { useProduct } from "@/hooks/useProducts";
 import { useParams } from "next/navigation";
+import ProductDetail from "../_components/ProductDetail";
+import ProductDetailSkeleton from "../_components/ProductDetailSkeleton";
 
 export default function ProductDetailPage() {
   const params = useParams();

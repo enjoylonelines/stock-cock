@@ -1,8 +1,8 @@
-import SettingsPage from "./_components/SettingsPage";
-import { settingsService } from "./_services/settings-service";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/server";
+import SettingsPage from "./_components/SettingsPage";
+import { settingsService } from "./_services/settings-service";
 
 export default async function Settings() {
   const supabase = await createClient();

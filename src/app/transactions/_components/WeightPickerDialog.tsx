@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import type { ProductOptionView } from "@/types/database";
+import type { DomainInventoryItem } from "@/types/domain";
 import { useCallback, useEffect, useState } from "react";
 
 type FormType = "in" | "adjust";
@@ -10,8 +10,8 @@ type FormType = "in" | "adjust";
 interface WeightPickerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  product: ProductOptionView | null;
-  onConfirm: (product: ProductOptionView, weightInGrams: number) => void;
+  product: DomainInventoryItem | null;
+  onConfirm: (product: DomainInventoryItem, weightInGrams: number) => void;
   formType?: FormType;
   currentStock?: number; // 현재 재고 (g 단위)
 }
@@ -47,7 +47,8 @@ export default function WeightPickerDialog({
   // 다이얼로그 열릴 때 초기화 - 현재 재고를 기본값으로 설정
   useEffect(() => {
     if (open) {
-      if (currentStock > 0) {
+      // 조정 모드에서는 현재 재고가 0이어도 "0"으로 표시
+      if (formType === "adjust") {
         if (currentStock >= 1000) {
           const kgValue = currentStock / 1000;
           setInputValue(kgValue % 1 === 0 ? kgValue.toString() : Number.parseFloat(kgValue.toFixed(2)).toString());
@@ -57,11 +58,23 @@ export default function WeightPickerDialog({
           setSelectedUnit("g");
         }
       } else {
-        setInputValue("");
-        setSelectedUnit("kg");
+        // 입고 모드에서는 기존 로직 유지
+        if (currentStock > 0) {
+          if (currentStock >= 1000) {
+            const kgValue = currentStock / 1000;
+            setInputValue(kgValue % 1 === 0 ? kgValue.toString() : Number.parseFloat(kgValue.toFixed(2)).toString());
+            setSelectedUnit("kg");
+          } else {
+            setInputValue(currentStock.toString());
+            setSelectedUnit("g");
+          }
+        } else {
+          setInputValue("");
+          setSelectedUnit("kg");
+        }
       }
     }
-  }, [open, currentStock]);
+  }, [open, currentStock, formType]);
 
   // 단위 변경 핸들러
   const handleUnitChange = (newUnit: "g" | "kg") => {
@@ -76,7 +89,8 @@ export default function WeightPickerDialog({
     // 단위 변경 시 값 조정
     if (oldUnit === "g" && newUnit === "kg") {
       const newValue = currentNumValue / 1000;
-      const formattedValue = newValue % 1 === 0 ? newValue.toString() : Number.parseFloat(newValue.toFixed(2)).toString();
+      const formattedValue =
+        newValue % 1 === 0 ? newValue.toString() : Number.parseFloat(newValue.toFixed(2)).toString();
       setInputValue(formattedValue);
     } else if (oldUnit === "kg" && newUnit === "g") {
       const newValue = Math.round(currentNumValue * 1000);
@@ -91,7 +105,14 @@ export default function WeightPickerDialog({
     if (!product) return;
 
     const numValue = Number(inputValue);
-    if (!inputValue || Number.isNaN(numValue) || numValue <= 0) {
+
+    // 조정 모드에서는 0 허용, 입고 모드에서는 0보다 커야 함
+    const isInvalidValue =
+      formType === "adjust"
+        ? Number.isNaN(numValue) || numValue < 0
+        : !inputValue || Number.isNaN(numValue) || numValue <= 0;
+
+    if (isInvalidValue) {
       alert("올바른 중량을 입력해주세요.");
       return;
     }
@@ -99,10 +120,16 @@ export default function WeightPickerDialog({
     // 그램으로 변환
     const weightInGrams = selectedUnit === "kg" ? Math.round(numValue * 1000) : numValue;
 
-    // 유효성 검사
+    // 유효성 검사 (조정 모드에서는 0 허용)
     const maxGrams = 1000000; // 1000kg까지 허용
-    if (weightInGrams < 1 || weightInGrams > maxGrams) {
-      alert(`중량은 1g부터 ${maxGrams / 1000}kg까지 입력 가능합니다.`);
+    if (weightInGrams < 0 || weightInGrams > maxGrams) {
+      alert(`중량은 0g부터 ${maxGrams / 1000}kg까지 입력 가능합니다.`);
+      return;
+    }
+
+    // 입고 모드에서는 0보다 커야 함
+    if (formType === "in" && weightInGrams < 1) {
+      alert("입고할 중량은 1g 이상이어야 합니다.");
       return;
     }
 
@@ -125,7 +152,7 @@ export default function WeightPickerDialog({
       <DialogContent className="p-0 w-full max-w-xs bg-white rounded-lg">
         <DialogHeader className="px-4 py-5 text-center border-b">
           <DialogTitle>{FORM_TYPE_TITLES[formType]}</DialogTitle>
-          <p className="text-sm text-gray-500">{product.product_name}</p>
+          <p className="text-sm text-gray-500">{product.name}</p>
         </DialogHeader>
 
         <div className="p-4">
