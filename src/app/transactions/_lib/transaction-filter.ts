@@ -1,7 +1,7 @@
-import type { GroupedTransactions } from "@/hooks/useInventoryHistory";
+import type { GroupedTransactions } from "@/hooks/useTransactionHistory";
 import { endOfDay, startOfDay } from "date-fns";
 
-export interface InventoryFilters {
+export interface TransactionFilters {
   transactionType?: string;
   product?: string;
   location?: string;
@@ -21,13 +21,13 @@ export interface FilterContext {
 }
 
 /**
- * 재고 이력 필터링 로직 (Inventory 전용)
+ * 입출고 이력 필터링 로직 (Transaction 전용)
  */
-export const inventoryFilter = {
+export const transactionFilter = {
   /**
    * 필터 컨텍스트 생성
    */
-  createFilterContext(filters: InventoryFilters): FilterContext {
+  createFilterContext(filters: TransactionFilters): FilterContext {
     const start = filters.startDate ? startOfDay(filters.startDate) : null;
     const end = filters.endDate ? endOfDay(filters.endDate) : null;
 
@@ -46,7 +46,7 @@ export const inventoryFilter = {
    */
   filterGroupedTransactions(
     grouped: GroupedTransactions[],
-    filters: InventoryFilters,
+    filters: TransactionFilters,
     context: FilterContext
   ): GroupedTransactions[] {
     // 기본: 전체 보기 (필터 없음)

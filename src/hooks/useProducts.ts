@@ -1,7 +1,7 @@
-import { toInventoryItems } from "@/lib/domain/inventory";
+import { toStockItems } from "@/lib/domain/stock";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/database";
-import type { DomainInventoryItem } from "@/types/domain";
+import type { DomainStockItem } from "@/types/domain";
 import useSWR from "swr";
 
 type ProductOptionInventoryViewRow = Database["public"]["Views"]["product_option_inventory_view"]["Row"];
@@ -10,12 +10,12 @@ type ProductOptionInventoryViewRow = Database["public"]["Views"]["product_option
  * View Row → Domain Item 변환 후 product_option_id 기준 그룹핑
  * (동일 제품의 여러 창고 재고를 합산)
  */
-function groupAndConvert(rows: ProductOptionInventoryViewRow[]): DomainInventoryItem[] {
+function groupAndConvert(rows: ProductOptionInventoryViewRow[]): DomainStockItem[] {
   // 먼저 도메인 타입으로 변환
-  const items = toInventoryItems(rows);
+  const items = toStockItems(rows);
 
   // product_option_id 기준 그룹핑 및 재고 합산
-  const map: Record<string, DomainInventoryItem> = {};
+  const map: Record<string, DomainStockItem> = {};
 
   items.forEach(item => {
     if (!map[item.productOptionId]) {
@@ -42,7 +42,7 @@ export function useProducts() {
     data: products = [],
     isLoading,
     error,
-  } = useSWR<DomainInventoryItem[]>("products", fetcher, {
+  } = useSWR<DomainStockItem[]>("products", fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,
   });
@@ -56,7 +56,7 @@ export function useProducts() {
 
 // 개별 제품만 가져오는 hook (성능 최적화)
 export function useProduct(productOptionId: string | null) {
-  const fetcher = async (id: string): Promise<DomainInventoryItem | null> => {
+  const fetcher = async (id: string): Promise<DomainStockItem | null> => {
     const { data, error } = await supabase
       .from("product_option_inventory_view")
       .select("*")
@@ -68,7 +68,7 @@ export function useProduct(productOptionId: string | null) {
     if (error) throw error;
 
     // 도메인 타입으로 변환
-    const items = toInventoryItems(data ? [data] : []);
+    const items = toStockItems(data ? [data] : []);
     return items[0] ?? null;
   };
 
@@ -76,7 +76,7 @@ export function useProduct(productOptionId: string | null) {
     data: product,
     isLoading,
     error,
-  } = useSWR<DomainInventoryItem | null>(
+  } = useSWR<DomainStockItem | null>(
     productOptionId ? ["product", productOptionId] : null,
     ([, id]: [string, string]) => fetcher(id),
     {

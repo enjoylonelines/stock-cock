@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useInventoryFilterDrawerStore } from "@/store/InventoryFilterDrawer";
+import { useTransactionFilterDrawerStore } from "@/store/TransactionFilterDrawer";
 import { useActivityLogStore } from "@/store/activityLogStore";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
 import { ArrowDownUp, ArrowLeft, Bell, Filter, Settings } from "lucide-react";
@@ -25,7 +25,7 @@ const NotificationBadge = dynamic(() => import("@/components/layout/Notification
 });
 
 export function useHeaderContent(): UseHeaderContentReturn {
-  const { isOpen, close, open } = useInventoryFilterDrawerStore();
+  const { isOpen, close, open } = useTransactionFilterDrawerStore();
   const {
     isOpen: isProductFilterOpen,
     close: closeProductFilter,
@@ -35,7 +35,7 @@ export function useHeaderContent(): UseHeaderContentReturn {
   const pathname = usePathname();
   const [isSortDialogOpen, setIsSortDialogOpen] = useState(false);
 
-  const handleInventoryFilterClick = () => {
+  const handleTransactionFilterClick = () => {
     if (isOpen) {
       close();
     } else {
@@ -65,11 +65,11 @@ export function useHeaderContent(): UseHeaderContentReturn {
     rightButton: React.ReactNode;
   } => {
     // 정규식 매칭을 먼저 확인
-    if (pathname.match(/^\/inventory\/[\w-]+$/)) {
+    if (pathname.match(/^\/transactions\/[\w-]+$/)) {
       return {
         title: "상세 내역",
         leftButton: (
-          <Link href="/inventory">
+          <Link href="/transactions">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -130,12 +130,12 @@ export function useHeaderContent(): UseHeaderContentReturn {
             </div>
           ),
         };
-      case "/inventory":
+      case "/transactions":
         return {
           title: "입고/출고",
           leftButton: null,
           rightButton: (
-            <Button variant="ghost" size="icon" className="w-10 h-10" onClick={handleInventoryFilterClick}>
+            <Button variant="ghost" size="icon" className="w-10 h-10" onClick={handleTransactionFilterClick}>
               <Filter className="w-5 h-5" />
             </Button>
           ),

@@ -11,9 +11,9 @@ const fetcher = async () => {
 };
 
 export function useInventories() {
-  const { data: inventories = [] } = useSWR<Inventory[]>("inventories", fetcher, {
+  const { data: inventories = [], mutate } = useSWR<Inventory[]>("inventories", fetcher, {
     revalidateOnFocus: false,
   });
 
-  return { inventories };
+  return { inventories, mutate };
 }

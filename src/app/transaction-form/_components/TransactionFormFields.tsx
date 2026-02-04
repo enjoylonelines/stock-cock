@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import type { DomainInventoryItem } from "@/types/domain";
+import type { DomainStockItem } from "@/types/domain";
 import { ChevronRight } from "lucide-react";
 import { memo } from "react";
 import ProductListItem from "./ProductListItem";
@@ -10,7 +10,7 @@ interface TransactionFormFieldsProps {
   formattedDate: string;
   selectedWarehouseName: string;
   selectedSupplierName: string;
-  selectedProducts: DomainInventoryItem[];
+  selectedProducts: DomainStockItem[];
   memo: string;
   mode: "in" | "out";
   onDateClick: () => void;

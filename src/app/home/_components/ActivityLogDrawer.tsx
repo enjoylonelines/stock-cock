@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { useBroadcastReadStatus } from "@/hooks/useBroadcastReadStatus";
-import { type InventoryTransaction, useInventoryHistory } from "@/hooks/useInventoryHistory";
+import { type TransactionHistoryItem, useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { useActivityLogStore } from "@/store/activityLogStore";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -11,7 +11,7 @@ import { ArrowDownToLine, ArrowLeftRight, ArrowUpDown, ArrowUpToLine, X } from "
 
 export default function ActivityLogDrawer() {
   const { isOpen, close } = useActivityLogStore();
-  const { transactions, loading: historyLoading } = useInventoryHistory();
+  const { transactions, loading: historyLoading } = useTransactionHistory();
   const { isRead, markAsRead, getUnreadCount, loading: readsLoading } = useBroadcastReadStatus();
 
   const loading = historyLoading || readsLoading;
@@ -62,7 +62,7 @@ export default function ActivityLogDrawer() {
     }
   };
 
-  const formatLogMessage = (transaction: InventoryTransaction) => {
+  const formatLogMessage = (transaction: TransactionHistoryItem) => {
     const qty = transaction.quantity ?? 0;
     switch (transaction.type) {
       case "in":

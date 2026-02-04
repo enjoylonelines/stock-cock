@@ -1,13 +1,13 @@
 import { useInventories } from "@/hooks/useInventories";
 import { stockCalculator } from "@/lib/inventory/stock-calculator";
-import type { DomainInventoryItem } from "@/types/domain";
+import type { DomainStockItem } from "@/types/domain";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseProductSelectionOptions {
-  products: DomainInventoryItem[];
+  products: DomainStockItem[];
   allowNegative?: boolean;
   selectedLocationId?: string;
-  initialSelectedProducts?: DomainInventoryItem[];
+  initialSelectedProducts?: DomainStockItem[];
 }
 
 /**
@@ -20,9 +20,9 @@ export function useProductSelection({
   initialSelectedProducts = [],
 }: UseProductSelectionOptions) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProducts, setSelectedProducts] = useState<DomainInventoryItem[]>(initialSelectedProducts);
+  const [selectedProducts, setSelectedProducts] = useState<DomainStockItem[]>(initialSelectedProducts);
   const [quantityDialogOpen, setQuantityDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<DomainInventoryItem | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<DomainStockItem | null>(null);
   const [currentQuantity, setCurrentQuantity] = useState(0);
   const [initialQuantity, setInitialQuantity] = useState(0);
   const { inventories } = useInventories();
@@ -123,7 +123,7 @@ export function useProductSelection({
 
   // 제품 클릭 핸들러
   const handleProductClick = useCallback(
-    (product: DomainInventoryItem) => {
+    (product: DomainStockItem) => {
       setSelectedProduct(product);
       const existing = selectedProducts.find(p => p.productOptionId === product.productOptionId);
       let initialQty = 0;
@@ -147,7 +147,7 @@ export function useProductSelection({
 
   // 수량 확인 핸들러
   const handleQuantityConfirm = useCallback(
-    (product: DomainInventoryItem, quantity: number) => {
+    (product: DomainStockItem, quantity: number) => {
       if (!allowNegative && !quantity) {
         setSelectedProducts(prev => prev.filter(p => p.productOptionId !== product.productOptionId));
         return;

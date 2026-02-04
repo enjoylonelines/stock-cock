@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatNumber } from "@/lib/utils";
-import type { DomainInventoryItem } from "@/types/domain";
+import type { DomainStockItem } from "@/types/domain";
 import { Minus, Plus } from "lucide-react";
 
 type FormType = "in" | "out" | "move" | "adjust";
@@ -9,8 +9,8 @@ type FormType = "in" | "out" | "move" | "adjust";
 interface ProductQuantityDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  product: DomainInventoryItem | null;
-  onConfirm: (product: DomainInventoryItem, quantity: number) => void;
+  product: DomainStockItem | null;
+  onConfirm: (product: DomainStockItem, quantity: number) => void;
   quantity: number;
   setQuantity: (quantity: number) => void;
   allowNegative?: boolean;

@@ -1,31 +1,31 @@
 "use client";
 
-import InventoryList from "@/app/inventory/_components/InventoryList";
+import TransactionList from "@/app/transactions/_components/TransactionList";
 import { Button } from "@/components/ui/button";
 import { useInventories } from "@/hooks/useInventories";
-import { useInventoryHistory } from "@/hooks/useInventoryHistory";
+import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { useWarehouses } from "@/hooks/useWarehouses";
 import { formatBoxBreakdown, formatStock } from "@/lib/domain/format";
-import { isMaterialItem } from "@/lib/domain/inventory";
+import { isMaterialItem } from "@/lib/domain/stock";
 import { createClient } from "@/lib/supabase/client";
 import { formatNumber } from "@/lib/utils";
 import { useDrawerStore } from "@/store/drawerStore";
 import { useFormStateStore } from "@/store/formStateStore";
-import type { DomainInventoryItem } from "@/types/domain";
+import type { DomainStockItem } from "@/types/domain";
 import { clientLogger } from "@/utils/client-logger";
 import { Edit } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
 interface ProductDetailProps {
-  product: DomainInventoryItem;
+  product: DomainStockItem;
 }
 
 export default function ProductDetail({ product }: ProductDetailProps) {
   const supabase = createClient();
   const { inventories } = useInventories();
   const { warehouses } = useWarehouses();
-  const { grouped } = useInventoryHistory();
+  const { grouped } = useTransactionHistory();
   const [showOnlyStocked, setShowOnlyStocked] = useState(false);
   const { openDrawer } = useDrawerStore();
   const { updateProductForm, resetProductForm } = useFormStateStore();
@@ -200,7 +200,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
             </div>
           ) : (
             <div className="overflow-y-auto max-h-96">
-              <InventoryList grouped={productHistory} />
+              <TransactionList grouped={productHistory} />
             </div>
           )}
         </div>

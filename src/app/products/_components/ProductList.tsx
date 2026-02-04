@@ -1,16 +1,16 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { formatBoxBreakdown, formatMaterialSummary, formatSpecWeight, formatStock } from "@/lib/domain/format";
-import { isMaterialItem } from "@/lib/domain/inventory";
+import { isMaterialItem } from "@/lib/domain/stock";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
 import { useProductSortStore } from "@/store/productSortStore";
-import type { DomainInventoryItem } from "@/types/domain";
+import type { DomainStockItem } from "@/types/domain";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { memo, useEffect, useMemo, useState } from "react";
 
 type ProductListProps = {
-  products: DomainInventoryItem[];
+  products: DomainStockItem[];
 };
 
 // 우선순위 제품 목록 (상위에 배치할 제품명)
@@ -147,7 +147,7 @@ const ProductList = memo(function ProductList({ products }: ProductListProps) {
 
   // 제품 타입에 따라 그룹핑 (원재료는 storage_type, 나머지는 category_name)
   const groupedProducts = useMemo(() => {
-    const groups: Record<string, DomainInventoryItem[]> = {};
+    const groups: Record<string, DomainStockItem[]> = {};
 
     filteredAndSortedProducts.forEach(product => {
       let groupKey: string;

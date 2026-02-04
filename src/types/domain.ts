@@ -22,9 +22,9 @@ export type ProductType = "company" | "franchise" | "pb" | "material";
 export type StorageType = "room_temperature" | "refrigerated" | "frozen";
 
 // ============================================
-// Domain Inventory Item (변환 후 타입)
+// Domain Stock Item (제품 옵션 + 재고 정보, 변환 후 타입)
 // ============================================
-export interface DomainInventoryItem {
+export interface DomainStockItem {
   // 식별자
   productOptionId: string;
   productId: string;

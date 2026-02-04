@@ -1,12 +1,12 @@
 /**
- * 인벤토리 도메인 변환 함수
+ * 재고(Stock) 도메인 변환 함수
  *
  * DB View 타입 → 도메인 타입 변환
  * null 처리를 이 레이어에서 중앙화
  */
 
 import type { Database } from "@/types/database";
-import type { DomainInventoryItem, ProductType, StockUnit, StorageType } from "@/types/domain";
+import type { DomainStockItem, ProductType, StockUnit, StorageType } from "@/types/domain";
 
 // Supabase View Row 타입
 type ProductOptionInventoryViewRow = Database["public"]["Views"]["product_option_inventory_view"]["Row"];
@@ -41,7 +41,7 @@ export function normalizeStorageType(raw: string | null): StorageType | null {
 // ============================================
 // 4. View → Domain 변환 함수 (중앙화)
 // ============================================
-export function toInventoryItem(view: ProductOptionInventoryViewRow): DomainInventoryItem | null {
+export function toStockItem(view: ProductOptionInventoryViewRow): DomainStockItem | null {
   // 필수 필드 검증 (null 처리 중앙화)
   if (!view.product_option_id || !view.product_id || !view.product_name) {
     return null;
@@ -91,14 +91,14 @@ export function toInventoryItem(view: ProductOptionInventoryViewRow): DomainInve
 // ============================================
 // 5. 배열 변환 (null 필터링 포함)
 // ============================================
-export function toInventoryItems(views: ProductOptionInventoryViewRow[]): DomainInventoryItem[] {
-  return views.map(toInventoryItem).filter((item): item is DomainInventoryItem => item !== null);
+export function toStockItems(views: ProductOptionInventoryViewRow[]): DomainStockItem[] {
+  return views.map(toStockItem).filter((item): item is DomainStockItem => item !== null);
 }
 
 // ============================================
 // 6. 선택 수량 설정 (immutable)
 // ============================================
-export function withQuantity(item: DomainInventoryItem, quantity: number): DomainInventoryItem {
+export function withQuantity(item: DomainStockItem, quantity: number): DomainStockItem {
   return {
     ...item,
     quantity: Math.round(quantity), // 항상 정수
@@ -108,10 +108,10 @@ export function withQuantity(item: DomainInventoryItem, quantity: number): Domai
 // ============================================
 // 7. 타입 가드
 // ============================================
-export function isMaterialItem(item: DomainInventoryItem): boolean {
+export function isMaterialItem(item: DomainStockItem): boolean {
   return item.stockUnit === "GRAM";
 }
 
-export function isFinishedItem(item: DomainInventoryItem): boolean {
+export function isFinishedItem(item: DomainStockItem): boolean {
   return item.stockUnit === "EA";
 }

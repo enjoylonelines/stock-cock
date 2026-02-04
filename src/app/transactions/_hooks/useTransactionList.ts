@@ -1,19 +1,19 @@
-import { useInventoryHistory } from "@/hooks/useInventoryHistory";
+import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { useProducts } from "@/hooks/useProducts";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { useWarehouses } from "@/hooks/useWarehouses";
-import { useInventoryFilterDrawerStore } from "@/store/InventoryFilterDrawer";
+import { useTransactionFilterDrawerStore } from "@/store/TransactionFilterDrawer";
 import { useMemo } from "react";
-import { type InventoryFilters, inventoryFilter } from "../_lib/inventory-filter";
+import { transactionFilter } from "../_lib/transaction-filter";
 import { useProfiles } from "./useProfiles";
 
 /**
- * 재고 목록 비즈니스 로직 훅
+ * 입출고 목록 비즈니스 로직 훅
  */
-export function useInventoryList() {
-  const { grouped, loading } = useInventoryHistory();
+export function useTransactionList() {
+  const { grouped, loading } = useTransactionHistory();
 
-  const { filters } = useInventoryFilterDrawerStore();
+  const { filters } = useTransactionFilterDrawerStore();
   const { warehouses } = useWarehouses();
   const { suppliers } = useSuppliers();
   const { products } = useProducts();
@@ -21,7 +21,7 @@ export function useInventoryList() {
 
   // 필터 컨텍스트 생성
   const filterContext = useMemo(() => {
-    const context = inventoryFilter.createFilterContext(filters);
+    const context = transactionFilter.createFilterContext(filters);
 
     // 이름 매핑
     context.selectedLocationName = filters.location
@@ -43,7 +43,7 @@ export function useInventoryList() {
 
   // 필터링된 그룹
   const filteredGrouped = useMemo(() => {
-    return inventoryFilter.filterGroupedTransactions(grouped, filters, filterContext);
+    return transactionFilter.filterGroupedTransactions(grouped, filters, filterContext);
   }, [grouped, filters, filterContext]);
 
   return {

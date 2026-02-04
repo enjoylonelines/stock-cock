@@ -4,9 +4,9 @@ import Tab from "@/app/products/_components/Tab";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatStock } from "@/lib/domain/format";
-import { isMaterialItem } from "@/lib/domain/inventory";
+import { isMaterialItem } from "@/lib/domain/stock";
 import { formatNumber } from "@/lib/utils";
-import type { DomainInventoryItem } from "@/types/domain";
+import type { DomainStockItem } from "@/types/domain";
 import { ArrowLeft, Filter, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useProductQuantityDialog } from "../_hooks/useProductQuantityDialog";
@@ -20,11 +20,11 @@ type TabType = "product" | "material";
 
 interface ProductSelectViewProps {
   onBack: () => void;
-  onSelect: (products: DomainInventoryItem[]) => void;
-  products: DomainInventoryItem[];
+  onSelect: (products: DomainStockItem[]) => void;
+  products: DomainStockItem[];
   allowNegative?: boolean;
   selectedLocationId?: string;
-  initialSelectedProducts?: DomainInventoryItem[];
+  initialSelectedProducts?: DomainStockItem[];
   formType?: FormType;
 }
 
@@ -87,7 +87,7 @@ export default function ProductSelectView({
   const isMaterialProduct = selectedProduct ? isMaterialItem(selectedProduct) : false;
 
   // 원재료 선택 시 WeightPickerDialog 열기
-  const handleProductItemClick = (product: DomainInventoryItem) => {
+  const handleProductItemClick = (product: DomainStockItem) => {
     handleProductClick(product);
     if (isMaterialItem(product)) {
       setWeightDialogOpen(true);
@@ -95,7 +95,7 @@ export default function ProductSelectView({
   };
 
   // 중량 선택 완료 핸들러
-  const handleWeightConfirm = (product: DomainInventoryItem, weightInGrams: number) => {
+  const handleWeightConfirm = (product: DomainStockItem, weightInGrams: number) => {
     handleQuantityConfirm(product, weightInGrams);
     setWeightDialogOpen(false);
   };
@@ -122,7 +122,7 @@ export default function ProductSelectView({
   };
 
   // 선택 요약 텍스트 생성
-  const getSelectionSummary = (items: DomainInventoryItem[]) => {
+  const getSelectionSummary = (items: DomainStockItem[]) => {
     const finishedProducts = items.filter(p => !isMaterialItem(p));
     const materials = items.filter(p => isMaterialItem(p));
 

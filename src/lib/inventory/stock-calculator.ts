@@ -1,6 +1,6 @@
-import { isMaterialItem } from "@/lib/domain/inventory";
+import { isMaterialItem } from "@/lib/domain/stock";
 import type { Inventory } from "@/types/database";
-import type { DomainInventoryItem } from "@/types/domain";
+import type { DomainStockItem } from "@/types/domain";
 
 /**
  * 인벤토리에서 유효한 재고 값 반환
@@ -62,10 +62,10 @@ export const stockCalculator = {
    * 출발지에 재고가 있는 제품만 필터링
    */
   getAvailableProducts(
-    products: DomainInventoryItem[],
+    products: DomainStockItem[],
     inventories: Inventory[],
     fromWarehouseId: string
-  ): DomainInventoryItem[] {
+  ): DomainStockItem[] {
     return products.filter(product => {
       const inventory = inventories.find(
         inv => inv.product_option_id === product.productOptionId && inv.warehouse_id === fromWarehouseId

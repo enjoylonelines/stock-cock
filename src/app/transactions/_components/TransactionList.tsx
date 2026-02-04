@@ -1,9 +1,9 @@
 "use client";
-import type { GroupedTransactions, InventoryTransaction } from "@/hooks/useInventoryHistory";
+import type { GroupedTransactions, TransactionHistoryItem } from "@/hooks/useTransactionHistory";
 import { useProducts } from "@/hooks/useProducts";
 import { formatSpecWeight, formatStock } from "@/lib/domain/format";
-import { isMaterialItem } from "@/lib/domain/inventory";
-import type { DomainInventoryItem } from "@/types/domain";
+import { isMaterialItem } from "@/lib/domain/stock";
+import type { DomainStockItem } from "@/types/domain";
 import {
   ArrowDownToLine,
   ArrowLeftRight,
@@ -20,8 +20,8 @@ import { memo, useCallback, useMemo, useState } from "react";
 /**
  * 트랜잭션 ID별로 그룹화
  */
-const groupByTransactionId = (transactions: InventoryTransaction[]): InventoryTransaction[][] => {
-  const groups: Record<string, InventoryTransaction[]> = {};
+const groupByTransactionId = (transactions: TransactionHistoryItem[]): TransactionHistoryItem[][] => {
+  const groups: Record<string, TransactionHistoryItem[]> = {};
   transactions.forEach(tx => {
     const txId = tx.transaction_id ?? "";
     if (!groups[txId]) groups[txId] = [];
@@ -34,7 +34,7 @@ const groupByTransactionId = (transactions: InventoryTransaction[]): InventoryTr
 /**
  * 입출고 수량 표시 (도메인 formatStock 사용: 원재료 g→kg, 완제품 개)
  */
-const formatQuantityDisplay = (quantity: number, product: DomainInventoryItem | undefined): string => {
+const formatQuantityDisplay = (quantity: number, product: DomainStockItem | undefined): string => {
   const sign = quantity >= 0 ? "+" : "-";
   const absQuantity = Math.abs(quantity);
   const unit = product?.stockUnit ?? "EA";
@@ -53,8 +53,8 @@ const TransactionItem = memo(function TransactionItem({
   showType = true,
   compact = false,
 }: {
-  transaction: InventoryTransaction;
-  products: DomainInventoryItem[];
+  transaction: TransactionHistoryItem;
+  products: DomainStockItem[];
   getTypeIcon: (type: string) => React.ReactNode;
   getQuantityColor: (quantity: number) => string;
   showType?: boolean;
@@ -139,8 +139,8 @@ const TransactionGroup = memo(function TransactionGroup({
   getQuantityColor,
   onDetailClick,
 }: {
-  transactions: InventoryTransaction[];
-  products: DomainInventoryItem[];
+  transactions: TransactionHistoryItem[];
+  products: DomainStockItem[];
   getTypeIcon: (type: string) => React.ReactNode;
   getQuantityColor: (quantity: number) => string;
   onDetailClick: (transactionId: string) => void;
@@ -297,10 +297,10 @@ const TransactionGroup = memo(function TransactionGroup({
 });
 
 /**
- * 재고 목록 컴포넌트 (순수 UI)
+ * 입출고 목록 컴포넌트 (순수 UI)
  * 필터링된 데이터를 받아서 표시만 담당
  */
-const InventoryList = memo(function InventoryList({ grouped }: { grouped: GroupedTransactions[] }) {
+const TransactionList = memo(function TransactionList({ grouped }: { grouped: GroupedTransactions[] }) {
   const router = useRouter();
   const { products } = useProducts();
   const getTypeIcon = useCallback((type: string) => {
@@ -324,7 +324,7 @@ const InventoryList = memo(function InventoryList({ grouped }: { grouped: Groupe
 
   const handleDetailClick = useCallback(
     (transactionId: string) => {
-      router.push(`/inventory/${transactionId}`);
+      router.push(`/transactions/${transactionId}`);
     },
     [router]
   );
@@ -360,6 +360,6 @@ const InventoryList = memo(function InventoryList({ grouped }: { grouped: Groupe
   );
 });
 
-InventoryList.displayName = "InventoryList";
+TransactionList.displayName = "TransactionList";
 
-export default InventoryList;
+export default TransactionList;
