@@ -23,4 +23,4 @@ export const defaultFilterState: FilterState = {
   member: "",
 };
 
-export const useInventoryFilterDrawerStore = createFilterStore<FilterState>("inventoryFilter", defaultFilterState);
+export const useTransactionFilterDrawerStore = createFilterStore<FilterState>("transactionFilter", defaultFilterState);

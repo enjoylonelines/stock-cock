@@ -6,7 +6,7 @@ export type FormType =
   | "move"
   | "adjust"
   | "shortage"
-  | "inventory"
+  | "stockSurvey"
   | "history"
   | "member"
   | "product"

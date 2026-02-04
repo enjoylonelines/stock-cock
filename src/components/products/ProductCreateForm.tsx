@@ -7,7 +7,7 @@ import { ProductTypeSelectView } from "@/app/products/_components/ProductTypeSel
 import { WeightPickerView } from "@/app/products/_components/WeightPickerView";
 import { useBrands } from "@/app/products/_hooks/useBrands";
 import { useCategories } from "@/app/products/_hooks/useCategories";
-import ManageView from "@/app/transactions/_components/ManageView";
+import ManageView from "@/app/transaction-form/_components/ManageView";
 import { Button } from "@/components/ui/button";
 import DrawerView from "@/components/ui/drawer-view";
 import { useUser } from "@/contexts/UserContext";

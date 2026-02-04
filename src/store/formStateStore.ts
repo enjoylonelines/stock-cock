@@ -1,4 +1,4 @@
-import type { DomainInventoryItem } from "@/types/domain";
+import type { DomainStockItem } from "@/types/domain";
 import { create } from "zustand";
 
 export type TransactionMode = "in" | "out";
@@ -99,7 +99,7 @@ const createDefaultProductFormState = (): ProductFormState => ({
 export interface TransactionFormState {
   selectedLocation: string;
   selectedSupplier: string;
-  selectedProducts: DomainInventoryItem[];
+  selectedProducts: DomainStockItem[];
   selectedDate: Date;
   memo: string;
 }
@@ -115,7 +115,7 @@ const createDefaultTransactionFormState = (): TransactionFormState => ({
 export interface MoveFormState {
   fromLocation: string;
   toLocation: string;
-  selectedProducts: DomainInventoryItem[];
+  selectedProducts: DomainStockItem[];
   selectedDate: Date;
   memo: string;
 }
@@ -130,7 +130,7 @@ const createDefaultMoveFormState = (): MoveFormState => ({
 
 export interface AdjustFormState {
   selectedLocation: string;
-  selectedProducts: DomainInventoryItem[];
+  selectedProducts: DomainStockItem[];
   selectedDate: Date;
   memo: string;
 }

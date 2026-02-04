@@ -1,7 +1,7 @@
 "use client";
 
 import { logout } from "@/app/auth/actions";
-import ManageView from "@/app/transactions/_components/ManageView";
+import ManageView from "@/app/transaction-form/_components/ManageView";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

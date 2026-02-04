@@ -1,26 +1,30 @@
 import { useUser } from "@/contexts/UserContext";
+import { useInventories } from "@/hooks/useInventories";
 import { useFormStateStore } from "@/store/formStateStore";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
+import { mutate } from "swr";
 import { transactionFormatter } from "../_lib/transaction-formatter";
 import { transactionValidator } from "../_lib/transaction-validator";
-import { adjustmentService } from "../_services/transaction-service";
+import { moveService } from "../_services/transaction-service";
 
 /**
- * 재고 조정 폼 비즈니스 로직 훅
+ * 재고 이동 폼 비즈니스 로직 훅
  */
-export function useAdjustForm(closeDrawer: () => void) {
+export function useMoveForm(closeDrawer: () => void) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const user = useUser();
-  const adjustForm = useFormStateStore(state => state.adjustForm);
-  const updateAdjustForm = useFormStateStore(state => state.updateAdjustForm);
-  const resetAdjustForm = useFormStateStore(state => state.resetAdjustForm);
-  const { selectedLocation, selectedProducts, selectedDate, memo } = adjustForm;
+  const { inventories } = useInventories();
+  const moveForm = useFormStateStore(state => state.moveForm);
+  const updateMoveForm = useFormStateStore(state => state.updateMoveForm);
+  const resetMoveForm = useFormStateStore(state => state.resetMoveForm);
+  const { fromLocation, toLocation, selectedProducts, selectedDate, memo } = moveForm;
 
   // 폼 검증
-  const validation = transactionValidator.validateAdjustmentForm({
-    selectedLocation,
+  const validation = transactionValidator.validateMoveForm({
+    fromLocation,
+    toLocation,
     selectedProducts,
   });
 
@@ -41,19 +45,24 @@ export function useAdjustForm(closeDrawer: () => void) {
     try {
       setIsLoading(true);
 
-      const formattedData = transactionFormatter.formatAdjustmentData({
-        warehouse_id: selectedLocation,
+      const formattedData = transactionFormatter.formatMoveData({
+        from_warehouse_id: fromLocation,
+        to_warehouse_id: toLocation,
         memo: memo || "",
         selectedDate,
         selectedProducts,
         user_id: user.id,
       });
 
-      await adjustmentService.create(formattedData);
+      await moveService.create(formattedData);
 
-      resetAdjustForm();
+      await Promise.all([
+        mutate("inventories"),
+        mutate(["transaction-history", inventories.length]),
+      ]);
+      resetMoveForm();
       closeDrawer();
-      router.replace("/inventory");
+      router.replace("/transactions");
     } catch (error) {
       alert("처리 중 오류가 발생했습니다.");
       throw error;
@@ -62,12 +71,14 @@ export function useAdjustForm(closeDrawer: () => void) {
     }
   }, [
     validation,
-    selectedLocation,
+    fromLocation,
+    toLocation,
     selectedProducts,
     selectedDate,
     memo,
     user?.id,
-    resetAdjustForm,
+    inventories.length,
+    resetMoveForm,
     closeDrawer,
     router,
   ]);
@@ -77,12 +88,13 @@ export function useAdjustForm(closeDrawer: () => void) {
     isLoading,
     isFormValid,
     // 폼 상태
-    selectedLocation,
+    fromLocation,
+    toLocation,
     selectedProducts,
     selectedDate,
     memo,
     // 액션
-    updateAdjustForm,
+    updateMoveForm,
     handleSubmit,
   };
 }

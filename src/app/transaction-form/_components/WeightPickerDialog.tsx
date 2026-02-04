@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatWeight } from "@/lib/domain/format";
-import type { DomainInventoryItem } from "@/types/domain";
+import type { DomainStockItem } from "@/types/domain";
 import { useEffect, useState } from "react";
 
 type FormType = "in" | "adjust";
@@ -11,8 +11,8 @@ type FormType = "in" | "adjust";
 interface WeightPickerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  product: DomainInventoryItem | null;
-  onConfirm: (product: DomainInventoryItem, weightInGrams: number) => void;
+  product: DomainStockItem | null;
+  onConfirm: (product: DomainStockItem, weightInGrams: number) => void;
   formType?: FormType;
   currentStock?: number; // 현재 재고 (g 단위)
 }

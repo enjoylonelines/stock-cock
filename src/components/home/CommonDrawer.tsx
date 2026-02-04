@@ -10,26 +10,26 @@ import dynamic from "next/dynamic";
 import { Suspense, useEffect, useRef } from "react";
 
 // 동적 임포트로 코드 스플리팅
-const TransactionForm = dynamic(() => import("@/app/transactions/_components/TransactionForm"), {
+const TransactionForm = dynamic(() => import("@/app/transaction-form/_components/TransactionForm"), {
   loading: () => <div className="p-4">로딩 중...</div>,
 });
 const ProductCreateForm = dynamic(() => import("@/components/products/ProductCreateForm"), {
   loading: () => <div className="p-4">로딩 중...</div>,
 });
-const MoveForm = dynamic(() => import("@/app/transactions/_components/MoveForm"), {
+const MoveForm = dynamic(() => import("@/app/transaction-form/_components/MoveForm"), {
   loading: () => <div className="p-4">로딩 중...</div>,
 });
-const AdjustForm = dynamic(() => import("@/app/transactions/_components/AdjustForm"), {
+const AdjustForm = dynamic(() => import("@/app/transaction-form/_components/AdjustForm"), {
   loading: () => <div className="p-4">로딩 중...</div>,
 });
 
 export default function CommonDrawer({ children }: { children?: React.ReactNode }) {
   const { isOpen, currentForm, closeDrawer } = useDrawerStore();
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const resetProductForm = useFormStateStore(state => state.resetProductForm);
-  const resetTransactionForm = useFormStateStore(state => state.resetTransactionForm);
-  const resetMoveForm = useFormStateStore(state => state.resetMoveForm);
-  const resetAdjustForm = useFormStateStore(state => state.resetAdjustForm);
+  const resetProductForm = useFormStateStore((state) => state.resetProductForm);
+  const resetTransactionForm = useFormStateStore((state) => state.resetTransactionForm);
+  const resetMoveForm = useFormStateStore((state) => state.resetMoveForm);
+  const resetAdjustForm = useFormStateStore((state) => state.resetAdjustForm);
 
   // 안드로이드에서 키보드가 닫힐 때 drawer 높이 복원
   useEffect(() => {
@@ -77,7 +77,7 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
         return "조정하기";
       case "shortage":
         return "재고 부족 확인";
-      case "inventory":
+      case "stockSurvey":
         return "재고 조사";
       case "history":
         return "과거 수량 조회";
@@ -101,7 +101,7 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
         return "재고 수량을 조정합니다.";
       case "shortage":
         return "재고가 부족한 제품 목록을 확인합니다.";
-      case "inventory":
+      case "stockSurvey":
         return "현재 재고 상태를 조사합니다.";
       case "history":
         return "제품의 과거 재고 수량을 조회합니다.";
@@ -172,7 +172,7 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
         );
       case "shortage":
         return <div>재고 부족 확인 폼</div>;
-      case "inventory":
+      case "stockSurvey":
         return <div>재고 조사 폼</div>;
       case "history":
         return <div>과거 수량 조회 폼</div>;
@@ -198,7 +198,7 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={open => !open && closeDrawer()}>
+    <Drawer open={isOpen} onOpenChange={(open) => !open && closeDrawer()}>
       <DrawerContent className="h-[90vh] flex flex-col max-w-3xl mx-auto" role="dialog" aria-modal="true">
         <DrawerHeader className="flex-shrink-0 py-0">
           <div className="flex justify-between items-center py-2">
@@ -216,21 +216,13 @@ export default function CommonDrawer({ children }: { children?: React.ReactNode 
 
           <div
             className={`flex items-center py-2 border-b-2 ${
-              currentForm === "receipt"
-                ? "border-blue-400"
-                : currentForm === "issue"
-                  ? "border-red-400"
-                  : "border-orange-400"
+              currentForm === "receipt" ? "border-blue-400" : currentForm === "issue" ? "border-red-400" : "border-orange-400"
             }`}
           >
             <div>
               <DrawerTitle
                 className={`text-lg font-medium ${
-                  currentForm === "receipt"
-                    ? "text-blue-400"
-                    : currentForm === "issue"
-                      ? "text-red-400"
-                      : "text-orange-400"
+                  currentForm === "receipt" ? "text-blue-400" : currentForm === "issue" ? "text-red-400" : "text-orange-400"
                 }`}
               >
                 {getFormTitle()}

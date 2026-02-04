@@ -1,13 +1,13 @@
 "use client";
 import { formatMaterialSummary, formatSpecWeight, formatStock } from "@/lib/domain/format";
-import { isMaterialItem } from "@/lib/domain/inventory";
+import { isMaterialItem } from "@/lib/domain/stock";
 import { formatNumber } from "@/lib/utils";
-import type { DomainInventoryItem } from "@/types/domain";
+import type { DomainStockItem } from "@/types/domain";
 import Image from "next/image";
 import { memo } from "react";
 
 interface ProductListItemProps {
-  product: DomainInventoryItem;
+  product: DomainStockItem;
   quantity?: number;
   selected?: boolean;
   onClick?: () => void;

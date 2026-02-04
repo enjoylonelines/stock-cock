@@ -1,5 +1,5 @@
 import type { AdjustmentInput, MoveInput, TransactionInput } from "@/types/api";
-import type { DomainInventoryItem } from "@/types/domain";
+import type { DomainStockItem } from "@/types/domain";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 
@@ -30,7 +30,7 @@ export const transactionFormatter = {
     supplier_id: string;
     memo: string;
     selectedDate: Date;
-    selectedProducts: DomainInventoryItem[];
+    selectedProducts: DomainStockItem[];
     user_id: string;
   }): TransactionInput {
     return {
@@ -56,7 +56,7 @@ export const transactionFormatter = {
     to_warehouse_id: string;
     memo: string;
     selectedDate: Date;
-    selectedProducts: DomainInventoryItem[];
+    selectedProducts: DomainStockItem[];
     user_id: string;
   }): MoveInput {
     return {
@@ -80,7 +80,7 @@ export const transactionFormatter = {
     warehouse_id: string;
     memo: string;
     selectedDate: Date;
-    selectedProducts: DomainInventoryItem[];
+    selectedProducts: DomainStockItem[];
     user_id: string;
   }): AdjustmentInput {
     return {

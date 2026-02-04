@@ -1,13 +1,13 @@
 import { useInventories } from "@/hooks/useInventories";
 import { stockCalculator } from "@/lib/inventory/stock-calculator";
-import type { DomainInventoryItem } from "@/types/domain";
+import type { DomainStockItem } from "@/types/domain";
 import { useEffect, useRef, useState } from "react";
 
 type FormType = "in" | "out" | "move" | "adjust";
 
 interface UseProductQuantityDialogProps {
   open: boolean;
-  product: DomainInventoryItem | null;
+  product: DomainStockItem | null;
   quantity: number;
   setQuantity: (quantity: number) => void;
   allowNegative?: boolean;
@@ -124,7 +124,7 @@ export function useProductQuantityDialog({
   };
 
   const handleConfirm = (
-    onConfirm: (product: DomainInventoryItem, quantity: number) => void,
+    onConfirm: (product: DomainStockItem, quantity: number) => void,
     onOpenChange: (open: boolean) => void
   ) => {
     if (!product) return;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useInventoryFilterDrawerStore } from "@/store/InventoryFilterDrawer";
+import { useTransactionFilterDrawerStore } from "@/store/TransactionFilterDrawer";
 import { useProductFilterDrawerStore } from "@/store/productFilterDrawer";
 import dynamic from "next/dynamic";
 
@@ -8,7 +8,7 @@ import dynamic from "next/dynamic";
 const ActivityLogDrawer = dynamic(() => import("@/app/home/_components/ActivityLogDrawer"), {
   ssr: false,
 });
-const FilterDrawer = dynamic(() => import("@/app/inventory/_components/FilterDrawer"), {
+const FilterDrawer = dynamic(() => import("@/app/transactions/_components/FilterDrawer"), {
   ssr: false,
 });
 const ProductFilterDrawer = dynamic(() => import("@/app/products/_components/ProductFilterDrawer"), {
@@ -24,7 +24,7 @@ interface HeaderDrawersProps {
 }
 
 export default function HeaderDrawers({ isSortDialogOpen, onSortDialogClose }: HeaderDrawersProps) {
-  const { isOpen, close, setFilters } = useInventoryFilterDrawerStore();
+  const { isOpen, close, setFilters } = useTransactionFilterDrawerStore();
   const {
     isOpen: isProductFilterOpen,
     close: closeProductFilter,
@@ -37,7 +37,7 @@ export default function HeaderDrawers({ isSortDialogOpen, onSortDialogClose }: H
         isOpen={isOpen}
         onClose={close}
         onApplyFilter={setFilters}
-        initialFilters={useInventoryFilterDrawerStore.getState().filters}
+        initialFilters={useTransactionFilterDrawerStore.getState().filters}
       />
       <ProductFilterDrawer
         isOpen={isProductFilterOpen}

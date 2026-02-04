@@ -5,7 +5,7 @@ import { apiLogger } from "@/utils/logger";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const endpoint = "/api/inventory-history";
+  const endpoint = "/api/transaction-history";
 
   try {
     const supabase = await createClient();

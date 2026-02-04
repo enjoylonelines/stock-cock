@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef } from "react";
 import useSWR, { mutate } from "swr";
 import { useInventories } from "./useInventories";
 
-export interface InventoryTransaction extends TransactionHistoryView {
+export interface TransactionHistoryItem extends TransactionHistoryView {
   date: string;
   product_id: string;
   product_name: string;
@@ -17,7 +17,7 @@ export interface InventoryTransaction extends TransactionHistoryView {
 
 export interface GroupedTransactions {
   date: string;
-  transactions: InventoryTransaction[];
+  transactions: TransactionHistoryItem[];
 }
 
 const supabase = createClient();
@@ -47,14 +47,14 @@ const processTransactionData = (
   const stockMap: Record<string, number> = { ...mergedInventories };
 
   type TxWithRequired = TransactionHistoryView & { product_option_id: string; created_at: string };
-  const logs: InventoryTransaction[] = data
+  const logs: TransactionHistoryItem[] = data
     .filter((tx): tx is TxWithRequired => Boolean(tx.product_option_id && tx.created_at))
     .map((tx, index) => {
       const product_id = tx.product_option_id;
       const dateObj = new Date(tx.created_at);
       const dateStr = `${dateObj.getFullYear()}년 ${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일`;
 
-      let type_kr: InventoryTransaction["type_kr"];
+      let type_kr: TransactionHistoryItem["type_kr"];
       switch (tx.type) {
         case "in":
           type_kr = "입고";
@@ -95,7 +95,7 @@ const processTransactionData = (
     });
 
   // 최신순 → 날짜별 그룹화
-  const groupedObj: { [date: string]: InventoryTransaction[] } = {};
+  const groupedObj: { [date: string]: TransactionHistoryItem[] } = {};
   logs.forEach((tx) => {
     if (!groupedObj[tx.date]) groupedObj[tx.date] = [];
     groupedObj[tx.date].push(tx);
@@ -109,7 +109,7 @@ const processTransactionData = (
   return { grouped, transactions: logs };
 };
 
-export function useInventoryHistory() {
+export function useTransactionHistory() {
   const { inventories } = useInventories();
   const fetcher = useCallback(async () => {
     try {
@@ -117,18 +117,18 @@ export function useInventoryHistory() {
       if (error) throw error;
       return processTransactionData(data || [], inventories);
     } catch (e) {
-      console.error("[useInventoryHistory] fetcher error:", e);
+      console.error("[useTransactionHistory] fetcher error:", e);
       throw e;
     }
   }, [inventories]);
 
-  const swrKey = ["inventory-history", inventories.length] as const;
+  const swrKey = ["transaction-history", inventories.length] as const;
   const swrKeyRef = useRef(swrKey);
   swrKeyRef.current = swrKey;
 
   const { data, isLoading, error } = useSWR<{
     grouped: GroupedTransactions[];
-    transactions: InventoryTransaction[];
+    transactions: TransactionHistoryItem[];
   }>(swrKey, fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: true,

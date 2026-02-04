@@ -1,4 +1,4 @@
-import type { DomainInventoryItem } from "@/types/domain";
+import type { DomainStockItem } from "@/types/domain";
 
 export type ProductType = "all" | "company" | "franchise" | "pb" | "material";
 
@@ -17,7 +17,7 @@ export const productFilter = {
   /**
    * 제품 목록 필터링
    */
-  filterProducts(products: DomainInventoryItem[], filters: ProductFilters): DomainInventoryItem[] {
+  filterProducts(products: DomainStockItem[], filters: ProductFilters): DomainStockItem[] {
     return products.filter(product => {
       // 제품 타입 필터
       if (filters.productType && filters.productType !== "all") {

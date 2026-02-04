@@ -1,7 +1,9 @@
 import { useUser } from "@/contexts/UserContext";
+import { useInventories } from "@/hooks/useInventories";
 import { useFormStateStore } from "@/store/formStateStore";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
+import { mutate } from "swr";
 import { transactionFormatter } from "../_lib/transaction-formatter";
 import { transactionValidator } from "../_lib/transaction-validator";
 import { transactionService } from "../_services/transaction-service";
@@ -13,6 +15,7 @@ export function useTransactionForm(mode: "in" | "out", closeDrawer: () => void) 
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const user = useUser();
+  const { inventories } = useInventories();
   const transactionFormState = useFormStateStore(state => state.transactionForms[mode]);
   const updateTransactionForm = useFormStateStore(state => state.updateTransactionForm);
   const resetTransactionForm = useFormStateStore(state => state.resetTransactionForm);
@@ -59,9 +62,13 @@ export function useTransactionForm(mode: "in" | "out", closeDrawer: () => void) 
 
       await transactionService.create(formattedData);
 
+      await Promise.all([
+        mutate("inventories"),
+        mutate(["transaction-history", inventories.length]),
+      ]);
       resetTransactionForm(mode);
       closeDrawer();
-      router.replace("/inventory");
+      router.replace("/transactions");
     } catch (error) {
       alert("처리 중 오류가 발생했습니다.");
       throw error;
@@ -77,6 +84,7 @@ export function useTransactionForm(mode: "in" | "out", closeDrawer: () => void) 
     selectedDate,
     memo,
     user?.id,
+    inventories.length,
     resetTransactionForm,
     closeDrawer,
     router,

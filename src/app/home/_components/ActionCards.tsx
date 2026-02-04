@@ -41,7 +41,7 @@ const actionCards = [
     ],
   },
   {
-    id: "inventory-management",
+    id: "transaction-management",
     title: "입/출고 관리",
     buttons: [
       {
