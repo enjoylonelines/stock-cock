@@ -3,14 +3,18 @@
  * 표준화된 에러 처리를 위한 커스텀 에러 클래스
  */
 export class APIError extends Error {
+  /** 클라이언트에 전달할 추가 상세(예: DB hint, details) */
+  public detail?: string;
+
   constructor(
     public statusCode: number,
     message: string,
-    public code?: string
+    public code?: string,
+    detail?: string
   ) {
     super(message);
     this.name = "APIError";
-    // Error 상속 시 stack trace 유지
+    this.detail = detail;
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, APIError);
     }
@@ -36,9 +40,15 @@ export class APIError extends Error {
     return new APIError(500, message, "INTERNAL_SERVER_ERROR");
   }
 
-  static fromSupabaseError(error: { message: string; code?: string }): APIError {
-    // Supabase 에러 코드에 따라 적절한 HTTP 상태 코드 매핑
+  static fromSupabaseError(error: {
+    message?: string;
+    code?: string;
+    details?: string;
+    hint?: string;
+  }): APIError {
     const message = error.message || "데이터베이스 오류가 발생했습니다.";
-    return new APIError(500, message, error.code || "DATABASE_ERROR");
+    const parts = [error.details, error.hint].filter(Boolean);
+    const detail = parts.length > 0 ? parts.join(" | ") : undefined;
+    return new APIError(500, message, error.code || "DATABASE_ERROR", detail);
   }
 }

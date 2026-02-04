@@ -119,71 +119,6 @@ export type Database = {
           },
         ];
       };
-      inventory_batches: {
-        Row: {
-          created_at: string | null;
-          expiration_date: string | null;
-          id: string;
-          lot_no: string | null;
-          memo: string | null;
-          product_option_id: string | null;
-          quantity: number | null;
-          unit_price: number | null;
-          warehouse_id: string | null;
-        };
-        Insert: {
-          created_at?: string | null;
-          expiration_date?: string | null;
-          id?: string;
-          lot_no?: string | null;
-          memo?: string | null;
-          product_option_id?: string | null;
-          quantity?: number | null;
-          unit_price?: number | null;
-          warehouse_id?: string | null;
-        };
-        Update: {
-          created_at?: string | null;
-          expiration_date?: string | null;
-          id?: string;
-          lot_no?: string | null;
-          memo?: string | null;
-          product_option_id?: string | null;
-          quantity?: number | null;
-          unit_price?: number | null;
-          warehouse_id?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "inventory_batches_product_option_id_fkey";
-            columns: ["product_option_id"];
-            isOneToOne: false;
-            referencedRelation: "product_option_inventory_view";
-            referencedColumns: ["product_option_id"];
-          },
-          {
-            foreignKeyName: "inventory_batches_product_option_id_fkey";
-            columns: ["product_option_id"];
-            isOneToOne: false;
-            referencedRelation: "product_options";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "inventory_batches_warehouse_id_fkey";
-            columns: ["warehouse_id"];
-            isOneToOne: false;
-            referencedRelation: "product_option_inventory_view";
-            referencedColumns: ["warehouse_id"];
-          },
-          {
-            foreignKeyName: "inventory_batches_warehouse_id_fkey";
-            columns: ["warehouse_id"];
-            isOneToOne: false;
-            referencedRelation: "warehouses";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       product_options: {
         Row: {
           box_unit: number | null;
@@ -378,34 +313,24 @@ export type Database = {
       };
       transaction_items: {
         Row: {
-          batch_id: string | null;
           id: string;
           product_option_id: string | null;
           quantity: number | null;
           transaction_id: string | null;
         };
         Insert: {
-          batch_id?: string | null;
           id?: string;
           product_option_id?: string | null;
           quantity?: number | null;
           transaction_id?: string | null;
         };
         Update: {
-          batch_id?: string | null;
           id?: string;
           product_option_id?: string | null;
           quantity?: number | null;
           transaction_id?: string | null;
         };
         Relationships: [
-          {
-            foreignKeyName: "transaction_items_batch_id_fkey";
-            columns: ["batch_id"];
-            isOneToOne: false;
-            referencedRelation: "inventory_batches";
-            referencedColumns: ["id"];
-          },
           {
             foreignKeyName: "transaction_items_product_option_id_fkey";
             columns: ["product_option_id"];

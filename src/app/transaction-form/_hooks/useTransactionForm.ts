@@ -53,7 +53,7 @@ export function useTransactionForm(mode: "in" | "out", closeDrawer: () => void) 
       const formattedData = transactionFormatter.formatTransactionData({
         type: mode,
         warehouse_id: selectedLocation,
-        supplier_id: selectedSupplier,
+        supplier_id: mode === "in" ? null : selectedSupplier || null,
         memo: memo || "",
         selectedDate,
         selectedProducts,
@@ -70,7 +70,8 @@ export function useTransactionForm(mode: "in" | "out", closeDrawer: () => void) 
       closeDrawer();
       router.replace("/transactions");
     } catch (error) {
-      alert("처리 중 오류가 발생했습니다.");
+      const message = error instanceof Error ? error.message : "처리 중 오류가 발생했습니다.";
+      alert(message);
       throw error;
     } finally {
       setIsLoading(false);

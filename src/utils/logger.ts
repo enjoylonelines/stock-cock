@@ -108,10 +108,20 @@ export const apiLogger = {
   },
 
   /**
-   * 데이터베이스 오류 로그
+   * 데이터베이스 오류 로그 (Supabase details/hint 포함)
    */
   dbError(operation: string, error: Error | unknown): void {
-    logger.error(`[DB] ${operation} 실패`, error);
+    const err = error as { message?: string; code?: string; details?: string; hint?: string };
+    const context =
+      err && typeof err === "object"
+        ? {
+            message: err.message,
+            code: err.code,
+            ...(err.details && { details: err.details }),
+            ...(err.hint && { hint: err.hint }),
+          }
+        : undefined;
+    logger.error(`[DB] ${operation} 실패`, error, context);
   },
 
   /**

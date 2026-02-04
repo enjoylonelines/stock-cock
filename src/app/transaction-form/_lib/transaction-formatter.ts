@@ -27,7 +27,7 @@ export const transactionFormatter = {
   formatTransactionData(data: {
     type: "in" | "out";
     warehouse_id: string;
-    supplier_id: string;
+    supplier_id: string | null;
     memo: string;
     selectedDate: Date;
     selectedProducts: DomainStockItem[];
@@ -36,7 +36,7 @@ export const transactionFormatter = {
     return {
       type: data.type,
       warehouse_id: data.warehouse_id,
-      supplier_id: data.supplier_id,
+      supplier_id: data.supplier_id ?? null,
       memo: data.memo,
       created_at: this.formatDateForAPI(data.selectedDate),
       items: data.selectedProducts.map((product) => ({

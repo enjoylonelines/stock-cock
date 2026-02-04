@@ -168,18 +168,20 @@ export default function TransactionForm({ mode, closeDrawer }: TransactionFormPr
         />
       </DrawerView>
 
-      {/* 거래처 관리 드로어 */}
-      <DrawerView isVisible={isSupplierViewVisible}>
-        <ManageView
-          onBack={() => setIsSupplierViewVisible(false)}
-          onSelect={handleSupplierSelect}
-          title="거래처 선택"
-          items={suppliers}
-          onAdd={addSupplier}
-          onEdit={editSupplier}
-          onDelete={deleteSupplier}
-        />
-      </DrawerView>
+      {/* 거래처 관리 드로어 (출고 시에만 사용) */}
+      {mode === "out" && (
+        <DrawerView isVisible={isSupplierViewVisible}>
+          <ManageView
+            onBack={() => setIsSupplierViewVisible(false)}
+            onSelect={handleSupplierSelect}
+            title="거래처 선택"
+            items={suppliers}
+            onAdd={addSupplier}
+            onEdit={editSupplier}
+            onDelete={deleteSupplier}
+          />
+        </DrawerView>
+      )}
 
       {/* 제품 선택 드로어 */}
       <DrawerView isVisible={isProductViewVisible}>

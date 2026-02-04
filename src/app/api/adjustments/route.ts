@@ -44,27 +44,7 @@ export async function POST(request: Request) {
     for (const item of items) {
       apiLogger.transaction("조정 항목 처리 시작", item);
 
-      // [2] 배치 insert (조정용)
-      const { data: batch, error: batchError } = await supabase
-        .from("inventory_batches")
-        .insert([
-          {
-            product_option_id: item.option_id,
-            warehouse_id,
-            quantity: item.quantity,
-            unit_price: null,
-            expiration_date: item.expiration_date || null,
-          },
-        ])
-        .select()
-        .single();
-
-      if (batchError) {
-        apiLogger.dbError("배치 생성", batchError);
-        throw APIError.fromSupabaseError(batchError);
-      }
-
-      // [3] inventory 조정 (목표 재고로 설정)
+      // [2] inventory 조정 (목표 재고로 설정)
       const { data: currentInventory, error: currentInvError } = await supabase
         .from("inventory")
         .select("*")
@@ -89,12 +69,11 @@ export async function POST(request: Request) {
         isMaterial,
       });
 
-      // [4] transaction_items 기록 (조정량 기록)
+      // [3] transaction_items 기록 (조정량 기록)
       const { error: itemError } = await supabase.from("transaction_items").insert([
         {
           transaction_id: transaction.id,
           product_option_id: item.option_id,
-          batch_id: batch.id,
           quantity: adjustmentQuantity, // 조정량 기록
         },
       ]);
