@@ -68,18 +68,20 @@ export const TransactionFormFields = memo(function TransactionFormFields({
         <ChevronRight className="w-5 h-5 text-gray-400" />
       </Button>
 
-      <Button
-        onClick={onSupplierClick}
-        variant="ghost"
-        className="flex justify-between items-center py-2 w-full"
-        size="none"
-      >
-        <div className="flex justify-between w-full">
-          <h3 className="font-medium">거래처</h3>
-          <p className="text-sm text-gray-500">{selectedSupplierName}</p>
-        </div>
-        <ChevronRight className="w-5 h-5 text-gray-400" />
-      </Button>
+      {mode === "out" && (
+        <Button
+          onClick={onSupplierClick}
+          variant="ghost"
+          className="flex justify-between items-center py-2 w-full"
+          size="none"
+        >
+          <div className="flex justify-between w-full">
+            <h3 className="font-medium">거래처</h3>
+            <p className="text-sm text-gray-500">{selectedSupplierName}</p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-gray-400" />
+        </Button>
+      )}
 
       <Button
         onClick={onProductClick}

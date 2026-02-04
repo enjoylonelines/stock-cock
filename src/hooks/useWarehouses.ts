@@ -68,21 +68,14 @@ export function useWarehouses() {
         }
       }
 
-      // 4. inventory_batches 삭제 (warehouse_id를 참조)
-      const { error: batchError } = await supabase.from("inventory_batches").delete().eq("warehouse_id", id);
-
-      if (batchError) {
-        throw new Error(`배치 삭제 실패: ${batchError.message}`);
-      }
-
-      // 5. 해당 warehouse를 사용하는 inventory 레코드들 삭제
+      // 4. 해당 warehouse를 사용하는 inventory 레코드들 삭제
       const { error: inventoryError } = await supabase.from("inventory").delete().eq("warehouse_id", id);
 
       if (inventoryError) {
         throw new Error(`재고 삭제 실패: ${inventoryError.message}`);
       }
 
-      // 6. warehouse 삭제
+      // 5. warehouse 삭제
       return await deleteItem(id);
     } catch (error: unknown) {
       // 외래 키 제약 조건 위반 에러 처리

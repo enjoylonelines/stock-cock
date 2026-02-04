@@ -20,153 +20,45 @@ export async function POST(request: Request) {
       throw APIError.badRequest("제품 항목이 필요합니다.");
     }
 
-    // [1] 트랜잭션 기록
-    const { data: transaction, error: txError } = await supabase
-      .from("transactions")
-      .insert([
-        {
-          type: type.toLowerCase() as "in" | "out",
-          to_warehouse_id: type === "in" ? warehouse_id : null,
-          from_warehouse_id: type === "out" ? warehouse_id : null,
-          supplier_id,
-          memo,
-          created_at,
-          user_id,
-        },
-      ])
-      .select()
-      .single();
+    const p_header = {
+      type: type.toLowerCase(),
+      user_id,
+      warehouse_id,
+      supplier_id: supplier_id ?? null,
+      memo: memo ?? "",
+      created_at: created_at ?? new Date().toISOString(),
+    };
 
-    if (txError) {
-      apiLogger.dbError("트랜잭션 생성", txError);
-      throw APIError.fromSupabaseError(txError);
+    const p_items = items.map(item => ({
+      option_id: item.option_id,
+      quantity: item.quantity,
+      product_type: item.product_type ?? "company",
+    }));
+
+    const { data, error } = await supabase.rpc("create_transaction", {
+      p_header: p_header as unknown as Record<string, unknown>,
+      p_items: p_items as unknown as Record<string, unknown>[],
+    });
+
+    if (error) {
+      apiLogger.dbError("create_transaction RPC", error);
+      throw APIError.fromSupabaseError(error);
     }
 
-    for (const item of items) {
-      apiLogger.transaction("항목 처리 시작", item);
-
-      // [2] 배치 insert (유통기한 기반)
-      const { data: batch, error: batchError } = await supabase
-        .from("inventory_batches")
-        .insert([
-          {
-            product_option_id: item.option_id,
-            warehouse_id,
-            quantity: item.quantity,
-            unit_price: null,
-            expiration_date: item.expiration_date || null,
-          },
-        ])
-        .select()
-        .single();
-
-      if (batchError) {
-        apiLogger.dbError("배치 생성", batchError);
-        throw APIError.fromSupabaseError(batchError);
-      }
-
-      // [3] inventory upsert
-      const { data: inventory, error: invError } = await supabase
-        .from("inventory")
-        .select("*")
-        .eq("product_option_id", item.option_id)
-        .eq("warehouse_id", warehouse_id)
-        .maybeSingle();
-
-      if (invError) {
-        apiLogger.dbError("재고 조회", invError);
-        throw APIError.fromSupabaseError(invError);
-      }
-
-      const isMaterial = item.product_type === "material";
-      let signedQty = item.quantity;
-      if (type === "out") signedQty = -item.quantity;
-
-      if (isMaterial) {
-        // 원재료: weight_in_grams 사용
-        const newWeight = (inventory?.weight_in_grams ?? 0) + signedQty;
-
-        if (inventory) {
-          const { error: updateError } = await supabase
-            .from("inventory")
-            .update({ weight_in_grams: newWeight })
-            .eq("id", inventory.id);
-
-          if (updateError) {
-            apiLogger.dbError("재고 업데이트", updateError);
-            throw APIError.fromSupabaseError(updateError);
-          }
-        } else {
-          const { error: insertError } = await supabase.from("inventory").insert([
-            {
-              product_option_id: item.option_id,
-              warehouse_id,
-              weight_in_grams: signedQty,
-              quantity: null,
-            },
-          ]);
-
-          if (insertError) {
-            apiLogger.dbError("재고 생성", insertError);
-            throw APIError.fromSupabaseError(insertError);
-          }
-        }
-      } else {
-        // 완제품: quantity 사용
-        const newQty = (inventory?.quantity ?? 0) + signedQty;
-
-        if (inventory) {
-          const { error: updateError } = await supabase
-            .from("inventory")
-            .update({ quantity: newQty })
-            .eq("id", inventory.id);
-
-          if (updateError) {
-            apiLogger.dbError("재고 업데이트", updateError);
-            throw APIError.fromSupabaseError(updateError);
-          }
-        } else {
-          const { error: insertError } = await supabase.from("inventory").insert([
-            {
-              product_option_id: item.option_id,
-              warehouse_id,
-              quantity: newQty,
-            },
-          ]);
-
-          if (insertError) {
-            apiLogger.dbError("재고 생성", insertError);
-            throw APIError.fromSupabaseError(insertError);
-          }
-        }
-      }
-
-      // [4] transaction_items 기록
-      const { error: itemError } = await supabase.from("transaction_items").insert([
-        {
-          transaction_id: transaction.id,
-          product_option_id: item.option_id,
-          batch_id: batch.id,
-          quantity: item.quantity,
-        },
-      ]);
-
-      if (itemError) {
-        apiLogger.dbError("트랜잭션 항목 생성", itemError);
-        throw APIError.fromSupabaseError(itemError);
-      }
+    const transactionId = data?.transaction_id;
+    if (!transactionId) {
+      throw APIError.badRequest("트랜잭션 생성 결과가 없습니다.");
     }
 
-    // 푸시 알림 전송 (실패해도 전체 프로세스를 중단하지 않음)
     await sendTransactionNotification({
       type,
-      transactionId: transaction.id,
+      transactionId,
       itemCount: items.length,
       firstOptionId: items[0]?.option_id,
     });
 
-    apiLogger.requestSuccess(endpoint, { transaction_id: transaction.id });
-    return NextResponse.json({ success: true, transaction_id: transaction.id });
+    apiLogger.requestSuccess(endpoint, { transaction_id: transactionId });
+    return NextResponse.json({ success: true, transaction_id: transactionId });
   } catch (error) {
     return handleAPIError(error, endpoint);
   }

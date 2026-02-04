@@ -64,7 +64,8 @@ export function useMoveForm(closeDrawer: () => void) {
       closeDrawer();
       router.replace("/transactions");
     } catch (error) {
-      alert("처리 중 오류가 발생했습니다.");
+      const message = error instanceof Error ? error.message : "처리 중 오류가 발생했습니다.";
+      alert(message);
       throw error;
     } finally {
       setIsLoading(false);

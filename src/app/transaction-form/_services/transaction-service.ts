@@ -19,8 +19,10 @@ export const transactionService = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "거래 처리 중 오류가 발생했습니다.");
+        const errorData = (await response.json().catch(() => ({}))) as { error?: string; detail?: string };
+        const msg = errorData.error || "거래 처리 중 오류가 발생했습니다.";
+        const full = errorData.detail ? `${msg}\n\n상세: ${errorData.detail}` : msg;
+        throw new Error(full);
       }
 
       return await response.json();
@@ -49,8 +51,10 @@ export const moveService = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "재고 이동 처리 중 오류가 발생했습니다.");
+        const errorData = (await response.json().catch(() => ({}))) as { error?: string; detail?: string };
+        const msg = errorData.error || "재고 이동 처리 중 오류가 발생했습니다.";
+        const full = errorData.detail ? `${msg}\n\n상세: ${errorData.detail}` : msg;
+        throw new Error(full);
       }
 
       return await response.json();
@@ -79,8 +83,10 @@ export const adjustmentService = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "재고 조정 처리 중 오류가 발생했습니다.");
+        const errorData = (await response.json().catch(() => ({}))) as { error?: string; detail?: string };
+        const msg = errorData.error || "재고 조정 처리 중 오류가 발생했습니다.";
+        const full = errorData.detail ? `${msg}\n\n상세: ${errorData.detail}` : msg;
+        throw new Error(full);
       }
 
       return await response.json();

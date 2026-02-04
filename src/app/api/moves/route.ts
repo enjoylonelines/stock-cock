@@ -68,12 +68,11 @@ export async function POST(request: Request) {
         isMaterial,
       });
 
-      // [2] transaction_items 기록 (배치 없이)
+      // [2] transaction_items 기록
       const { error: itemError } = await supabase.from("transaction_items").insert([
         {
           transaction_id: transaction.id,
           product_option_id: item.option_id,
-          batch_id: null, // 이동은 배치 없음
           quantity: item.quantity,
         },
       ]);

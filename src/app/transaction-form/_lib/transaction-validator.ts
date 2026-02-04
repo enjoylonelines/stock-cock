@@ -20,7 +20,8 @@ export const transactionValidator = {
       };
     }
 
-    if (!data.selectedSupplier) {
+    // 출고 시에만 거래처 필수
+    if (data.mode === "out" && !data.selectedSupplier) {
       return {
         isValid: false,
         error: "거래처를 선택해주세요.",

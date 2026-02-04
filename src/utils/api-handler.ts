@@ -14,12 +14,17 @@ import { NextResponse } from "next/server";
 export function handleAPIError(error: unknown, endpoint: string): NextResponse<APIErrorResponse> {
   // APIError 인스턴스인 경우
   if (error instanceof APIError) {
-    apiLogger.requestError(endpoint, error, { statusCode: error.statusCode, code: error.code });
+    apiLogger.requestError(endpoint, error, {
+      statusCode: error.statusCode,
+      code: error.code,
+      detail: error.detail,
+    });
     return NextResponse.json(
       {
         error: error.message,
         code: error.code,
         statusCode: error.statusCode,
+        ...(error.detail && { detail: error.detail }),
       },
       { status: error.statusCode }
     );
