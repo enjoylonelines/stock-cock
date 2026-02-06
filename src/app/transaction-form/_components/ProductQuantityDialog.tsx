@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { formatNumber } from "@/lib/utils";
 import type { DomainStockItem } from "@/types/domain";
 import { Minus, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type FormType = "in" | "out" | "move" | "adjust";
 
@@ -55,6 +56,12 @@ export default function ProductQuantityDialog({
   handleInputChange,
   handleInputBlur,
 }: ProductQuantityDialogProps) {
+  const [boxCount, setBoxCount] = useState(1);
+
+  useEffect(() => {
+    if (open) setBoxCount(1);
+  }, [open]);
+
   const handleConfirm = () => {
     if (!product) return;
     onConfirm(product, quantity);
@@ -120,6 +127,32 @@ export default function ProductQuantityDialog({
               <Plus className="w-4 h-4" />
             </Button>
           </div>
+
+          {/* N박스 한 번에 추가 (boxUnit이 있을 때만) */}
+          {product.boxUnit != null && product.boxUnit > 0 && (
+            <div className="mb-4 flex gap-2 items-center">
+              <input
+                type="number"
+                min={1}
+                value={boxCount}
+                onChange={e => {
+                  const v = Number(e.target.value);
+                  if (!Number.isNaN(v)) setBoxCount(Math.max(1, Math.floor(v)));
+                }}
+                className="w-14 py-2 text-center text-base font-medium border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 shrink-0"
+                onClick={() =>
+                  handleQuantityChange(boxCount * (product.boxUnit ?? 1))
+                }
+              >
+                +{boxCount}박스 ({formatNumber(boxCount * (product.boxUnit ?? 1))}개) 추가
+              </Button>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>

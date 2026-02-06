@@ -68,7 +68,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
       // products 테이블에서 brand_id, category_id, product_type 가져오기
       const { data: productData, error } = await supabase
         .from("products")
-        .select("category_id, brand_id, product_type, image_url")
+        .select("category_id, brand_id, product_type, image_url, storage_type, origin")
         .eq("id", product.productId)
         .single();
 
@@ -86,13 +86,15 @@ export default function ProductDetail({ product }: ProductDetailProps) {
         name: product.name,
         categoryId: productData.category_id,
         brandId: productData.brand_id,
-        productType: (productData.product_type as "company" | "franchise" | "pb") || "company",
+        productType: (productData.product_type as "company" | "franchise" | "pb" | "material") || "company",
         weight: product.weight,
         weightUnit,
         boxUnit: product.boxUnit ? product.boxUnit.toString() : "",
         sku: product.sku ?? undefined,
         imagePath: product.imageUrl || "",
         localPreviewUrl: product.imageUrl || "",
+        storageType: productData.storage_type ?? "",
+        origin: productData.origin ?? "",
         editingProductId: product.productId,
         editingProductOptionId: product.productOptionId,
       });

@@ -64,20 +64,22 @@ export function useProductQuantityDialog({
   const displayStock = calculateDisplayStock();
 
   /**
-   * 모달 최초 오픈 + inventories 준비 완료 시
-   * 사용자 입력 전이라면 초기 재고를 input에 1회 세팅
+   * 모달 최초 오픈 시: 조정/이동은 현재 재고로, 입고/출고는 0으로 초기화
    */
   useEffect(() => {
     if (!open || !product) return;
     if (hasInitializedRef.current) return;
-    if (inventories.length === 0) return;
+    if (inventories.length === 0 && (formType === "move" || formType === "adjust")) return;
 
-    setQuantity(currentStock);
-    setInputValue(currentStock === 0 ? "" : currentStock.toString());
-    initialQuantityRef.current = currentStock; // 초기 수량 저장
+    const isAdjustOrMove = formType === "adjust" || formType === "move";
+    const initial = isAdjustOrMove ? currentStock : 0;
+
+    setQuantity(initial);
+    setInputValue(initial === 0 ? "" : initial.toString());
+    initialQuantityRef.current = initial;
 
     hasInitializedRef.current = true;
-  }, [open, product, inventories, currentStock, setQuantity]);
+  }, [open, product, inventories, currentStock, setQuantity, formType]);
 
   /**
    * 모달 닫힐 때 초기화

@@ -171,9 +171,9 @@ export const ProductFormFields = memo(function ProductFormFields({
               className="flex-1 p-2 text-base rounded border focus:outline-none focus:ring-2 focus:ring-orange-400"
             >
               <option value="">선택</option>
-              <option value="실온">실온</option>
-              <option value="냉장">냉장</option>
-              <option value="냉동">냉동</option>
+              <option value="room_temperature">실온</option>
+              <option value="refrigerated">냉장</option>
+              <option value="frozen">냉동</option>
             </select>
           </div>
           <div className="flex gap-2 items-center py-2 w-full">
