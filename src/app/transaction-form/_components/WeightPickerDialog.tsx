@@ -36,10 +36,9 @@ export default function WeightPickerDialog({
   const [inputValue, setInputValue] = useState("");
   const [selectedUnit, setSelectedUnit] = useState<"g" | "kg">("kg");
 
-  // 다이얼로그 열릴 때 초기화 (표시는 formatWeight로 중앙화) - 현재 재고를 기본값으로 설정
+  // 다이얼로그 열릴 때 초기화: 조정은 현재 재고로, 입고는 0(빈값)으로
   useEffect(() => {
     if (open) {
-      // 조정 모드에서는 현재 재고가 0이어도 "0"으로 표시
       if (formType === "adjust") {
         if (currentStock >= 1000) {
           const kgValue = currentStock / 1000;
@@ -50,23 +49,46 @@ export default function WeightPickerDialog({
           setSelectedUnit("g");
         }
       } else {
-        // 입고 모드에서는 기존 로직 유지
-        if (currentStock > 0) {
-          if (currentStock >= 1000) {
-            const kgValue = currentStock / 1000;
-            setInputValue(kgValue % 1 === 0 ? kgValue.toString() : Number.parseFloat(kgValue.toFixed(2)).toString());
-            setSelectedUnit("kg");
-          } else {
-            setInputValue(currentStock.toString());
-            setSelectedUnit("g");
-          }
-        } else {
-          setInputValue("");
-          setSelectedUnit("kg");
-        }
+        // 입고: 0으로 초기화 (빈 입력)
+        setInputValue("");
+        setSelectedUnit("kg");
       }
     }
   }, [open, currentStock, formType]);
+
+  const [unitCount, setUnitCount] = useState(1);
+
+  useEffect(() => {
+    if (open) setUnitCount(1);
+  }, [open]);
+
+  // 현재 입력값을 그램 단위로 반환
+  const getCurrentGrams = (): number => {
+    const num = Number(inputValue);
+    if (inputValue === "" || Number.isNaN(num) || num < 0) return 0;
+    return selectedUnit === "kg" ? Math.round(num * 1000) : Math.round(num);
+  };
+
+  // 그램만큼 더하기 (규격 추가 버튼용)
+  const addWeightGrams = (grams: number) => {
+    const current = getCurrentGrams();
+    const next = current + grams;
+    if (next >= 1000) {
+      const kgValue = next / 1000;
+      setInputValue(kgValue % 1 === 0 ? kgValue.toString() : Number.parseFloat(kgValue.toFixed(2)).toString());
+      setSelectedUnit("kg");
+    } else {
+      setInputValue(next.toString());
+      setSelectedUnit("g");
+    }
+  };
+
+  // 제품 규격 1단위 중량 (그램)
+  const productWeightGrams = product
+    ? product.unitLabel === "kg"
+      ? Math.round(product.weight * 1000)
+      : Math.round(product.weight)
+    : 0;
 
   // 단위 변경 핸들러
   const handleUnitChange = (newUnit: "g" | "kg") => {
@@ -198,6 +220,30 @@ export default function WeightPickerDialog({
                 </Button>
               </div>
             </div>
+
+            {/* N규격 추가 (규격이 있을 때만) */}
+            {productWeightGrams > 0 && (
+              <div className="flex gap-2 items-center">
+                <input
+                  type="number"
+                  min={1}
+                  value={unitCount}
+                  onChange={e => {
+                    const v = Number(e.target.value);
+                    if (!Number.isNaN(v)) setUnitCount(Math.max(1, Math.floor(v)));
+                  }}
+                  className="w-14 py-2 text-center text-base font-medium border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 shrink-0"
+                  onClick={() => addWeightGrams(unitCount * productWeightGrams)}
+                >
+                  +{unitCount}규격 ({formatWeight(unitCount * productWeightGrams)}) 추가
+                </Button>
+              </div>
+            )}
 
             {/* 현재 재고 표시 */}
             <div className="text-sm text-center text-gray-500">
