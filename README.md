@@ -566,6 +566,27 @@ flowchart TB
 | **원인** | PostgREST가 many-to-one 관계를 단일 객체로 반환해 `product_options?.[0]`가 undefined가 되는 경우 존재                                           |
 | **해결** | `getProductType(item)`에서 `Array.isArray(po) ? po[0] : po`로 객체/배열 모두 처리해 `product_type` 추출 후 출고(완제품)와 원재료 사용량(g) 분리 |
 
+### 9. 입출고 API: N번 호출을 RPC로 줄이기 + inventory_batches·transaction_items 통합 + 시그니처 불일치
+
+**배경**: 입출고 시 트랜잭션 1건 INSERT → 품목마다 inventory_batches / inventory UPSERT / transaction_items INSERT처럼 **N번의 API·DB 왕복**이 필요했고, 이를 한 번의 RPC로 묶기로 했다. 이에 맞춰 DB도 단순화했다. **inventory_batches** 테이블을 제거하고, **transaction_items**에서 `batch_id` FK를 없애서, 입출고 한 건이 **transactions + transaction_items + inventory** 세 테이블만으로 처리되도록 통합했다. `create_transaction(p_header, p_items)` RPC에서 트랜잭션 INSERT → 품목 루프로 inventory UPSERT·transaction_items INSERT까지 한 트랜잭션 안에서 수행한다.
+
+**그 과정에서 발생한 문제**:
+
+| 구분     | 내용                                                                                                                                            |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **문제** | 입출고 요청 시 500 에러. "No function matches the given name and argument types. You might need to add explicit type casts."                   |
+| **원인** | RPC를 `p_items jsonb[]`로 정의했는데, Supabase/PostgREST는 요청 본문의 JSON 배열을 **원소별 PostgreSQL 배열(jsonb[])** 이 아니라 **배열 전체를 담은 하나의 jsonb**로 전달함. |
+| **해결** | 시그니처를 `p_items jsonb`로 변경. 함수 내부는 `jsonb_array_elements(p_items)`로 그대로 루프. 마이그레이션: `20260131110000_fix_create_transaction_rpc_signature.sql`. |
+
+**추가 현상**: 수정 후 "Could not choose the best candidate function between: ...(jsonb), ...(jsonb[])" 에러.
+
+| 구분     | 내용                                                                                                                                            |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **원인** | `CREATE OR REPLACE`는 인자 타입이 다르면 기존 함수를 대체하지 않고 **새 오버로드**로 추가됨. `(jsonb, jsonb)`와 `(jsonb, jsonb[])`가 공존해 PostgREST가 호출 대상을 정하지 못함. |
+| **해결** | `DROP FUNCTION IF EXISTS public.create_transaction(jsonb, jsonb[]);` 로 구 시그니처만 제거. 마이그레이션: `20260131120000_drop_create_transaction_jsonb_array_overload.sql`. |
+
+**정리**: N번 호출을 RPC 한 번으로 줄이려고 도입했고, DB는 inventory_batches 제거·transaction_items로 통합해 transactions / transaction_items / inventory만 사용한다. RPC 인자로 배열을 넘길 때는 JSON 배열 전체가 **단일 jsonb**로 매핑되므로 `p_items jsonb`로 받고 내부에서 `jsonb_array_elements()`로 풀어 쓰면 된다.
+
 ---
 
 ## 개선 계획
