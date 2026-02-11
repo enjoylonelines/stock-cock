@@ -38,11 +38,7 @@ export async function login(_prevState: unknown, formData: FormData) {
 
   // profiles 테이블에 사용자 정보가 있는지 확인
   if (authData.user?.id) {
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", authData.user.id)
-      .single();
+    const { data: profile, error: profileError } = await supabase.from("profiles").select("id").eq("id", authData.user.id).single();
 
     if (profileError || !profile) {
       // profiles 테이블에 정보가 없으면 로그아웃 처리
@@ -93,6 +89,8 @@ export async function signup(_prevState: unknown, formData: FormData) {
       {
         id: userId,
         name: name,
+        email: email,
+        image_url: null,
       },
     ]);
     if (profileError) {
