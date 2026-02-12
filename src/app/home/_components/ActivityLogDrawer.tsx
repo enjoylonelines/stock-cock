@@ -175,7 +175,7 @@ export default function ActivityLogDrawer() {
   const { isOpen, close } = useActivityLogStore();
   const { transactions, loading: historyLoading } = useTransactionHistory();
   const { products } = useProducts();
-  const { isRead, markAsRead, getUnreadCount, loading: readsLoading } = useActivityReadStatus();
+  const { isRead, markAsRead, markAllAsRead, getUnreadCount, loading: readsLoading } = useActivityReadStatus();
 
   const loading = historyLoading || readsLoading;
   const unreadCount = getUnreadCount(transactions);
@@ -192,6 +192,16 @@ export default function ActivityLogDrawer() {
     },
     [markAsRead],
   );
+
+  const handleMarkAllAsRead = useCallback(() => {
+    const items = transactions
+      .map((t) => ({
+        transaction_id: t.transaction_id ?? "",
+        product_option_id: t.product_option_id ?? "",
+      }))
+      .filter((item) => item.transaction_id && item.product_option_id);
+    if (items.length > 0) markAllAsRead(items);
+  }, [transactions, markAllAsRead]);
 
   const handleDetailClick = useCallback(
     (transactionId: string) => {
@@ -264,6 +274,16 @@ export default function ActivityLogDrawer() {
                 {unreadCount > 0 && <span className="px-2 py-1 ml-2 text-xs text-white bg-red-500 rounded-full">{unreadCount}</span>}
               </DrawerTitle>
             </div>
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                onClick={handleMarkAllAsRead}
+              >
+                모두 읽음
+              </Button>
+            )}
           </div>
         </DrawerHeader>
 
