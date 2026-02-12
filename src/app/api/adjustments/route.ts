@@ -85,10 +85,14 @@ export async function POST(request: Request) {
     }
 
     // 푸시 알림 전송 (실패해도 전체 프로세스를 중단하지 않음)
+    const allMaterial = items.every(item => item.product_type === "material");
+    const totalWeightGrams = allMaterial ? items.reduce((sum, item) => sum + (item.quantity ?? 0), 0) : undefined;
+
     await sendTransactionNotification({
       type: "adjust",
       transactionId: transaction.id,
       itemCount: items.length,
+      totalWeightGrams,
       firstOptionId: items[0]?.option_id,
     });
 

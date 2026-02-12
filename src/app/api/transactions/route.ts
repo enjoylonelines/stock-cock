@@ -50,10 +50,14 @@ export async function POST(request: Request) {
       throw APIError.badRequest("트랜잭션 생성 결과가 없습니다.");
     }
 
+    const allMaterial = items.every(item => item.product_type === "material");
+    const totalWeightGrams = allMaterial ? items.reduce((sum, item) => sum + (item.quantity ?? 0), 0) : undefined;
+
     await sendTransactionNotification({
       type,
       transactionId,
       itemCount: items.length,
+      totalWeightGrams,
       firstOptionId: items[0]?.option_id,
     });
 

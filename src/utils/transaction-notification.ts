@@ -3,6 +3,7 @@
  * 입고/출고/조정/이동 시 공통으로 사용하는 알림 전송 로직
  */
 
+import { formatStock } from "@/lib/domain/format";
 import { sendPushNotification } from "@/services/push-notification";
 import type { TransactionType } from "@/types/api";
 import { apiLogger } from "@/utils/logger";
@@ -12,6 +13,8 @@ interface TransactionNotificationParams {
   type: TransactionType;
   transactionId: string;
   itemCount: number;
+  /** 원재료일 경우 총 중량(g). 1000으로 나눠 kg로 표시 */
+  totalWeightGrams?: number;
   firstOptionId?: string;
   productId?: string;
   productImageUrl?: string;
@@ -19,33 +22,44 @@ interface TransactionNotificationParams {
 
 /**
  * 트랜잭션 타입에 따른 알림 제목과 본문 반환
+ * 원재료일 경우 totalWeightGrams(g)를 1000으로 나눠 kg 단위로 표시
  */
-function getNotificationContent(type: TransactionType, itemCount: number): { title: string; body: string } {
+function getNotificationContent(
+  type: TransactionType,
+  itemCount: number,
+  totalWeightGrams?: number
+): { title: string; body: string } {
+  const amountStr =
+    totalWeightGrams != null ? formatStock(totalWeightGrams, "GRAM") : `${itemCount}개`;
+
   switch (type) {
     case "in":
       return {
         title: "입고 완료",
-        body: `${itemCount}개 제품이 입고되었습니다`,
+        body: totalWeightGrams != null ? `${amountStr} 원재료가 입고되었습니다` : `${amountStr} 제품이 입고되었습니다`,
       };
     case "out":
       return {
         title: "출고 완료",
-        body: `${itemCount}개 제품이 출고되었습니다`,
+        body: totalWeightGrams != null ? `${amountStr} 원재료가 출고되었습니다` : `${amountStr} 제품이 출고되었습니다`,
       };
     case "adjust":
       return {
         title: "재고 조정 완료",
-        body: `${itemCount}개 제품의 재고가 조정되었습니다`,
+        body:
+          totalWeightGrams != null
+            ? `${amountStr} 원재료의 재고가 조정되었습니다`
+            : `${amountStr} 제품의 재고가 조정되었습니다`,
       };
     case "move":
       return {
         title: "재고 이동 완료",
-        body: `${itemCount}개 제품이 이동되었습니다`,
+        body: totalWeightGrams != null ? `${amountStr} 원재료가 이동되었습니다` : `${amountStr} 제품이 이동되었습니다`,
       };
     default:
       return {
         title: "트랜잭션 완료",
-        body: `${itemCount}개 제품이 처리되었습니다`,
+        body: totalWeightGrams != null ? `${amountStr} 원재료가 처리되었습니다` : `${amountStr} 제품이 처리되었습니다`,
       };
   }
 }
@@ -95,10 +109,10 @@ function getNotificationData(type: TransactionType, transactionId: string): Reco
  */
 export async function sendTransactionNotification(params: TransactionNotificationParams): Promise<boolean> {
   try {
-    const { type, transactionId, itemCount, firstOptionId, productId, productImageUrl } = params;
+    const { type, transactionId, itemCount, totalWeightGrams, firstOptionId, productId, productImageUrl } = params;
 
-    // 알림 제목/본문 생성
-    const { title, body } = getNotificationContent(type, itemCount);
+    // 알림 제목/본문 생성 (원재료일 경우 totalWeightGrams로 kg 단위 표시)
+    const { title, body } = getNotificationContent(type, itemCount, totalWeightGrams);
 
     // 아이콘 URL 결정
     let iconUrl: string | undefined;

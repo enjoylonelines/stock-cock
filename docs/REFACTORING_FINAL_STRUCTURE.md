@@ -34,7 +34,7 @@ src/
 │   ├── usePushNotifications.ts # 푸시 알림 (여러 feature에서 사용)
 │   ├── useHeaderContent.tsx     # 헤더 컨텐츠
 │   ├── useTeamInfo.ts           # 팀 정보
-│   └── useBroadcastReadStatus.ts # 브로드캐스트 읽기 상태
+│   └── useActivityReadStatus.ts # 활동별 개별 읽음 상태
 │
 └── app/
     ├── transactions/
