@@ -84,11 +84,7 @@ export default function WeightPickerDialog({
   };
 
   // 제품 규격 1단위 중량 (그램)
-  const productWeightGrams = product
-    ? product.unitLabel === "kg"
-      ? Math.round(product.weight * 1000)
-      : Math.round(product.weight)
-    : 0;
+  const productWeightGrams = product ? (product.unitLabel === "kg" ? Math.round(product.weight * 1000) : Math.round(product.weight)) : 0;
 
   // 단위 변경 핸들러
   const handleUnitChange = (newUnit: "g" | "kg") => {
@@ -103,8 +99,7 @@ export default function WeightPickerDialog({
     // 단위 변경 시 값 조정
     if (oldUnit === "g" && newUnit === "kg") {
       const newValue = currentNumValue / 1000;
-      const formattedValue =
-        newValue % 1 === 0 ? newValue.toString() : Number.parseFloat(newValue.toFixed(2)).toString();
+      const formattedValue = newValue % 1 === 0 ? newValue.toString() : Number.parseFloat(newValue.toFixed(2)).toString();
       setInputValue(formattedValue);
     } else if (oldUnit === "kg" && newUnit === "g") {
       const newValue = Math.round(currentNumValue * 1000);
@@ -122,9 +117,7 @@ export default function WeightPickerDialog({
 
     // 조정 모드에서는 0 허용, 입고 모드에서는 0보다 커야 함
     const isInvalidValue =
-      formType === "adjust"
-        ? Number.isNaN(numValue) || numValue < 0
-        : !inputValue || Number.isNaN(numValue) || numValue <= 0;
+      formType === "adjust" ? Number.isNaN(numValue) || numValue < 0 : !inputValue || Number.isNaN(numValue) || numValue <= 0;
 
     if (isInvalidValue) {
       alert("올바른 중량을 입력해주세요.");
@@ -135,9 +128,9 @@ export default function WeightPickerDialog({
     const weightInGrams = selectedUnit === "kg" ? Math.round(numValue * 1000) : numValue;
 
     // 유효성 검사 (조정 모드에서는 0 허용)
-    const maxGrams = 1000000; // 1000kg까지 허용
+    const maxGrams = 10000000000; // 10000000kg까지 허용
     if (weightInGrams < 0 || weightInGrams > maxGrams) {
-      alert(`중량은 0g부터 ${maxGrams / 1000}kg까지 입력 가능합니다.`);
+      alert(`중량은 0g부터 ${maxGrams}kg까지 입력 가능합니다.`);
       return;
     }
 
@@ -178,7 +171,7 @@ export default function WeightPickerDialog({
               <input
                 type="number"
                 value={inputValue}
-                onChange={e => {
+                onChange={(e) => {
                   const value = e.target.value;
                   if (value === "" || (!Number.isNaN(Number(value)) && Number(value) >= 0)) {
                     setInputValue(value);
@@ -187,7 +180,7 @@ export default function WeightPickerDialog({
                 placeholder={selectedUnit === "kg" ? "0.00" : "0"}
                 step={selectedUnit === "kg" ? "0.01" : "1"}
                 min="0"
-                className="w-24 text-2xl font-semibold text-center bg-white rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 p-2"
+                className="p-2 w-24 text-2xl font-semibold text-center bg-white rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
               />
 
               {/* 단위 선택 버튼 */}
@@ -228,11 +221,11 @@ export default function WeightPickerDialog({
                   type="number"
                   min={1}
                   value={unitCount}
-                  onChange={e => {
+                  onChange={(e) => {
                     const v = Number(e.target.value);
                     if (!Number.isNaN(v)) setUnitCount(Math.max(1, Math.floor(v)));
                   }}
-                  className="w-14 py-2 text-center text-base font-medium border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  className="py-2 w-14 text-base font-medium text-center rounded-md border focus:outline-none focus:ring-2 focus:ring-orange-400"
                 />
                 <Button
                   type="button"
