@@ -587,6 +587,20 @@ flowchart TB
 
 **정리**: N번 호출을 RPC 한 번으로 줄이려고 도입했고, DB는 inventory_batches 제거·transaction_items로 통합해 transactions / transaction_items / inventory만 사용한다. RPC 인자로 배열을 넘길 때는 JSON 배열 전체가 **단일 jsonb**로 매핑되므로 `p_items jsonb`로 받고 내부에서 `jsonb_array_elements()`로 풀어 쓰면 된다.
 
+### 10. 최근 활동 읽음 상태 구조 개선 (워터마크 → 개별 읽음)
+
+| 구분     | 내용                                                                                                                                 |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **문제** | `last_read_broadcast_id` 워터마크 방식에서, 과거 트랜잭션 상세를 보면 그 위의 새 내역이 잘못 unread로 돌아감                          |
+| **원인** | 상세 보기 시 `markAsRead(해당 broadcast_id)` 호출 → `lastReadBroadcastId`가 낮은 값으로 갱신 → 더 높은 broadcast_id를 가진 새 내역이 unread로 표시됨 |
+| **해결** | **개별 읽음** 테이블 `user_activity_read` 도입. (user_id, transaction_id, product_option_id) per row로 저장하고, 읽음 여부를 항목별로 판단. 카톡처럼 항목 단위 읽음 상태 유지. |
+
+**변경 사항 요약**:
+- `user_read_status`(단일 워터마크) 대신 `user_activity_read`(항목별 row) 사용
+- 훅/스토어: `useBroadcastReadStatus` → `useActivityReadStatus`, `broadcastReadStatusStore` → `activityReadStatusStore`
+- 최근 활동 드로어: 그룹별 토글, **모두 읽음** 버튼 추가. 정렬은 `created_at` 기준으로 통일
+- 90일 지난 입출고 자동 삭제 시 `user_activity_read`는 `transaction_id` FK **ON DELETE CASCADE**로 함께 정리
+
 ---
 
 ## 개선 계획
@@ -605,6 +619,10 @@ flowchart TB
 - [ ] 대량 데이터 처리 성능 개선
 - [ ] UI 로직과 비즈니스 로직 분리 및 공통화 확대
 - [ ] 테스트 코드 커버리지 80%까지 확대
+
+### 추후 (사용자 증가 시)
+
+- [ ] **user_activity_read 저장 구조**: 현재는 읽은 항목마다 row 1개씩 증가. 사용자 수·활동량이 늘면 한 user당 한 row에 **JSONB 배열**(`[{"t":"txId","o":"optId"}, ...]`)로 저장하는 방식 검토. 장점은 row 수 감소, 단점은 90일 삭제 시 CASCADE 불가로 JSONB 내부 정리 로직 필요.
 
 ---
 
