@@ -430,6 +430,30 @@ export type Database = {
           },
         ];
       };
+      user_activity_read: {
+        Row: {
+          id: string;
+          user_id: string;
+          transaction_id: string;
+          product_option_id: string;
+          read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          transaction_id: string;
+          product_option_id: string;
+          read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          transaction_id?: string;
+          product_option_id?: string;
+          read_at?: string | null;
+        };
+        Relationships: [];
+      };
       user_read_status: {
         Row: {
           id: string;

@@ -119,6 +119,44 @@ describe("sendTransactionNotification", () => {
         },
       });
     });
+
+    it("원재료일 경우 totalWeightGrams를 1000으로 나눠 kg로 표시한다", async () => {
+      (sendPushNotification as jest.Mock).mockResolvedValue(true);
+
+      const result = await sendTransactionNotification({
+        type: "in",
+        transactionId: "tx-material",
+        itemCount: 1,
+        totalWeightGrams: 5000,
+        firstOptionId: "option-material",
+      });
+
+      expect(result).toBe(true);
+      expect(sendPushNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "입고 완료",
+          body: "5kg 원재료가 입고되었습니다",
+        })
+      );
+    });
+
+    it("원재료 1kg 미만은 g 단위로 표시한다", async () => {
+      (sendPushNotification as jest.Mock).mockResolvedValue(true);
+
+      await sendTransactionNotification({
+        type: "out",
+        transactionId: "tx-material-small",
+        itemCount: 1,
+        totalWeightGrams: 500,
+        firstOptionId: "option-material",
+      });
+
+      expect(sendPushNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          body: "500g 원재료가 출고되었습니다",
+        })
+      );
+    });
   });
 
   describe("아이콘 URL 결정 로직", () => {

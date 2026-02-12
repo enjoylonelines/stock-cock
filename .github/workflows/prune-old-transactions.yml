@@ -1,0 +1,17 @@
+# 90일 지난 입출고 내역 삭제 (매일 한국시간 03:00)
+# Repo Settings → Secrets에 CRON_SECRET, APP_URL 추가 필요
+name: Prune old transactions
+on:
+  schedule:
+    # UTC 18:00 = 한국 03:00 (KST = UTC+9)
+    - cron: "0 18 * * *"
+  workflow_dispatch: # 수동 실행 가능
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call prune API
+        run: |
+          curl -sS -w "\nHTTP_CODE:%{http_code}\n" -X POST \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            "${{ secrets.APP_URL }}/api/cron/prune-old-transactions"

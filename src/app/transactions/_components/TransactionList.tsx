@@ -27,8 +27,10 @@ const groupByTransactionId = (transactions: TransactionHistoryItem[]): Transacti
     if (!groups[txId]) groups[txId] = [];
     groups[txId].push(tx);
   });
-  // 최신순 유지 (첫 번째 항목의 broadcast_id 기준)
-  return Object.values(groups).sort((a, b) => b[0].broadcast_id - a[0].broadcast_id);
+  // 최신순 유지 (created_at 기준)
+  return Object.values(groups).sort(
+    (a, b) => new Date(b[0].created_at ?? 0).getTime() - new Date(a[0].created_at ?? 0).getTime()
+  );
 };
 
 /**

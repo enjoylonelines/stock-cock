@@ -1,10 +1,10 @@
 "use client";
 
-import { useBroadcastReadStatus } from "@/hooks/useBroadcastReadStatus";
+import { useActivityReadStatus } from "@/hooks/useActivityReadStatus";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 
 export default function NotificationBadge() {
-  const { getUnreadCount } = useBroadcastReadStatus();
+  const { getUnreadCount } = useActivityReadStatus();
   const { transactions } = useTransactionHistory();
   const unreadCount = getUnreadCount(transactions);
 

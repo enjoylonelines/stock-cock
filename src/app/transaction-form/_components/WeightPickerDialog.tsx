@@ -84,7 +84,7 @@ export default function WeightPickerDialog({
   };
 
   // 제품 규격 1단위 중량 (그램)
-  const productWeightGrams = product ? (product.unitLabel === "kg" ? Math.round(product.weight * 1000) : Math.round(product.weight)) : 0;
+  const productWeightGrams = product ? Math.round(product.weight) : 0;
 
   // 단위 변경 핸들러
   const handleUnitChange = (newUnit: "g" | "kg") => {
