@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       const isMaterial = item.product_type === "material";
 
       // 출발지 재고 차감
-      await updateInventory({
+      await updateInventory(supabase, {
         productOptionId: item.option_id,
         warehouseId: from_warehouse_id,
         quantityChange: isMaterial ? undefined : -item.quantity,
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
       });
 
       // 도착지 재고 추가
-      await updateInventory({
+      await updateInventory(supabase, {
         productOptionId: item.option_id,
         warehouseId: to_warehouse_id,
         quantityChange: isMaterial ? undefined : item.quantity,

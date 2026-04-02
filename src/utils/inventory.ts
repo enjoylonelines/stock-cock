@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 interface UpdateInventoryOptions {
   productOptionId: string;
@@ -10,29 +10,11 @@ interface UpdateInventoryOptions {
 
 /**
  * 재고 업데이트 헬퍼 함수
- * @param options 업데이트 옵션
+ * @param supabase - 인증된 Supabase 클라이언트 (호출자가 주입)
+ * @param options - 업데이트 옵션
  * @throws 에러 발생 시 throw
  */
-export async function updateInventory(productOptionId: string, warehouseId: string, quantityChange: number): Promise<void>;
-export async function updateInventory(options: UpdateInventoryOptions): Promise<void>;
-
-export async function updateInventory(
-  optionsOrProductOptionId: UpdateInventoryOptions | string,
-  warehouseId?: string,
-  quantityChange?: number,
-): Promise<void> {
-  // 옵션 객체 형식으로 변환
-  const options: UpdateInventoryOptions =
-    typeof optionsOrProductOptionId === "string"
-      ? {
-          productOptionId: optionsOrProductOptionId,
-          warehouseId: warehouseId ?? "",
-          quantityChange: quantityChange ?? 0,
-          isMaterial: false,
-        }
-      : optionsOrProductOptionId;
-
-  const supabase = await createClient();
+export async function updateInventory(supabase: SupabaseClient, options: UpdateInventoryOptions): Promise<void> {
   const { data: inventory, error: invError } = await supabase
     .from("inventory")
     .select("*")
@@ -49,7 +31,10 @@ export async function updateInventory(
     const newWeight = (inventory?.weight_in_grams ?? 0) + (options.weightChange ?? 0);
 
     if (inventory) {
-      const { error: updateError } = await supabase.from("inventory").update({ weight_in_grams: newWeight }).eq("id", inventory.id);
+      const { error: updateError } = await supabase
+        .from("inventory")
+        .update({ weight_in_grams: newWeight })
+        .eq("id", inventory.id);
 
       if (updateError) {
         throw new Error(`재고 업데이트 실패: ${updateError.message}`);
@@ -73,7 +58,10 @@ export async function updateInventory(
     const newQty = (inventory?.quantity ?? 0) + (options.quantityChange ?? 0);
 
     if (inventory) {
-      const { error: updateError } = await supabase.from("inventory").update({ quantity: newQty }).eq("id", inventory.id);
+      const { error: updateError } = await supabase
+        .from("inventory")
+        .update({ quantity: newQty })
+        .eq("id", inventory.id);
 
       if (updateError) {
         throw new Error(`재고 업데이트 실패: ${updateError.message}`);
@@ -96,16 +84,19 @@ export async function updateInventory(
 
 /**
  * 재고 직접 설정 (조정용)
- * @param options 설정 옵션
+ * @param supabase - 인증된 Supabase 클라이언트 (호출자가 주입)
+ * @param options - 설정 옵션
  */
-export async function setInventory(options: {
-  productOptionId: string;
-  warehouseId: string;
-  quantity?: number; // 완제품용
-  weightInGrams?: number; // 원재료용
-  isMaterial?: boolean;
-}): Promise<void> {
-  const supabase = await createClient();
+export async function setInventory(
+  supabase: SupabaseClient,
+  options: {
+    productOptionId: string;
+    warehouseId: string;
+    quantity?: number; // 완제품용
+    weightInGrams?: number; // 원재료용
+    isMaterial?: boolean;
+  }
+): Promise<void> {
   const { data: inventory, error: invError } = await supabase
     .from("inventory")
     .select("*")
