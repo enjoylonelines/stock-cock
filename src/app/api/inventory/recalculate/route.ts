@@ -1,4 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
+import { APIError } from "@/utils/api-error";
+import { handleAPIError } from "@/utils/api-handler";
+import { setInventory } from "@/utils/inventory";
+import { apiLogger } from "@/utils/logger";
 import { NextResponse } from "next/server";
 
 /**
@@ -7,24 +11,25 @@ import { NextResponse } from "next/server";
  * 제공하지 않으면 모든 제품을 재계산합니다.
  */
 export async function POST(request: Request) {
+  const endpoint = "/api/inventory/recalculate";
   const supabase = await createClient();
 
   try {
     const body = await request.json();
     const { product_option_id } = body;
 
-    // transactions와 transaction_items를 조회하여 재고를 계산합니다
+    apiLogger.requestStart(endpoint, { product_option_id });
+
     const { data: allTransactions, error: txError } = await supabase
       .from("transactions")
       .select("id, type, from_warehouse_id, to_warehouse_id, created_at")
       .order("created_at", { ascending: true });
 
     if (txError) {
-      console.error("[TRANSACTIONS ERROR]", txError);
-      return NextResponse.json({ error: "트랜잭션 조회 실패", detail: txError.message }, { status: 500 });
+      apiLogger.dbError("트랜잭션 조회", txError);
+      throw APIError.fromSupabaseError(txError);
     }
 
-    // transaction_items를 조회하고 transaction_id로 조인
     let itemsQuery = supabase
       .from("transaction_items")
       .select("id, transaction_id, product_option_id, quantity")
@@ -37,15 +42,39 @@ export async function POST(request: Request) {
     const { data: allItems, error: itemsError } = await itemsQuery;
 
     if (itemsError) {
-      console.error("[ITEMS ERROR]", itemsError);
-      return NextResponse.json({ error: "트랜잭션 아이템 조회 실패", detail: itemsError.message }, { status: 500 });
+      apiLogger.dbError("트랜잭션 아이템 조회", itemsError);
+      throw APIError.fromSupabaseError(itemsError);
     }
 
     if (!allItems || allItems.length === 0) {
       return NextResponse.json({ message: "재계산할 트랜잭션이 없습니다.", recalculated: 0 });
     }
 
-    // transaction_id로 매핑
+    // 원재료 여부 판단을 위해 관련 product_options 조회
+    const uniqueOptionIds = [...new Set(allItems.map(item => item.product_option_id))];
+    const { data: productOptions, error: optionsError } = await supabase
+      .from("product_options")
+      .select("id, products(product_type)")
+      .in("id", uniqueOptionIds);
+
+    if (optionsError) {
+      apiLogger.dbError("제품 옵션 조회", optionsError);
+      throw APIError.fromSupabaseError(optionsError);
+    }
+
+    const isMaterialMap = new Map<string, boolean>(
+      (productOptions ?? []).map(opt => {
+        const products = opt.products;
+        let productType: string | null = null;
+        if (Array.isArray(products) && products.length > 0) {
+          productType = (products[0] as { product_type: string | null }).product_type;
+        } else if (products && !Array.isArray(products)) {
+          productType = (products as { product_type: string | null }).product_type;
+        }
+        return [opt.id, productType === "material"];
+      })
+    );
+
     const txMap = new Map((allTransactions || []).map(tx => [tx.id, tx]));
 
     // 제품 옵션별, 창고별로 재고를 계산합니다
@@ -55,115 +84,67 @@ export async function POST(request: Request) {
       const tx = txMap.get(item.transaction_id);
       if (!tx) continue;
 
-      const productOptionId = item.product_option_id;
+      const optionId = item.product_option_id;
       const quantity = Number(item.quantity);
 
-      if (!inventoryMap[productOptionId]) {
-        inventoryMap[productOptionId] = {};
+      if (!inventoryMap[optionId]) {
+        inventoryMap[optionId] = {};
       }
 
       switch (tx.type) {
         case "in":
-          // 입고: to_warehouse_id에 추가
           if (tx.to_warehouse_id) {
-            if (!inventoryMap[productOptionId][tx.to_warehouse_id]) {
-              inventoryMap[productOptionId][tx.to_warehouse_id] = 0;
-            }
-            inventoryMap[productOptionId][tx.to_warehouse_id] += quantity;
+            inventoryMap[optionId][tx.to_warehouse_id] = (inventoryMap[optionId][tx.to_warehouse_id] ?? 0) + quantity;
           }
           break;
-
         case "out":
-          // 출고: from_warehouse_id에서 차감
           if (tx.from_warehouse_id) {
-            if (!inventoryMap[productOptionId][tx.from_warehouse_id]) {
-              inventoryMap[productOptionId][tx.from_warehouse_id] = 0;
-            }
-            inventoryMap[productOptionId][tx.from_warehouse_id] -= quantity;
+            inventoryMap[optionId][tx.from_warehouse_id] =
+              (inventoryMap[optionId][tx.from_warehouse_id] ?? 0) - quantity;
           }
           break;
-
         case "move":
-          // 이동: from_warehouse_id에서 차감, to_warehouse_id에 추가
           if (tx.from_warehouse_id) {
-            if (!inventoryMap[productOptionId][tx.from_warehouse_id]) {
-              inventoryMap[productOptionId][tx.from_warehouse_id] = 0;
-            }
-            inventoryMap[productOptionId][tx.from_warehouse_id] -= quantity;
+            inventoryMap[optionId][tx.from_warehouse_id] =
+              (inventoryMap[optionId][tx.from_warehouse_id] ?? 0) - quantity;
           }
           if (tx.to_warehouse_id) {
-            if (!inventoryMap[productOptionId][tx.to_warehouse_id]) {
-              inventoryMap[productOptionId][tx.to_warehouse_id] = 0;
-            }
-            inventoryMap[productOptionId][tx.to_warehouse_id] += quantity;
+            inventoryMap[optionId][tx.to_warehouse_id] = (inventoryMap[optionId][tx.to_warehouse_id] ?? 0) + quantity;
           }
           break;
-
         case "adjust":
-          // 조정: to_warehouse_id의 재고를 조정량만큼 변경
-          // 조정은 transaction_items의 quantity가 조정량이므로 직접 더합니다
           if (tx.to_warehouse_id) {
-            if (!inventoryMap[productOptionId][tx.to_warehouse_id]) {
-              inventoryMap[productOptionId][tx.to_warehouse_id] = 0;
-            }
-            inventoryMap[productOptionId][tx.to_warehouse_id] += quantity;
+            inventoryMap[optionId][tx.to_warehouse_id] = (inventoryMap[optionId][tx.to_warehouse_id] ?? 0) + quantity;
           }
           break;
       }
     }
 
-    // 계산된 재고를 inventory 테이블에 업데이트합니다
     let recalculated = 0;
     const errors: string[] = [];
 
-    for (const [productOptionId, warehouses] of Object.entries(inventoryMap)) {
+    for (const [optionId, warehouses] of Object.entries(inventoryMap)) {
+      const isMaterial = isMaterialMap.get(optionId) ?? false;
+
       for (const [warehouseId, calculatedQuantity] of Object.entries(warehouses)) {
-        // 기존 inventory 레코드를 확인
-        const { data: existingInventory, error: selectError } = await supabase
-          .from("inventory")
-          .select("*")
-          .eq("product_option_id", productOptionId)
-          .eq("warehouse_id", warehouseId)
-          .maybeSingle();
-
-        if (selectError) {
-          errors.push(`재고 조회 실패 (${productOptionId}, ${warehouseId}): ${selectError.message}`);
-          continue;
-        }
-
-        if (existingInventory) {
-          // 기존 레코드 업데이트
-          const { error: updateError } = await supabase
-            .from("inventory")
-            .update({ quantity: calculatedQuantity })
-            .eq("id", existingInventory.id);
-
-          if (updateError) {
-            errors.push(`재고 업데이트 실패 (${productOptionId}, ${warehouseId}): ${updateError.message}`);
-          } else {
-            recalculated++;
-          }
-        } else {
-          // 새 레코드 생성 (재고가 0이 아닌 경우만)
-          if (calculatedQuantity !== 0) {
-            const { error: insertError } = await supabase.from("inventory").insert([
-              {
-                product_option_id: productOptionId,
-                warehouse_id: warehouseId,
-                quantity: calculatedQuantity,
-              },
-            ]);
-
-            if (insertError) {
-              errors.push(`재고 생성 실패 (${productOptionId}, ${warehouseId}): ${insertError.message}`);
-            } else {
-              recalculated++;
-            }
-          }
+        try {
+          await setInventory(supabase, {
+            productOptionId: optionId,
+            warehouseId,
+            quantity: isMaterial ? undefined : calculatedQuantity,
+            weightInGrams: isMaterial ? calculatedQuantity : undefined,
+            isMaterial,
+          });
+          recalculated++;
+        } catch (err) {
+          errors.push(
+            `재고 설정 실패 (${optionId}, ${warehouseId}): ${err instanceof Error ? err.message : String(err)}`
+          );
         }
       }
     }
 
+    apiLogger.requestSuccess(endpoint, { recalculated, errors: errors.length });
     return NextResponse.json({
       success: true,
       recalculated,
@@ -171,7 +152,6 @@ export async function POST(request: Request) {
       message: `${recalculated}개의 재고 레코드가 재계산되었습니다.`,
     });
   } catch (error) {
-    console.error("[RECALCULATE ERROR]", error);
-    return NextResponse.json({ error: "재고 재계산 실패", detail: String(error) }, { status: 500 });
+    return handleAPIError(error, endpoint);
   }
 }
