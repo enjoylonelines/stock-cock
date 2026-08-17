@@ -62,9 +62,11 @@ App Router는 레이아웃·로딩·에러 경계를 파일 시스템으로 표�
 
 입출고 이력을 한 번의 쿼리로 가져오기 위해 transactions + transaction_items + product_options + products 등 조인을 뷰로 묶었다. PostgREST는 many-to-one 관계를 단일 객체로 반환할 수 있어, `product_options?.[0]`만 쓰면 undefined가 나올 수 있다. 그래서 `getProductType(item)`처럼 `Array.isArray(po) ? po[0] : po`로 객체/배열 둘 다 처리해 `product_type`을 꺼내서 사용한다(예: `useStats`에서 출고 vs 원재료 분리).
 
-### 13. 입·출고 API에서 트랜잭션 일관성을 어떻게 맞추었는지(4단계 처리, 에러 시 롤백 여부)?
+### 13. 입·출고 API에서 트랜잭션 일관성을 어떻게 맞추었는지(RPC 처리, 검증 범위)?
 
-transactions INSERT → inventory_batches INSERT → inventory SELECT 후 UPSERT → transaction_items INSERT 순으로 4단계 처리한다. Supabase 클라이언트는 DB 트랜잭션을 직접 지원하지 않아, 단계별로 에러가 나면 이미 삽입된 데이터는 그대로 두고 있다. 동시 요청 시 경쟁 조건 가능성은 있고, 중기 개선으로 DB 트랜잭션 또는 락 도입을 계획하고 있다.
+초기 구현은 애플리케이션 코드에서 `transactions` 생성, 재고 조회·갱신, `transaction_items` 기록을 순차 처리했지만, 현재 입·출고 API는 Supabase RPC `create_transaction(p_header, p_items)`를 호출한다. 이 함수는 DB 내부에서 거래 헤더를 만들고 품목별로 `inventory`와 `transaction_items`를 갱신한다. 따라서 “클라이언트 코드의 4단계 처리” 설명은 오래된 설명이고, 현재 코드 기준으로는 RPC 기반 처리라고 말하는 것이 맞다.
+
+다만 검증 범위는 분리해서 설명해야 한다. 코드와 migration에는 RPC가 존재하지만, 운영 DB에 적용된 함수의 실제 rollback, 동시 요청 제어, 음수 재고 방지까지 검증됐다고 단정하지 않는다. 특히 현재 `create_transaction`에는 `FOR UPDATE`나 음수 재고 guard가 보이지 않으므로, 그 부분은 별도 DB 통합 테스트와 정책 결정이 필요하다. 이동·조정 RPC는 작업 트리에 진행 중 변경이 있어 완료된 기능이 아니라 검증 전 개선 항목으로 분류한다.
 
 ---
 

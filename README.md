@@ -278,9 +278,9 @@ const saveToStorage = <T>(key: string, state: T): void => {
 
 ---
 
-### 4. 4단계 트랜잭션 처리
+### 4. RPC 기반 입·출고 트랜잭션 처리
 
-입·출고 시 데이터 일관성을 보장하기 위해 **4단계 순차 처리**를 구현했습니다.
+초기 입·출고 API는 `transactions` 생성, 재고 조회·갱신, `transaction_items` 기록을 애플리케이션 코드에서 순차 처리했다. 현재 코드는 이 흐름을 Supabase RPC `create_transaction(p_header, p_items)`로 옮겨, 거래 헤더 생성과 품목별 재고 갱신·이력 기록을 DB 함수 한 번으로 처리한다.
 
 ```mermaid
 sequenceDiagram
@@ -289,45 +289,26 @@ sequenceDiagram
     participant DB as Supabase
 
     rect rgb(240, 248, 255)
-        Note over API,DB: 4단계 트랜잭션 처리
-        API->>DB: 1. INSERT transactions
-        DB-->>API: transaction_id
-
+        Note over API,DB: create_transaction RPC
+        API->>DB: rpc("create_transaction", p_header, p_items)
+        DB->>DB: INSERT transactions
         loop 각 상품별
-            API->>DB: 2. INSERT inventory_batches
-            DB-->>API: batch_id
-            API->>DB: 3. SELECT → UPSERT inventory
-            API->>DB: 4. INSERT transaction_items
+            DB->>DB: SELECT inventory
+            DB->>DB: UPDATE/INSERT inventory
+            DB->>DB: INSERT transaction_items
         end
+        DB-->>API: transaction_id
     end
 ```
 
 ```typescript
-// 3단계: inventory upsert (조회 후 업데이트/생성 분기)
-const { data: inventory } = await supabase
-  .from("inventory")
-  .select("*")
-  .eq("product_option_id", item.option_id)
-  .eq("warehouse_id", warehouse_id)
-  .maybeSingle();
-
-let signedQty = item.quantity;
-if (type === "out") signedQty = -item.quantity;
-
-const newQty = (inventory?.quantity ?? 0) + signedQty;
-
-if (inventory) {
-  await supabase.from("inventory").update({ quantity: newQty }).eq("id", inventory.id);
-} else {
-  await supabase.from("inventory").insert([
-    {
-      product_option_id: item.option_id,
-      warehouse_id,
-      quantity: newQty,
-    },
-  ]);
-}
+const { data, error } = await supabase.rpc("create_transaction", {
+  p_header,
+  p_items,
+});
 ```
+
+검증 경계: `create_transaction` 함수와 API 호출은 코드·마이그레이션으로 확인되지만, 실제 운영 DB 적용 상태, rollback 동작, 동시 요청 제어, 음수 재고 방지는 별도 통합 검증이 필요하다. 이동·조정 RPC는 현재 작업 트리에 진행 중 변경으로 존재하므로 완료된 기능으로 주장하지 않는다.
 
 ---
 
