@@ -1,3 +1,4 @@
+import type { Database } from "@/types/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 interface UpdateInventoryOptions {
@@ -14,7 +15,7 @@ interface UpdateInventoryOptions {
  * @param options - 업데이트 옵션
  * @throws 에러 발생 시 throw
  */
-export async function updateInventory(supabase: SupabaseClient, options: UpdateInventoryOptions): Promise<void> {
+export async function updateInventory(supabase: SupabaseClient<Database>, options: UpdateInventoryOptions): Promise<void> {
   const { data: inventory, error: invError } = await supabase
     .from("inventory")
     .select("*")
@@ -88,7 +89,7 @@ export async function updateInventory(supabase: SupabaseClient, options: UpdateI
  * @param options - 설정 옵션
  */
 export async function setInventory(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   options: {
     productOptionId: string;
     warehouseId: string;

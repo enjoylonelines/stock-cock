@@ -3,6 +3,7 @@
  * HTTP 경유 없이 web-push를 직접 호출
  */
 
+import type { Database } from "@/types/database";
 import { createClient } from "@/lib/supabase/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import webpush from "web-push";
@@ -31,7 +32,7 @@ export interface PushPayload {
  * @param userIds - 특정 사용자 ID 목록 (미전달 시 전체 사용자)
  */
 export async function sendPushDirect(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   payload: PushPayload,
   userIds?: string[]
 ): Promise<{ total: number; successful: number; failed: number }> {
@@ -65,6 +66,20 @@ export async function sendPushDirect(
       )
     )
   );
+
+  // 만료된 구독(410 Gone / 404 Not Found) 자동 삭제
+  const expiredEndpoints = subscriptions
+    .filter((_, i) => {
+      const result = results[i];
+      if (result.status !== "rejected") return false;
+      const statusCode = (result.reason as { statusCode?: number })?.statusCode;
+      return statusCode === 410 || statusCode === 404;
+    })
+    .map(sub => sub.endpoint);
+
+  if (expiredEndpoints.length > 0) {
+    await supabase.from("push_subscriptions").delete().in("endpoint", expiredEndpoints);
+  }
 
   const successful = results.filter(r => r.status === "fulfilled").length;
   return { total: subscriptions.length, successful, failed: subscriptions.length - successful };

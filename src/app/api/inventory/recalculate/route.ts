@@ -3,6 +3,7 @@ import { APIError } from "@/utils/api-error";
 import { handleAPIError } from "@/utils/api-handler";
 import { setInventory } from "@/utils/inventory";
 import { apiLogger } from "@/utils/logger";
+import type { PostgrestError } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 /**
@@ -20,26 +21,28 @@ export async function POST(request: Request) {
 
     apiLogger.requestStart(endpoint, { product_option_id });
 
-    const { data: allTransactions, error: txError } = await supabase
+    type TxRow = { id: string; type: string | null; from_warehouse_id: string | null; to_warehouse_id: string | null; created_at: string | null };
+    const { data: allTransactions, error: txError } = (await supabase
       .from("transactions")
       .select("id, type, from_warehouse_id, to_warehouse_id, created_at")
-      .order("created_at", { ascending: true });
+      .order("created_at", { ascending: true })) as unknown as { data: TxRow[] | null; error: PostgrestError | null };
 
     if (txError) {
       apiLogger.dbError("트랜잭션 조회", txError);
       throw APIError.fromSupabaseError(txError);
     }
 
-    let itemsQuery = supabase
+    type ItemRow = { id: string; transaction_id: string | null; product_option_id: string | null; quantity: number | null };
+    let itemsBaseQuery = supabase
       .from("transaction_items")
       .select("id, transaction_id, product_option_id, quantity")
       .order("id", { ascending: true });
 
-    if (product_option_id) {
-      itemsQuery = itemsQuery.eq("product_option_id", product_option_id);
-    }
+    const itemsQueryResult = product_option_id
+      ? await (itemsBaseQuery.eq("product_option_id", product_option_id) as unknown as Promise<{ data: ItemRow[] | null; error: PostgrestError | null }>)
+      : await (itemsBaseQuery as unknown as Promise<{ data: ItemRow[] | null; error: PostgrestError | null }>);
 
-    const { data: allItems, error: itemsError } = await itemsQuery;
+    const { data: allItems, error: itemsError } = itemsQueryResult;
 
     if (itemsError) {
       apiLogger.dbError("트랜잭션 아이템 조회", itemsError);
@@ -52,10 +55,11 @@ export async function POST(request: Request) {
 
     // 원재료 여부 판단을 위해 관련 product_options 조회
     const uniqueOptionIds = [...new Set(allItems.map(item => item.product_option_id))];
-    const { data: productOptions, error: optionsError } = await supabase
+    type ProductOptionRow = { id: string; products: { product_type: string | null } | { product_type: string | null }[] | null };
+    const { data: productOptions, error: optionsError } = (await supabase
       .from("product_options")
       .select("id, products(product_type)")
-      .in("id", uniqueOptionIds);
+      .in("id", uniqueOptionIds as string[])) as unknown as { data: ProductOptionRow[] | null; error: PostgrestError | null };
 
     if (optionsError) {
       apiLogger.dbError("제품 옵션 조회", optionsError);
