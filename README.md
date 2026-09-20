@@ -3,7 +3,7 @@
 중소 제조 현장에서 재고 수량과 입·출고 이력을 모바일로 확인하고 기록할 수 있도록 만든 재고·거래 관리 웹 애플리케이션입니다.
 
 - 배포 서비스: [stock-cock.vercel.app](https://stock-cock.vercel.app) - 로그인 필요
-- 소스 저장소: [enjoylonelines/stock-cock](https://github.com/enjoylonelines/stock-cock)
+- 공개 저장소: [enjoylonelines/stock-cock-public](https://github.com/enjoylonelines/stock-cock-public)
 - 주요 개발 기간: 2025.03 - 2026.02
 
 > 배포 URL은 로그인 화면 접근까지 확인했습니다. 공개 README에서는 실사용 데이터, 운영 계정, 회사 식별 정보는 노출하지 않습니다.
