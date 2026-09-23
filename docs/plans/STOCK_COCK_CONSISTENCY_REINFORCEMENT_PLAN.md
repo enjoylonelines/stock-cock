@@ -7,6 +7,57 @@
 선행 결과: /Users/hb/Projects/inventory/BASELINE_EXPERIMENT_REPORT.md.
 이 문서는 기존 BASELINE_LIMITS_PLAN의 “실행 전” 상태 이후를 잇는 후속 계획이다.
 
+## 2026-09-24 현재 상태와 두 STOP
+
+현재 checkout은 `inventory-consistency-reinforcement`, HEAD `cb675b1`이며 검토 시작 시 clean이었다. `b763496`에 기존 행 보강, `cb675b1`에 신규 행 경쟁 실험이 있다. 아래 “미실행” 표현은 사전 계획의 기록이며 [실제 결과](../INVENTORY_CONSISTENCY_RESULTS.md)와 [P1.1 결과](STOCK_COCK_P1_1_NEW_ROW_EXPERIMENT.md)를 우선한다. 이번 검토에서는 DB/부하 시험을 다시 실행하지 않았다.
+
+| 평가축 | 실제 근거 / 부족한 증거 |
+|---|---|
+| 문제정의/도메인 | 모바일 입출고→거래 이력→재고 확인; 동시 요청의 유실/초과 출고 반례 |
+| 기술적 깊이 | 원본 full migration 재현, A/B 비교, 조건부 원자 증감·batch rollback, 독립 oracle; 신규 행 정책·다른 writer·응답 유실 경계는 별도 |
+| 기술적 판단 | B 하나 선택, 일정한 품목 순서, 기능/인프라 확대 없이 종료; 작은 표본에서 속도 우월성은 입증하지 않음 |
+| 검증 | 저장 기록의 24trial 전후·27case·SDK→PostgREST→DB 3case와 원시 결과; 24trial 중2개 자연 중첩 미포착, 운영 세션/전체 Next HTTP 재현 부족 |
+| 제품 완성도 | 입출고 화면/API/RPC/오류 코드 구현; 실제 사용자 경로에서409 표시·재조회·재시도 안내의 수락 증거 |
+| 운영 현실성 | full migration·격리 PG 시험; auth/storage stub, 운영 데이터 drift·배포 미검증 |
+| Ownership/협업 | 계획/두 후보/선택/독립 oracle/commit 증거; 실사용자 수·피드백 및 본인/AI 기여는 별도 근거로 표기 |
+
+Domain Reality는 현장 입출고를 수량과 거래 이력으로 함께 기록하는 업무다. Reframing은 “트랜잭션이면 안전하다”에서 **성공 응답·commit된 원장·잔량·업무 거절을 따로 대조한다**로 좁힌다. 실제 현장 사용 빈도·규모는 과거 자료의 검증 범위를 넘겨 주장하지 않는다.
+
+**Product DoD / Product STOP:** 현재 slice는 기존 단일 SKU·창고 행에 대한 입출고다. 정상 요청→commit→화면 재조회·이력, 잔량 부족→409→부분 효과0·사용자 안내, 실패 후 재조회가 실행법과 시험으로 재현되어야 한다. 실제 Next session/HTTP 경로의 확인이 없으면 로컬 RPC/API 부분 완료로 남긴다. 운영 배포는 데이터·권한 gate가 별도이며, 전체 이동/조정 제품의 완료를 이 slice로 대체하지 않는다.
+
+**Deep Dive 1개:** 기존 행 동시 mutation의 원장·재고·batch 정합성. source는 `20260923000000_guard_inventory_transactions.sql`과 관련 route, 검증은 `tests/inventory/`다. **Engineering STOP은 기존 보고 범위에서 도달**했다: 실패 재현→read-modify-write 원인→행 잠금/조건부 원자 갱신 비교→B 구현→동일 workload/실패 회귀→한계. fresh 재시험이나 대규모 latency 측정을 다시 요구하지 않는다.
+
+**Vertical evidence와 다음 최소 검증:** baseline C1/C2 → MVCC/동시 UPDATE와 SQLSTATE/영향 행 의미 → 원장=초기+commit 증감·부족 거래 효과0 invariant → A/B → B → count/g·충돌·batch rollback → 원시 latency/lock 관측과 정확도. 실제 p95/처리량 우위는 미측정이다. 추가 vertical 작업은 제품에 남은 **UI/API 업무 오류 경계**에만 한정한다: 기존 부족 출고 fixture → route409/code → UI 표시와 재조회 → 원장/잔량 불변 확인. 새 DB 전략을 적용하는 두 번째 개선 loop가 아니다.
+
+P1.1은 이미 “동시 첫 입고에서 selected도2행, advisory 시험후보는1행”을 보여줬다. 신규 행 합산/거절·기존 중복 데이터 처리·다른 writer 음수 정책이 결정되기 전에는 제품 migration에 반영하지 않는다. 이는 기존 행 Engineering STOP을 무효화하지 않는다.
+
+Non-goal: queue/cache/분산락 플랫폼·자동 retry·전체 writer 정비·운영 부하. Expansion Trigger는 실제 신규 행 업무 요구와 데이터 정책 결정, 또는 현 scoped invariant를 깨는 반례다. **다음 실제 코드 작업 1개는 기존 재고 부족409 fixture를 사용자 입력→오류 표시→재조회까지 잇는 통합 회귀를 추가하는 것**이다. 사용자의 업무 정책이 없는 신규 행 수정부터 시작하지 않는다.
+
+## Human-Owned / AI Delegation — 2026-09-24
+
+| 영역 | Human-owned Knowledge / 판단 | AI 활용 | 검증 |
+|---|---|---|---|
+| 문제·도메인 | 입출고 성공·업무 거절·commit·원장과 잔량 관계 | 기존 코드/실험 증거 탐색 | 기존 행 범위와 다른 writer 한계 설명 |
+| invariant | SKU/창고/active 단위별 final_stock = initial_stock + Σ(committed ledger delta); 거절 거래 효과0 | 원장 oracle·fixture·회귀 | 요청 성공 수와 commit·원장·잔량 독립 대조 |
+| 구현 | 조건부 UPDATE의 현재 행/경쟁 대기, 영향 행·SQLSTATE·batch rollback | UI409 통합 회귀·반복/로그 | 작은 코드 변경의 lock/rollback 영향 예측 |
+| 측정·주장 | overlap와 기술 오류/업무 거절 차이, 미관측 범위 | 표/문서 초안 | 합성 정확성 결과를 운영 TPS로 확대하지 않음 |
+
+**Specification 초안(다음 UI 경계):** Problem=부족 출고409가 사용자 안내·재조회까지 이어지는 증거 부족. Constraint=기존 행/RPC 전략 유지·자동 retry 없음. Invariant=거절의 헤더/품목/stock 효과0, UI가 실패를 성공으로 표시하지 않음. Acceptance=입력→409/code→안내→재조회에서 DB 원장/잔량 불변과 정상 대조 통과. Failure=성공 표시·부분 반영·자동 중복 제출 또는 기술 오류를 업무 거절로 오인.
+
+**핵심 코드/Defense:** `supabase/migrations/20260923000000_guard_inventory_transactions.sql`, 해당 API route의 SQLSTATE→409 변환, `tests/inventory/`의 oracle. 핵심 PostgreSQL 동작은 격리수준/동시 UPDATE·row lock·rollback의 현재 경로만 공식 문서와 기존 실험으로 확인한다. 신규 행 unique/upsert나 분산락으로 학습을 확대하지 않는다. AI/본인 작성 구분은 commit·작업 기록 없이 단정하지 않는다.
+
+**Prediction / 다음 코드 1개:** 기존 부족 출고 fixture의 UI409 통합 회귀. 실행 전에 요청→commit/rollback→응답→재조회 순서와 원장/잔량을 예상한다. 기존 DB 실패 결과를 새 blind 예측으로 소급하지 않는다. **기존 측정 범위의 구현·검증 STOP은 유지하되 새 Human Defense/숙지 gate는 미확인**이다. 재시험을 추가하는 대신 우선 기존 증거를 15분 설명하고 작은 변경의 영향을 예측한다. 절약할 UI/test 보일러플레이트·결과 집계 시간을 MVCC/원자 증감·전체 rollback 설명에 투자한다.
+
+### Human Gates와 학습 종료조건
+
+아래 명세는 **AI 제안**이며 사용자가 자기 말로 Problem·Constraint·Invariant·Acceptance·Failure 다섯 항목을 기록하기 전에는 전체 구현을 위임하지 않는다. 기존 계획의 가설·선택이나 AI 작성 문서를 사용자의 판단으로 소급하지 않는다. 현재 본인 숙지 증거와 새 Gate 기록은 **unrecorded**이며 지식이 없다고 단정하지 않는다.
+
+순서: AI 자료/코드 탐색 → **Problem Gate**(문제·범위·불변식 설명) → AI 대안 → **Decision Gate**(차이·제약·실패·선택 이유) → **Prediction Gate**(실행 전 예상 상태/이유/반증을 시각·revision과 기록) → AI 구현·자동화 → 실행 → **Evidence Gate**(예상 대비 결과·증명 범위·추가 실험 필요 판단) → AI 집계/문서 → **Defense Gate**. 기존 decision/evidence 기록에 사용자 원문과 AI 후보를 분리한다. 이미 본 결과는 사전 예측으로 쓰지 않는다. 준비용 fixture/harness 초안은 가능하지만 채택/실행/사람 판단 완료와 구분한다.
+
+**Engineering STOP 추가:** 아래 Deep Dive를 AI·README·메모 없이 약 15분 동안 문제→도메인/runtime→현재 코드 흐름→실패→대안/선택→시험 설계→실제 결과→한계/확장 조건 순으로 설명한다. 핵심 코드를 읽고 작은 변경을 직접 수행하며 실행 전에 영향·디버깅 방향을 설명한다. 기존 Product STOP과 측정 범위는 그대로 유지하며 사람의 설명 증거를 코드 테스트 통과로 대체하지 않는다.
+
+학습 우선순위는 “이 코드/기술이 핵심 engineering claim을 성립시키는가?”로 좁힌다. YES인 runtime 동작만 공식 문서/필요한 source·test → 최소 재현 → 사전 예측 → 실행 비교로 확인한다. 나머지 CRUD/UI/서식은 AI 초안과 검토로 처리한다. 절약 시간이나 숙련도 개선은 측정 전 수치로 주장하지 않는다.
+
 ## 목적과 이번 완료 범위
 
 **기존에 존재하는 동일 SKU·창고 행에 대한 입출고에서 변경 유실과 초과 출고를 막고, 거래 전체 rollback을 유지한다.**
