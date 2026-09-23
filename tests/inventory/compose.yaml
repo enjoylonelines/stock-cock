@@ -1,0 +1,29 @@
+name: stock-cock-consistency-test
+services:
+  rest:
+    image: postgrest/postgrest:v12.2.3
+    ports: ["127.0.0.1:55440:3000"]
+    environment:
+      PGRST_DB_URI: postgresql://inventory_p0_test:inventory-p0-test-only@db:5432/inventory_p0_test
+      PGRST_DB_SCHEMAS: public
+      PGRST_DB_ANON_ROLE: authenticated
+      PGRST_JWT_SECRET: inventory-test-only-jwt-secret-never-production
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    build: .
+    container_name: stock-cock-consistency-test-db
+    ports: ["127.0.0.1:55439:5432"]
+    environment:
+      POSTGRES_DB: inventory_p0_test
+      POSTGRES_USER: inventory_p0_test
+      POSTGRES_PASSWORD: inventory-p0-test-only
+    command: ["postgres", "-c", "shared_preload_libraries=pg_cron", "-c", "cron.database_name=inventory_p0_test", "-c", "cron.launch_active_jobs=off", "-c", "max_connections=12", "-c", "log_lock_waits=on", "-c", "deadlock_timeout=100ms"]
+    cpus: 1
+    mem_limit: 512m
+    tmpfs: ["/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inventory_p0_test -d inventory_p0_test"]
+      interval: 1s
+      retries: 30

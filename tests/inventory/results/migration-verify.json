@@ -1,0 +1,2523 @@
+{
+  "restored_baseline_hash": "9a6992f19db2f1c687e8467fe366aa36183d37d44320f1eb1a09923d41a9a333",
+  "upgrade_hash": "eef9e48f7040d416ad8a8be98f49350ae0038b419a5a8ec648e58a9162a83362",
+  "upgrade_restore_reapply_preserves_data": true,
+  "environment_before_clean": {
+    "version": "PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "isolation": "read committed",
+    "cron_active": "off",
+    "git_head": "5382aaa37285726339296c5af70ff9f8116ebf80",
+    "dirty": " M src/app/api/transactions/route.ts\n?? src/__tests__/transactions-route.test.ts\n?? supabase/migrations/20260923000000_guard_inventory_transactions.sql\n?? tests/\n",
+    "harness_hash": "19293badb70d945853462a53568aed591dab2aa918c56ae9a8f46750dc208aa8",
+    "runner_hash": "d29c558c73c3a380ca9e0d3da591daf87e48a709d470e4e01807667c1971e60d",
+    "mode": "all-repository-migrations; auth/storage stubs; direct SQL",
+    "seed": "UUID fixtures random; amounts/schedule/units fixed; no performance comparison"
+  },
+  "clean_migrations": [
+    {
+      "file": "20260123015831_current_schema.sql",
+      "sha256": "ad9158e6a9f56696edf421e623814dfbcef3c52e38d4ccede79ac203a1a3796c"
+    },
+    {
+      "file": "20260123020355_remove_prices_and_add_material_support.sql",
+      "sha256": "4546da152161f67366f00e6e545e1ad9d2ecf7e3bc68c0939690f2407ee6f277"
+    },
+    {
+      "file": "20260128113606_add_weight_in_grams.sql",
+      "sha256": "9a5d00026d4c6a1105e846a6364bdd6bbcaf9a7b11194fc4a6632669b3450b52"
+    },
+    {
+      "file": "20260128162849_fix_material_weight_data.sql",
+      "sha256": "84bfcdd5ba687b6a456a3500268f90b8a7e08334bdd8ac3bf3f0be3e21fef9ad"
+    },
+    {
+      "file": "20260128163300_fix_material_weight_data_v2.sql",
+      "sha256": "e20afeedb459af2612fa2210e6be938bc4dff83f7f3dffcd3e6ba840a06565ce"
+    },
+    {
+      "file": "20260129100000_cleanup_suppliers.sql",
+      "sha256": "a117a27929ea96c21a61d2865120292f670d35ce868fd60ab1d32f478c7c4600"
+    },
+    {
+      "file": "20260130162623_remove_unit_price_from_transaction_items.sql",
+      "sha256": "c6552a72ba4434107e8c78622d48f20b1d4d459dc5f88739f29dccbf126596be"
+    },
+    {
+      "file": "20260130184355_add_user_image_url_to_transaction_history_view.sql",
+      "sha256": "b67e77857012e97687595d33e33acc5e49d6c3259d41b7c0fb86402025256545"
+    },
+    {
+      "file": "20260131100000_remove_inventory_batches_and_add_create_transaction_rpc.sql",
+      "sha256": "970ada652f99cc5eca196c870d7fd4c99e8b9b42b3a3ed94a2dc0a552f8fe0d4"
+    },
+    {
+      "file": "20260131110000_fix_create_transaction_rpc_signature.sql",
+      "sha256": "9a6992f19db2f1c687e8467fe366aa36183d37d44320f1eb1a09923d41a9a333"
+    },
+    {
+      "file": "20260131120000_drop_create_transaction_jsonb_array_overload.sql",
+      "sha256": "346b94690afae40992497bd13a9b0b28cd272e107c242758c885b4f7e6a05981"
+    },
+    {
+      "file": "20260211000000_user_activity_read_and_prune.sql",
+      "sha256": "0a658115a4f3f37193ebbd3f825315cd65fb32190a90ed1c97336e46705a6fb7"
+    },
+    {
+      "file": "20260211000001_prune_old_transactions_cron.sql",
+      "sha256": "e5cc3dfda17362ffba2669e1136a1dcbb3c7d8ea9da17039d6ca2ccd833dc033"
+    },
+    {
+      "file": "20260923000000_guard_inventory_transactions.sql",
+      "sha256": "eef9e48f7040d416ad8a8be98f49350ae0038b419a5a8ec648e58a9162a83362"
+    }
+  ],
+  "clean_and_upgrade_function_identical": true,
+  "catalog": {
+    "constraints": [
+      [
+        "brands",
+        "brands_pkey",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "categories",
+        "categories_pkey",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "inventory",
+        "inventory_pkey",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "inventory",
+        "inventory_product_option_id_fkey",
+        "FOREIGN KEY (product_option_id) REFERENCES product_options(id)"
+      ],
+      [
+        "inventory_reinforcement_environment",
+        "inventory_reinforcement_environment_pkey",
+        "PRIMARY KEY (name)"
+      ],
+      [
+        "inventory",
+        "inventory_warehouse_id_fkey",
+        "FOREIGN KEY (warehouse_id) REFERENCES warehouses(id)"
+      ],
+      [
+        "product_options",
+        "product_options_pkey",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "product_options",
+        "product_options_product_id_fkey",
+        "FOREIGN KEY (product_id) REFERENCES products(id)"
+      ],
+      [
+        "product_options",
+        "product_options_sku_key",
+        "UNIQUE (sku)"
+      ],
+      [
+        "products",
+        "products_brand_id_fkey",
+        "FOREIGN KEY (brand_id) REFERENCES brands(id)"
+      ],
+      [
+        "products",
+        "products_category_id_fkey",
+        "FOREIGN KEY (category_id) REFERENCES categories(id)"
+      ],
+      [
+        "products",
+        "products_pkey",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "products",
+        "products_product_type_check",
+        "CHECK ((product_type = ANY (ARRAY['company'::text, 'franchise'::text, 'pb'::text, 'material'::text])))"
+      ],
+      [
+        "products",
+        "products_storage_type_check",
+        "CHECK ((storage_type = ANY (ARRAY['room_temperature'::text, 'refrigerated'::text, 'frozen'::text])))"
+      ],
+      [
+        "profiles",
+        "profiles_id_fkey",
+        "FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      [
+        "profiles",
+        "profiles_pkey",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "push_subscriptions",
+        "push_subscriptions_pkey",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "push_subscriptions",
+        "push_subscriptions_user_endpoint_unique",
+        "UNIQUE (user_id, endpoint)"
+      ],
+      [
+        "push_subscriptions",
+        "push_subscriptions_user_id_fkey",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      [
+        "suppliers",
+        "suppliers_pkey",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "transaction_items",
+        "transaction_items_pkey",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "transaction_items",
+        "transaction_items_product_option_id_fkey",
+        "FOREIGN KEY (product_option_id) REFERENCES product_options(id)"
+      ],
+      [
+        "transaction_items",
+        "transaction_items_transaction_id_fkey",
+        "FOREIGN KEY (transaction_id) REFERENCES transactions(id)"
+      ],
+      [
+        "transactions",
+        "transactions_from_warehouse_id_fkey",
+        "FOREIGN KEY (from_warehouse_id) REFERENCES warehouses(id)"
+      ],
+      [
+        "transactions",
+        "transactions_pkey",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "transactions",
+        "transactions_supplier_id_fkey",
+        "FOREIGN KEY (supplier_id) REFERENCES suppliers(id)"
+      ],
+      [
+        "transactions",
+        "transactions_to_warehouse_id_fkey",
+        "FOREIGN KEY (to_warehouse_id) REFERENCES warehouses(id)"
+      ],
+      [
+        "transactions",
+        "transactions_type_check",
+        "CHECK ((type = ANY (ARRAY['in'::text, 'out'::text, 'move'::text, 'adjust'::text])))"
+      ],
+      [
+        "user_activity_read",
+        "user_activity_read_pkey",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "user_activity_read",
+        "user_activity_read_product_option_id_fkey",
+        "FOREIGN KEY (product_option_id) REFERENCES product_options(id) ON DELETE CASCADE"
+      ],
+      [
+        "user_activity_read",
+        "user_activity_read_transaction_id_fkey",
+        "FOREIGN KEY (transaction_id) REFERENCES transactions(id) ON DELETE CASCADE"
+      ],
+      [
+        "user_activity_read",
+        "user_activity_read_user_id_fkey",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      [
+        "user_activity_read",
+        "user_activity_read_user_tx_opt_unique",
+        "UNIQUE (user_id, transaction_id, product_option_id)"
+      ],
+      [
+        "user_read_status",
+        "user_read_status_pkey",
+        "PRIMARY KEY (id)"
+      ],
+      [
+        "user_read_status",
+        "user_read_status_user_id_fkey",
+        "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+      ],
+      [
+        "user_read_status",
+        "user_read_status_user_id_key",
+        "UNIQUE (user_id)"
+      ],
+      [
+        "warehouses",
+        "warehouses_pkey",
+        "PRIMARY KEY (id)"
+      ]
+    ],
+    "indexes": [
+      [
+        "brands",
+        "brands_pkey",
+        "CREATE UNIQUE INDEX brands_pkey ON public.brands USING btree (id)"
+      ],
+      [
+        "categories",
+        "categories_pkey",
+        "CREATE UNIQUE INDEX categories_pkey ON public.categories USING btree (id)"
+      ],
+      [
+        "inventory",
+        "idx_inventory_weight_in_grams",
+        "CREATE INDEX idx_inventory_weight_in_grams ON public.inventory USING btree (weight_in_grams) WHERE (weight_in_grams IS NOT NULL)"
+      ],
+      [
+        "products",
+        "idx_products_product_type",
+        "CREATE INDEX idx_products_product_type ON public.products USING btree (product_type)"
+      ],
+      [
+        "products",
+        "idx_products_storage_type",
+        "CREATE INDEX idx_products_storage_type ON public.products USING btree (storage_type)"
+      ],
+      [
+        "push_subscriptions",
+        "idx_push_subscriptions_device_id",
+        "CREATE INDEX idx_push_subscriptions_device_id ON public.push_subscriptions USING btree (device_id)"
+      ],
+      [
+        "push_subscriptions",
+        "idx_push_subscriptions_endpoint",
+        "CREATE INDEX idx_push_subscriptions_endpoint ON public.push_subscriptions USING btree (endpoint)"
+      ],
+      [
+        "push_subscriptions",
+        "idx_push_subscriptions_user_id",
+        "CREATE INDEX idx_push_subscriptions_user_id ON public.push_subscriptions USING btree (user_id)"
+      ],
+      [
+        "user_activity_read",
+        "idx_user_activity_read_user_id",
+        "CREATE INDEX idx_user_activity_read_user_id ON public.user_activity_read USING btree (user_id)"
+      ],
+      [
+        "user_read_status",
+        "idx_user_read_status_broadcast_id",
+        "CREATE INDEX idx_user_read_status_broadcast_id ON public.user_read_status USING btree (last_read_broadcast_id)"
+      ],
+      [
+        "user_read_status",
+        "idx_user_read_status_user_id",
+        "CREATE INDEX idx_user_read_status_user_id ON public.user_read_status USING btree (user_id)"
+      ],
+      [
+        "inventory",
+        "inventory_pkey",
+        "CREATE UNIQUE INDEX inventory_pkey ON public.inventory USING btree (id)"
+      ],
+      [
+        "inventory_reinforcement_environment",
+        "inventory_reinforcement_environment_pkey",
+        "CREATE UNIQUE INDEX inventory_reinforcement_environment_pkey ON public.inventory_reinforcement_environment USING btree (name)"
+      ],
+      [
+        "product_options",
+        "product_options_pkey",
+        "CREATE UNIQUE INDEX product_options_pkey ON public.product_options USING btree (id)"
+      ],
+      [
+        "product_options",
+        "product_options_sku_key",
+        "CREATE UNIQUE INDEX product_options_sku_key ON public.product_options USING btree (sku)"
+      ],
+      [
+        "products",
+        "products_pkey",
+        "CREATE UNIQUE INDEX products_pkey ON public.products USING btree (id)"
+      ],
+      [
+        "profiles",
+        "profiles_pkey",
+        "CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)"
+      ],
+      [
+        "push_subscriptions",
+        "push_subscriptions_pkey",
+        "CREATE UNIQUE INDEX push_subscriptions_pkey ON public.push_subscriptions USING btree (id)"
+      ],
+      [
+        "push_subscriptions",
+        "push_subscriptions_user_endpoint_unique",
+        "CREATE UNIQUE INDEX push_subscriptions_user_endpoint_unique ON public.push_subscriptions USING btree (user_id, endpoint)"
+      ],
+      [
+        "suppliers",
+        "suppliers_pkey",
+        "CREATE UNIQUE INDEX suppliers_pkey ON public.suppliers USING btree (id)"
+      ],
+      [
+        "transaction_items",
+        "transaction_items_pkey",
+        "CREATE UNIQUE INDEX transaction_items_pkey ON public.transaction_items USING btree (id)"
+      ],
+      [
+        "transactions",
+        "transactions_pkey",
+        "CREATE UNIQUE INDEX transactions_pkey ON public.transactions USING btree (id)"
+      ],
+      [
+        "user_activity_read",
+        "user_activity_read_pkey",
+        "CREATE UNIQUE INDEX user_activity_read_pkey ON public.user_activity_read USING btree (id)"
+      ],
+      [
+        "user_activity_read",
+        "user_activity_read_user_tx_opt_unique",
+        "CREATE UNIQUE INDEX user_activity_read_user_tx_opt_unique ON public.user_activity_read USING btree (user_id, transaction_id, product_option_id)"
+      ],
+      [
+        "user_read_status",
+        "user_read_status_pkey",
+        "CREATE UNIQUE INDEX user_read_status_pkey ON public.user_read_status USING btree (id)"
+      ],
+      [
+        "user_read_status",
+        "user_read_status_user_id_key",
+        "CREATE UNIQUE INDEX user_read_status_user_id_key ON public.user_read_status USING btree (user_id)"
+      ],
+      [
+        "warehouses",
+        "warehouses_pkey",
+        "CREATE UNIQUE INDEX warehouses_pkey ON public.warehouses USING btree (id)"
+      ]
+    ],
+    "rls": [
+      [
+        "brands",
+        false,
+        false
+      ],
+      [
+        "categories",
+        false,
+        false
+      ],
+      [
+        "inventory",
+        false,
+        false
+      ],
+      [
+        "inventory_reinforcement_environment",
+        false,
+        false
+      ],
+      [
+        "product_options",
+        false,
+        false
+      ],
+      [
+        "products",
+        false,
+        false
+      ],
+      [
+        "profiles",
+        false,
+        false
+      ],
+      [
+        "push_subscriptions",
+        false,
+        false
+      ],
+      [
+        "suppliers",
+        false,
+        false
+      ],
+      [
+        "transaction_items",
+        false,
+        false
+      ],
+      [
+        "transactions",
+        false,
+        false
+      ],
+      [
+        "user_activity_read",
+        true,
+        false
+      ],
+      [
+        "user_read_status",
+        false,
+        false
+      ],
+      [
+        "warehouses",
+        false,
+        false
+      ]
+    ],
+    "policies": [
+      [
+        "user_activity_read",
+        "Users can manage own read status",
+        [
+          "public"
+        ],
+        "ALL",
+        "(auth.uid() = user_id)",
+        "(auth.uid() = user_id)"
+      ]
+    ],
+    "extensions": [
+      [
+        "pg_cron",
+        "1.6"
+      ],
+      [
+        "plpgsql",
+        "1.0"
+      ]
+    ],
+    "jobs": [
+      [
+        "prune-old-transactions",
+        "0 3 * * *",
+        true
+      ]
+    ],
+    "function_acl": [
+      [
+        null,
+        true,
+        [
+          "search_path=public"
+        ],
+        "inventory_p0_test"
+      ]
+    ]
+  },
+  "smoke": {
+    "variant": "selected",
+    "sql_hash": "eef9e48f7040d416ad8a8be98f49350ae0038b419a5a8ec648e58a9162a83362",
+    "environment": {
+      "version": "PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+      "isolation": "read committed",
+      "cron_active": "off",
+      "git_head": "5382aaa37285726339296c5af70ff9f8116ebf80",
+      "dirty": " M src/app/api/transactions/route.ts\n?? src/__tests__/transactions-route.test.ts\n?? supabase/migrations/20260923000000_guard_inventory_transactions.sql\n?? tests/\n",
+      "harness_hash": "19293badb70d945853462a53568aed591dab2aa918c56ae9a8f46750dc208aa8",
+      "runner_hash": "d29c558c73c3a380ca9e0d3da591daf87e48a709d470e4e01807667c1971e60d",
+      "mode": "all-repository-migrations; auth/storage stubs; direct SQL",
+      "seed": "UUID fixtures random; amounts/schedule/units fixed; no performance comparison"
+    },
+    "trials": [
+      {
+        "case": "C0",
+        "unit": "count",
+        "fixture": {
+          "user": "022ec0c9-b494-4bb4-89c7-a1287bb99c59",
+          "warehouse": "343be8ac-7b47-4c97-8443-1f341a3039af",
+          "options": [
+            "3e29fba3-c686-48c8-beb8-345a3f8fcb62",
+            "06300e97-4169-486c-af45-b520460ce983",
+            "c0552d61-0f7b-4634-b6de-e4ae1742b82a",
+            "e04ad5ea-b6cf-40ff-af25-24be3e1ef418",
+            "a6f57eb6-fb15-404f-ae77-95bea0d6117d",
+            "9e49a4e2-f2d1-40bb-ba71-1e2e7a3d2b9b",
+            "32b24983-00ae-4d60-acba-bf8116177cb3",
+            "36e473ac-e2a2-4f0b-b881-f012e05c2e76",
+            "9e23da9c-6573-464c-9cf3-ced56ee1ec4b",
+            "9924eb4d-4e02-402b-b83a-e4c4b9868bcb"
+          ],
+          "material": false,
+          "initial": 100
+        },
+        "operations": [
+          {
+            "operation_id": "inventory-p0-c902a1af-2d40-4ae6-b93e-662fe343dc31:0",
+            "attempt_id": "c01048a6-98ed-446a-a8e5-3dd85704bdef",
+            "retry": 0,
+            "header": {
+              "type": "in",
+              "user_id": "022ec0c9-b494-4bb4-89c7-a1287bb99c59",
+              "warehouse_id": "343be8ac-7b47-4c97-8443-1f341a3039af",
+              "memo": "inventory-p0-c902a1af-2d40-4ae6-b93e-662fe343dc31:0"
+            },
+            "items": [
+              {
+                "option_id": "06300e97-4169-486c-af45-b520460ce983",
+                "quantity": 10,
+                "product_type": "company"
+              }
+            ]
+          },
+          {
+            "operation_id": "inventory-p0-c902a1af-2d40-4ae6-b93e-662fe343dc31:1",
+            "attempt_id": "cb16eb01-618c-405e-9860-6b2cef8e974a",
+            "retry": 0,
+            "header": {
+              "type": "in",
+              "user_id": "022ec0c9-b494-4bb4-89c7-a1287bb99c59",
+              "warehouse_id": "343be8ac-7b47-4c97-8443-1f341a3039af",
+              "memo": "inventory-p0-c902a1af-2d40-4ae6-b93e-662fe343dc31:1"
+            },
+            "items": [
+              {
+                "option_id": "06300e97-4169-486c-af45-b520460ce983",
+                "quantity": 20,
+                "product_type": "company"
+              }
+            ]
+          }
+        ],
+        "requests": [
+          {
+            "operation_id": "inventory-p0-c902a1af-2d40-4ae6-b93e-662fe343dc31:0",
+            "attempt_id": "c01048a6-98ed-446a-a8e5-3dd85704bdef",
+            "retry": 0,
+            "backend_pid": 4076,
+            "ready_ns": 124779878007208,
+            "before": "unknown",
+            "after": "unknown",
+            "start_ns": 124779878008250,
+            "response": {
+              "success": true,
+              "transaction_id": "1d4d109c-3c78-4d0c-83a1-dd9f8c391471"
+            },
+            "status": "success",
+            "end_ns": 124779881541583,
+            "query_latency_ms": 3.533333
+          },
+          {
+            "operation_id": "inventory-p0-c902a1af-2d40-4ae6-b93e-662fe343dc31:1",
+            "attempt_id": "cb16eb01-618c-405e-9860-6b2cef8e974a",
+            "retry": 0,
+            "backend_pid": 4076,
+            "ready_ns": 124779881550541,
+            "before": "unknown",
+            "after": "unknown",
+            "start_ns": 124779881551083,
+            "response": {
+              "success": true,
+              "transaction_id": "39d892c6-52e2-4dae-aa92-c0afa319bfff"
+            },
+            "status": "success",
+            "end_ns": 124779882376625,
+            "query_latency_ms": 0.825542
+          }
+        ],
+        "observation": {
+          "actual_rpc_overlap_observed": false,
+          "reason": "sequential control",
+          "lock_observed": false,
+          "connection_observed": false
+        },
+        "oracle": {
+          "failures": [],
+          "final": [
+            [
+              "3e29fba3-c686-48c8-beb8-345a3f8fcb62",
+              "100",
+              null
+            ],
+            [
+              "c0552d61-0f7b-4634-b6de-e4ae1742b82a",
+              "100",
+              null
+            ],
+            [
+              "e04ad5ea-b6cf-40ff-af25-24be3e1ef418",
+              "100",
+              null
+            ],
+            [
+              "a6f57eb6-fb15-404f-ae77-95bea0d6117d",
+              "100",
+              null
+            ],
+            [
+              "9e49a4e2-f2d1-40bb-ba71-1e2e7a3d2b9b",
+              "100",
+              null
+            ],
+            [
+              "32b24983-00ae-4d60-acba-bf8116177cb3",
+              "100",
+              null
+            ],
+            [
+              "36e473ac-e2a2-4f0b-b881-f012e05c2e76",
+              "100",
+              null
+            ],
+            [
+              "9e23da9c-6573-464c-9cf3-ced56ee1ec4b",
+              "100",
+              null
+            ],
+            [
+              "9924eb4d-4e02-402b-b83a-e4c4b9868bcb",
+              "100",
+              null
+            ],
+            [
+              "06300e97-4169-486c-af45-b520460ce983",
+              "130",
+              null
+            ]
+          ],
+          "expected_from_committed_ledger": {
+            "3e29fba3-c686-48c8-beb8-345a3f8fcb62": "100",
+            "06300e97-4169-486c-af45-b520460ce983": "130",
+            "c0552d61-0f7b-4634-b6de-e4ae1742b82a": "100",
+            "e04ad5ea-b6cf-40ff-af25-24be3e1ef418": "100",
+            "a6f57eb6-fb15-404f-ae77-95bea0d6117d": "100",
+            "9e49a4e2-f2d1-40bb-ba71-1e2e7a3d2b9b": "100",
+            "32b24983-00ae-4d60-acba-bf8116177cb3": "100",
+            "36e473ac-e2a2-4f0b-b881-f012e05c2e76": "100",
+            "9e23da9c-6573-464c-9cf3-ced56ee1ec4b": "100",
+            "9924eb4d-4e02-402b-b83a-e4c4b9868bcb": "100"
+          },
+          "ledger_rows": [
+            [
+              "1d4d109c-3c78-4d0c-83a1-dd9f8c391471",
+              "inventory-p0-c902a1af-2d40-4ae6-b93e-662fe343dc31:0",
+              "in",
+              "06300e97-4169-486c-af45-b520460ce983",
+              "10"
+            ],
+            [
+              "39d892c6-52e2-4dae-aa92-c0afa319bfff",
+              "inventory-p0-c902a1af-2d40-4ae6-b93e-662fe343dc31:1",
+              "in",
+              "06300e97-4169-486c-af45-b520460ce983",
+              "20"
+            ]
+          ],
+          "reconciliation": [
+            {
+              "operation_id": "inventory-p0-c902a1af-2d40-4ae6-b93e-662fe343dc31:0",
+              "commit_state": "committed",
+              "ledger": {
+                "transaction_ids": [
+                  "1d4d109c-3c78-4d0c-83a1-dd9f8c391471"
+                ],
+                "items": [
+                  [
+                    "06300e97-4169-486c-af45-b520460ce983",
+                    "10",
+                    "in"
+                  ]
+                ]
+              }
+            },
+            {
+              "operation_id": "inventory-p0-c902a1af-2d40-4ae6-b93e-662fe343dc31:1",
+              "commit_state": "committed",
+              "ledger": {
+                "transaction_ids": [
+                  "39d892c6-52e2-4dae-aa92-c0afa319bfff"
+                ],
+                "items": [
+                  [
+                    "06300e97-4169-486c-af45-b520460ce983",
+                    "20",
+                    "in"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "n": 2,
+        "failures": [],
+        "coverage_failures": [],
+        "retries": 0,
+        "repeat": 1
+      },
+      {
+        "case": "C2",
+        "unit": "count",
+        "fixture": {
+          "user": "2b79761c-37cd-4ecb-b055-f044f58abf2e",
+          "warehouse": "0b3214ae-153b-4067-a224-7720394dd5af",
+          "options": [
+            "7d540df7-e076-4a40-892e-ad8f8c37cf98",
+            "d47a5bc9-8cc9-41f2-aa8d-a4b86220b52b",
+            "21a3ab50-6a96-4c2e-957e-4d1831bca578",
+            "5152369a-b430-474a-a9a9-07e871ac74e3",
+            "dc39ddcd-b62c-4bdd-b400-fce8be9afd95",
+            "1210d0e7-e09e-40a4-8b8f-18f9a6760bbe",
+            "f3168d8e-47eb-4926-b5da-e84103bd049d",
+            "e51f8071-9d00-4bbb-884c-088586cb566d",
+            "edd14326-b5c6-47c9-a913-b134399fec80",
+            "2fa0cc52-3328-436a-bab0-2305bf593d77"
+          ],
+          "material": false,
+          "initial": 1
+        },
+        "operations": [
+          {
+            "operation_id": "inventory-p0-c56e9b7c-88fe-4d35-9648-68e44efa2f2a:0",
+            "attempt_id": "eff661cf-a461-40a2-8376-db6311334de0",
+            "retry": 0,
+            "header": {
+              "type": "out",
+              "user_id": "2b79761c-37cd-4ecb-b055-f044f58abf2e",
+              "warehouse_id": "0b3214ae-153b-4067-a224-7720394dd5af",
+              "memo": "inventory-p0-c56e9b7c-88fe-4d35-9648-68e44efa2f2a:0"
+            },
+            "items": [
+              {
+                "option_id": "1210d0e7-e09e-40a4-8b8f-18f9a6760bbe",
+                "quantity": 1,
+                "product_type": "company"
+              }
+            ]
+          },
+          {
+            "operation_id": "inventory-p0-c56e9b7c-88fe-4d35-9648-68e44efa2f2a:1",
+            "attempt_id": "3e6105dc-8b85-4dfe-b543-ecda4a599cfd",
+            "retry": 0,
+            "header": {
+              "type": "out",
+              "user_id": "2b79761c-37cd-4ecb-b055-f044f58abf2e",
+              "warehouse_id": "0b3214ae-153b-4067-a224-7720394dd5af",
+              "memo": "inventory-p0-c56e9b7c-88fe-4d35-9648-68e44efa2f2a:1"
+            },
+            "items": [
+              {
+                "option_id": "1210d0e7-e09e-40a4-8b8f-18f9a6760bbe",
+                "quantity": 1,
+                "product_type": "company"
+              }
+            ]
+          }
+        ],
+        "requests": [
+          {
+            "operation_id": "inventory-p0-c56e9b7c-88fe-4d35-9648-68e44efa2f2a:0",
+            "attempt_id": "eff661cf-a461-40a2-8376-db6311334de0",
+            "retry": 0,
+            "backend_pid": 4077,
+            "ready_ns": 124779921444291,
+            "before": "unknown",
+            "after": "unknown",
+            "start_ns": 124779921770541,
+            "status": "error",
+            "sqlstate": "P0001",
+            "error": "INSUFFICIENT_STOCK\nCONTEXT:  PL/pgSQL function create_transaction(jsonb,jsonb) line 117 at RAISE",
+            "end_ns": 124779931456541,
+            "query_latency_ms": 9.686
+          },
+          {
+            "operation_id": "inventory-p0-c56e9b7c-88fe-4d35-9648-68e44efa2f2a:1",
+            "attempt_id": "3e6105dc-8b85-4dfe-b543-ecda4a599cfd",
+            "retry": 0,
+            "backend_pid": 4078,
+            "ready_ns": 124779921516875,
+            "before": "unknown",
+            "after": "unknown",
+            "start_ns": 124779921828791,
+            "response": {
+              "success": true,
+              "transaction_id": "98395f48-2885-417a-b9f7-b309d36b7fe7"
+            },
+            "status": "success",
+            "end_ns": 124779931507791,
+            "query_latency_ms": 9.679
+          }
+        ],
+        "observation": {
+          "barrier_parties": 3,
+          "release_ns": 124779921526541,
+          "worker_pids": [
+            4077,
+            4078
+          ],
+          "gate": {
+            "pid": 4079,
+            "inventory_ids": [
+              [
+                "3d55210d-82fb-4e43-aaa8-46df5290520b"
+              ],
+              [
+                "5c9f3228-73a4-4fbe-9c85-d3eb9eaa56bc"
+              ],
+              [
+                "95254ff1-238c-4003-b2c5-58d963d6657b"
+              ],
+              [
+                "b0fbfe5d-ee44-41e5-806b-9c28380685d6"
+              ],
+              [
+                "c4b2a36f-07ec-47a8-9875-98ca9a144c68"
+              ],
+              [
+                "5571d874-5a41-4324-902f-b2abf2205ce7"
+              ],
+              [
+                "704bc4fc-1bfc-497a-83f7-1e5b9ec5b2f5"
+              ],
+              [
+                "1fed32b4-c2c3-48e9-8589-c9b8924b7055"
+              ],
+              [
+                "e4eae864-853f-45e1-beb6-23be4da0f862"
+              ],
+              [
+                "0fdb8bbf-2e85-4986-b524-64eb783810b5"
+              ]
+            ],
+            "released_ns": 124779930928041,
+            "transaction_id": 4919
+          },
+          "client_intervals_overlap": true,
+          "actual_rpc_overlap_observed": true,
+          "both_lock_wait_observed": true,
+          "select_stage_overlap": "not_measured; row-lock-gate waits support inference, not SELECT timestamps",
+          "sampling_interval_target_ms": 2,
+          "samples": [
+            {
+              "sample_ns": 124779926419375,
+              "activity": [
+                [
+                  4077,
+                  "idle",
+                  "Client",
+                  "ClientRead",
+                  [],
+                  "2026-09-23 09:51:20.735938+00:00",
+                  "SET ROLE authenticated"
+                ],
+                [
+                  4078,
+                  "idle",
+                  "Client",
+                  "ClientRead",
+                  [],
+                  "2026-09-23 09:51:20.743732+00:00",
+                  "SET ROLE authenticated"
+                ]
+              ],
+              "locks": [
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_inventory_weight_in_grams",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "inventory_pkey",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_storage_type",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products_pkey",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_product_type",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_sku_key",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_pkey",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses_pkey",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "transactions",
+                  null
+                ],
+                [
+                  4077,
+                  "virtualxid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_inventory_weight_in_grams",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "idx_inventory_weight_in_grams",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "inventory_pkey",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "inventory_pkey",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_storage_type",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products_pkey",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_product_type",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_sku_key",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_pkey",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses_pkey",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "transactions",
+                  null
+                ],
+                [
+                  4078,
+                  "virtualxid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  null
+                ],
+                [
+                  4078,
+                  "transactionid",
+                  "ShareLock",
+                  false,
+                  null,
+                  "4919"
+                ],
+                [
+                  4078,
+                  "tuple",
+                  "ExclusiveLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4077,
+                  "transactionid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  "4921"
+                ],
+                [
+                  4078,
+                  "transactionid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  "4920"
+                ]
+              ],
+              "connections": 7
+            },
+            {
+              "sample_ns": 124779930303500,
+              "activity": [
+                [
+                  4077,
+                  "active",
+                  "Lock",
+                  "tuple",
+                  [
+                    4078
+                  ],
+                  "2026-09-23 09:51:20.755075+00:00",
+                  "SELECT public.create_transaction($1::jsonb,$2::jsonb)"
+                ],
+                [
+                  4078,
+                  "active",
+                  "Lock",
+                  "transactionid",
+                  [
+                    4079
+                  ],
+                  "2026-09-23 09:51:20.755076+00:00",
+                  "SELECT public.create_transaction($1::jsonb,$2::jsonb)"
+                ]
+              ],
+              "locks": [
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_inventory_weight_in_grams",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "idx_inventory_weight_in_grams",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "inventory_pkey",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "inventory_pkey",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_storage_type",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products_pkey",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_product_type",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_sku_key",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_pkey",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses_pkey",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options",
+                  null
+                ],
+                [
+                  4077,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "transactions",
+                  null
+                ],
+                [
+                  4077,
+                  "virtualxid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_inventory_weight_in_grams",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "idx_inventory_weight_in_grams",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "inventory_pkey",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "inventory_pkey",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_storage_type",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products_pkey",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_product_type",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_sku_key",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_pkey",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses_pkey",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options",
+                  null
+                ],
+                [
+                  4078,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "transactions",
+                  null
+                ],
+                [
+                  4078,
+                  "virtualxid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  null
+                ],
+                [
+                  4077,
+                  "tuple",
+                  "ExclusiveLock",
+                  false,
+                  "inventory",
+                  null
+                ],
+                [
+                  4078,
+                  "transactionid",
+                  "ShareLock",
+                  false,
+                  null,
+                  "4919"
+                ],
+                [
+                  4078,
+                  "tuple",
+                  "ExclusiveLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4077,
+                  "transactionid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  "4921"
+                ],
+                [
+                  4078,
+                  "transactionid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  "4920"
+                ]
+              ],
+              "connections": 7
+            }
+          ],
+          "observation_errors": [],
+          "lock_query_observed": true,
+          "lock_observed": true,
+          "connection_observed": true
+        },
+        "oracle": {
+          "failures": [],
+          "final": [
+            [
+              "7d540df7-e076-4a40-892e-ad8f8c37cf98",
+              "1",
+              null
+            ],
+            [
+              "d47a5bc9-8cc9-41f2-aa8d-a4b86220b52b",
+              "1",
+              null
+            ],
+            [
+              "21a3ab50-6a96-4c2e-957e-4d1831bca578",
+              "1",
+              null
+            ],
+            [
+              "5152369a-b430-474a-a9a9-07e871ac74e3",
+              "1",
+              null
+            ],
+            [
+              "dc39ddcd-b62c-4bdd-b400-fce8be9afd95",
+              "1",
+              null
+            ],
+            [
+              "f3168d8e-47eb-4926-b5da-e84103bd049d",
+              "1",
+              null
+            ],
+            [
+              "e51f8071-9d00-4bbb-884c-088586cb566d",
+              "1",
+              null
+            ],
+            [
+              "edd14326-b5c6-47c9-a913-b134399fec80",
+              "1",
+              null
+            ],
+            [
+              "2fa0cc52-3328-436a-bab0-2305bf593d77",
+              "1",
+              null
+            ],
+            [
+              "1210d0e7-e09e-40a4-8b8f-18f9a6760bbe",
+              "0",
+              null
+            ]
+          ],
+          "expected_from_committed_ledger": {
+            "7d540df7-e076-4a40-892e-ad8f8c37cf98": "1",
+            "d47a5bc9-8cc9-41f2-aa8d-a4b86220b52b": "1",
+            "21a3ab50-6a96-4c2e-957e-4d1831bca578": "1",
+            "5152369a-b430-474a-a9a9-07e871ac74e3": "1",
+            "dc39ddcd-b62c-4bdd-b400-fce8be9afd95": "1",
+            "1210d0e7-e09e-40a4-8b8f-18f9a6760bbe": "0",
+            "f3168d8e-47eb-4926-b5da-e84103bd049d": "1",
+            "e51f8071-9d00-4bbb-884c-088586cb566d": "1",
+            "edd14326-b5c6-47c9-a913-b134399fec80": "1",
+            "2fa0cc52-3328-436a-bab0-2305bf593d77": "1"
+          },
+          "ledger_rows": [
+            [
+              "98395f48-2885-417a-b9f7-b309d36b7fe7",
+              "inventory-p0-c56e9b7c-88fe-4d35-9648-68e44efa2f2a:1",
+              "out",
+              "1210d0e7-e09e-40a4-8b8f-18f9a6760bbe",
+              "1"
+            ]
+          ],
+          "reconciliation": [
+            {
+              "operation_id": "inventory-p0-c56e9b7c-88fe-4d35-9648-68e44efa2f2a:0",
+              "commit_state": "not_committed",
+              "ledger": null
+            },
+            {
+              "operation_id": "inventory-p0-c56e9b7c-88fe-4d35-9648-68e44efa2f2a:1",
+              "commit_state": "committed",
+              "ledger": {
+                "transaction_ids": [
+                  "98395f48-2885-417a-b9f7-b309d36b7fe7"
+                ],
+                "items": [
+                  [
+                    "1210d0e7-e09e-40a4-8b8f-18f9a6760bbe",
+                    "1",
+                    "out"
+                  ]
+                ]
+              }
+            }
+          ]
+        },
+        "n": 2,
+        "failures": [],
+        "coverage_failures": [],
+        "retries": 0,
+        "repeat": 1,
+        "pre_release_gate_proof": [
+          124779930303500
+        ]
+      },
+      {
+        "case": "C2",
+        "unit": "g",
+        "fixture": {
+          "user": "5350b2ff-61c6-441f-8f8d-af25a3e514b9",
+          "warehouse": "754e1315-289d-4a08-b485-36ad79eb90ff",
+          "options": [
+            "511ad564-554e-45c1-95ff-71ffa50c3347",
+            "ae995510-8eaa-4f52-95a6-d54215d583c6",
+            "f7fe2ca4-40d3-4775-adfe-e5e41d3cd2a7",
+            "880e4f11-8c3f-4f06-9776-7afe136442ff",
+            "a5f7c924-75ec-4a66-8afc-f040402d27ef",
+            "6aa134ac-0948-4971-8942-8f965c13606e",
+            "5aedbc38-6eac-4a85-877c-a2deda5726cd",
+            "2f17f46e-5147-406d-a385-7bb851cdf67b",
+            "74253da5-adc1-43b4-99a1-4eba8325b5ec",
+            "b48d60bd-9b17-46cf-bd56-188a6d74ae6e"
+          ],
+          "material": true,
+          "initial": 1
+        },
+        "operations": [
+          {
+            "operation_id": "inventory-p0-48381b77-be96-4d49-a778-9f3483486f46:0",
+            "attempt_id": "3bd7fcb6-0843-4579-9c0f-e1e8b1eac8bc",
+            "retry": 0,
+            "header": {
+              "type": "out",
+              "user_id": "5350b2ff-61c6-441f-8f8d-af25a3e514b9",
+              "warehouse_id": "754e1315-289d-4a08-b485-36ad79eb90ff",
+              "memo": "inventory-p0-48381b77-be96-4d49-a778-9f3483486f46:0"
+            },
+            "items": [
+              {
+                "option_id": "2f17f46e-5147-406d-a385-7bb851cdf67b",
+                "quantity": 1,
+                "product_type": "material"
+              }
+            ]
+          },
+          {
+            "operation_id": "inventory-p0-48381b77-be96-4d49-a778-9f3483486f46:1",
+            "attempt_id": "6ba613de-d314-4391-b3f6-d26df0dacaba",
+            "retry": 0,
+            "header": {
+              "type": "out",
+              "user_id": "5350b2ff-61c6-441f-8f8d-af25a3e514b9",
+              "warehouse_id": "754e1315-289d-4a08-b485-36ad79eb90ff",
+              "memo": "inventory-p0-48381b77-be96-4d49-a778-9f3483486f46:1"
+            },
+            "items": [
+              {
+                "option_id": "2f17f46e-5147-406d-a385-7bb851cdf67b",
+                "quantity": 1,
+                "product_type": "material"
+              }
+            ]
+          }
+        ],
+        "requests": [
+          {
+            "operation_id": "inventory-p0-48381b77-be96-4d49-a778-9f3483486f46:0",
+            "attempt_id": "3bd7fcb6-0843-4579-9c0f-e1e8b1eac8bc",
+            "retry": 0,
+            "backend_pid": 4080,
+            "ready_ns": 124779979534375,
+            "before": "unknown",
+            "after": "unknown",
+            "start_ns": 124779979721958,
+            "response": {
+              "success": true,
+              "transaction_id": "befdd88a-9fd4-4218-bca0-ca32ac3a50e6"
+            },
+            "status": "success",
+            "end_ns": 124779988317666,
+            "query_latency_ms": 8.595708
+          },
+          {
+            "operation_id": "inventory-p0-48381b77-be96-4d49-a778-9f3483486f46:1",
+            "attempt_id": "6ba613de-d314-4391-b3f6-d26df0dacaba",
+            "retry": 0,
+            "backend_pid": 4081,
+            "ready_ns": 124779979594583,
+            "before": "unknown",
+            "after": "unknown",
+            "start_ns": 124779979672541,
+            "status": "error",
+            "sqlstate": "P0001",
+            "error": "INSUFFICIENT_STOCK\nCONTEXT:  PL/pgSQL function create_transaction(jsonb,jsonb) line 117 at RAISE",
+            "end_ns": 124779988488541,
+            "query_latency_ms": 8.816
+          }
+        ],
+        "observation": {
+          "barrier_parties": 3,
+          "release_ns": 124779979604291,
+          "worker_pids": [
+            4080,
+            4081
+          ],
+          "gate": {
+            "pid": 4082,
+            "inventory_ids": [
+              [
+                "04337415-b4c5-4ec8-a1f8-dd81ab309904"
+              ],
+              [
+                "3b8c0adc-b9a4-4182-9b23-b78aea826779"
+              ],
+              [
+                "f6a14e3a-8215-4fd2-b9b3-ad02521adbd4"
+              ],
+              [
+                "61907e49-a9b9-44f4-a7c3-e5ba2d9148ad"
+              ],
+              [
+                "62812f07-6bf8-41c8-bb52-3690d14402b7"
+              ],
+              [
+                "70f87b1c-a46a-4d08-86c6-ae2012000096"
+              ],
+              [
+                "937732da-6a2d-404d-a9fc-9a14d51b5fa7"
+              ],
+              [
+                "76e035f1-4759-473e-b0f5-df0bd7594927"
+              ],
+              [
+                "316272bb-3989-49d9-a8ff-40ec8d9c1ffc"
+              ],
+              [
+                "c9d0a95f-8b2b-489d-aad1-078b5e559885"
+              ]
+            ],
+            "released_ns": 124779987909333,
+            "transaction_id": 4946
+          },
+          "client_intervals_overlap": true,
+          "actual_rpc_overlap_observed": true,
+          "both_lock_wait_observed": true,
+          "select_stage_overlap": "not_measured; row-lock-gate waits support inference, not SELECT timestamps",
+          "sampling_interval_target_ms": 2,
+          "samples": [
+            {
+              "sample_ns": 124779983396041,
+              "activity": [
+                [
+                  4080,
+                  "active",
+                  null,
+                  null,
+                  [],
+                  "2026-09-23 09:51:20.812344+00:00",
+                  "SELECT public.create_transaction($1::jsonb,$2::jsonb)"
+                ],
+                [
+                  4081,
+                  "active",
+                  null,
+                  null,
+                  [],
+                  "2026-09-23 09:51:20.812131+00:00",
+                  "SELECT public.create_transaction($1::jsonb,$2::jsonb)"
+                ]
+              ],
+              "locks": [
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_inventory_weight_in_grams",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "inventory_pkey",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_storage_type",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products_pkey",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_product_type",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_sku_key",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_pkey",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses_pkey",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "transactions",
+                  null
+                ],
+                [
+                  4080,
+                  "virtualxid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "pg_cast_source_target_index",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "pg_cast",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_storage_type",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products_pkey",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_product_type",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_sku_key",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_pkey",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses_pkey",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "transactions",
+                  null
+                ],
+                [
+                  4081,
+                  "virtualxid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  null
+                ],
+                [
+                  4081,
+                  "transactionid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  "4948"
+                ],
+                [
+                  4080,
+                  "transactionid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  "4947"
+                ]
+              ],
+              "connections": 7
+            },
+            {
+              "sample_ns": 124779987419583,
+              "activity": [
+                [
+                  4080,
+                  "active",
+                  "Lock",
+                  "transactionid",
+                  [
+                    4082
+                  ],
+                  "2026-09-23 09:51:20.812344+00:00",
+                  "SELECT public.create_transaction($1::jsonb,$2::jsonb)"
+                ],
+                [
+                  4081,
+                  "active",
+                  "Lock",
+                  "tuple",
+                  [
+                    4080
+                  ],
+                  "2026-09-23 09:51:20.812740+00:00",
+                  "SELECT public.create_transaction($1::jsonb,$2::jsonb)"
+                ]
+              ],
+              "locks": [
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_inventory_weight_in_grams",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "idx_inventory_weight_in_grams",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "inventory_pkey",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "inventory_pkey",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_storage_type",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products_pkey",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_product_type",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_sku_key",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_pkey",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses_pkey",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options",
+                  null
+                ],
+                [
+                  4080,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "transactions",
+                  null
+                ],
+                [
+                  4080,
+                  "virtualxid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_inventory_weight_in_grams",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "idx_inventory_weight_in_grams",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "inventory_pkey",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "inventory_pkey",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_storage_type",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products_pkey",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "idx_products_product_type",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_sku_key",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options_pkey",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "products",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses_pkey",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "RowShareLock",
+                  true,
+                  "warehouses",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "AccessShareLock",
+                  true,
+                  "product_options",
+                  null
+                ],
+                [
+                  4081,
+                  "relation",
+                  "RowExclusiveLock",
+                  true,
+                  "transactions",
+                  null
+                ],
+                [
+                  4081,
+                  "virtualxid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  null
+                ],
+                [
+                  4081,
+                  "transactionid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  "4948"
+                ],
+                [
+                  4081,
+                  "tuple",
+                  "ExclusiveLock",
+                  false,
+                  "inventory",
+                  null
+                ],
+                [
+                  4080,
+                  "transactionid",
+                  "ShareLock",
+                  false,
+                  null,
+                  "4946"
+                ],
+                [
+                  4080,
+                  "tuple",
+                  "ExclusiveLock",
+                  true,
+                  "inventory",
+                  null
+                ],
+                [
+                  4080,
+                  "transactionid",
+                  "ExclusiveLock",
+                  true,
+                  null,
+                  "4947"
+                ]
+              ],
+              "connections": 7
+            }
+          ],
+          "observation_errors": [],
+          "lock_query_observed": true,
+          "lock_observed": true,
+          "connection_observed": true
+        },
+        "oracle": {
+          "failures": [],
+          "final": [
+            [
+              "511ad564-554e-45c1-95ff-71ffa50c3347",
+              null,
+              1
+            ],
+            [
+              "ae995510-8eaa-4f52-95a6-d54215d583c6",
+              null,
+              1
+            ],
+            [
+              "f7fe2ca4-40d3-4775-adfe-e5e41d3cd2a7",
+              null,
+              1
+            ],
+            [
+              "880e4f11-8c3f-4f06-9776-7afe136442ff",
+              null,
+              1
+            ],
+            [
+              "a5f7c924-75ec-4a66-8afc-f040402d27ef",
+              null,
+              1
+            ],
+            [
+              "6aa134ac-0948-4971-8942-8f965c13606e",
+              null,
+              1
+            ],
+            [
+              "5aedbc38-6eac-4a85-877c-a2deda5726cd",
+              null,
+              1
+            ],
+            [
+              "74253da5-adc1-43b4-99a1-4eba8325b5ec",
+              null,
+              1
+            ],
+            [
+              "b48d60bd-9b17-46cf-bd56-188a6d74ae6e",
+              null,
+              1
+            ],
+            [
+              "2f17f46e-5147-406d-a385-7bb851cdf67b",
+              null,
+              0
+            ]
+          ],
+          "expected_from_committed_ledger": {
+            "511ad564-554e-45c1-95ff-71ffa50c3347": "1",
+            "ae995510-8eaa-4f52-95a6-d54215d583c6": "1",
+            "f7fe2ca4-40d3-4775-adfe-e5e41d3cd2a7": "1",
+            "880e4f11-8c3f-4f06-9776-7afe136442ff": "1",
+            "a5f7c924-75ec-4a66-8afc-f040402d27ef": "1",
+            "6aa134ac-0948-4971-8942-8f965c13606e": "1",
+            "5aedbc38-6eac-4a85-877c-a2deda5726cd": "1",
+            "2f17f46e-5147-406d-a385-7bb851cdf67b": "0",
+            "74253da5-adc1-43b4-99a1-4eba8325b5ec": "1",
+            "b48d60bd-9b17-46cf-bd56-188a6d74ae6e": "1"
+          },
+          "ledger_rows": [
+            [
+              "befdd88a-9fd4-4218-bca0-ca32ac3a50e6",
+              "inventory-p0-48381b77-be96-4d49-a778-9f3483486f46:0",
+              "out",
+              "2f17f46e-5147-406d-a385-7bb851cdf67b",
+              "1"
+            ]
+          ],
+          "reconciliation": [
+            {
+              "operation_id": "inventory-p0-48381b77-be96-4d49-a778-9f3483486f46:0",
+              "commit_state": "committed",
+              "ledger": {
+                "transaction_ids": [
+                  "befdd88a-9fd4-4218-bca0-ca32ac3a50e6"
+                ],
+                "items": [
+                  [
+                    "2f17f46e-5147-406d-a385-7bb851cdf67b",
+                    "1",
+                    "out"
+                  ]
+                ]
+              }
+            },
+            {
+              "operation_id": "inventory-p0-48381b77-be96-4d49-a778-9f3483486f46:1",
+              "commit_state": "not_committed",
+              "ledger": null
+            }
+          ]
+        },
+        "n": 2,
+        "failures": [],
+        "coverage_failures": [],
+        "retries": 0,
+        "repeat": 1,
+        "pre_release_gate_proof": [
+          124779987419583
+        ]
+      }
+    ]
+  }
+}

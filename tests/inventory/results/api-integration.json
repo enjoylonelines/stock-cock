@@ -1,0 +1,108 @@
+{
+  "runId": "461a74db-d922-4816-865e-ce5a5cfbd548",
+  "endpoint": "http://127.0.0.1:55440",
+  "boundary": "in-process route + real Supabase JS/PostgREST/PG; test factory auth; mocked notification",
+  "observations": [
+    {
+      "case": "success",
+      "response": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "transaction_id": "c5a79c94-3994-4af6-b89e-b8945b74f6b2"
+        }
+      },
+      "inventory": [
+        {
+          "product_option_id": "5f6a6550-f15c-4adf-bba9-a32c2b4fcd12",
+          "quantity": 3,
+          "weight_in_grams": null
+        }
+      ],
+      "transactions": [
+        {
+          "id": "c5a79c94-3994-4af6-b89e-b8945b74f6b2",
+          "memo": "api-success-461a74db-d922-4816-865e-ce5a5cfbd548",
+          "transaction_items": [
+            {
+              "quantity": 2,
+              "product_option_id": "5f6a6550-f15c-4adf-bba9-a32c2b4fcd12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "case": "insufficient_after_committed_outbound",
+      "first": {
+        "status": 200,
+        "body": {
+          "success": true,
+          "transaction_id": "eb726650-fc9b-45c0-8f5e-689bd40c19c1"
+        }
+      },
+      "firstTransactions": [
+        {
+          "id": "eb726650-fc9b-45c0-8f5e-689bd40c19c1",
+          "memo": "api-insufficient-461a74db-d922-4816-865e-ce5a5cfbd548-first",
+          "transaction_items": [
+            {
+              "quantity": 1,
+              "product_option_id": "8f36f365-7ebd-43c9-8255-983c919b1f3b"
+            }
+          ]
+        }
+      ],
+      "response": {
+        "status": 409,
+        "body": {
+          "error": "출고 가능한 재고가 부족합니다.",
+          "code": "INSUFFICIENT_STOCK",
+          "statusCode": 409
+        }
+      },
+      "before": [
+        {
+          "product_option_id": "8f36f365-7ebd-43c9-8255-983c919b1f3b",
+          "quantity": 0,
+          "weight_in_grams": null
+        }
+      ],
+      "inventory": [
+        {
+          "product_option_id": "8f36f365-7ebd-43c9-8255-983c919b1f3b",
+          "quantity": 0,
+          "weight_in_grams": null
+        }
+      ],
+      "transactions": []
+    },
+    {
+      "case": "header_fk_failure",
+      "response": {
+        "status": 500,
+        "body": {
+          "error": "insert or update on table \"transactions\" violates foreign key constraint \"transactions_supplier_id_fkey\"",
+          "code": "23503",
+          "statusCode": 500,
+          "detail": "Key (supplier_id)=(b17ea700-ca4d-4460-82f0-6aa436993b38) is not present in table \"suppliers\"."
+        }
+      },
+      "before": [
+        {
+          "product_option_id": "ac8639b3-1839-4b24-a4bc-7c4b97115ca4",
+          "quantity": 1,
+          "weight_in_grams": null
+        }
+      ],
+      "inventory": [
+        {
+          "product_option_id": "ac8639b3-1839-4b24-a4bc-7c4b97115ca4",
+          "quantity": 1,
+          "weight_in_grams": null
+        }
+      ],
+      "transactions": []
+    }
+  ]
+}
