@@ -72,6 +72,17 @@ Ontology 작업과 같은 호스트를 사용했다. 별도 컨테이너/포트�
 
 ## 남은 한계와 종료
 
+### 2026-09-24 Product DoD 회귀
+
+기존 `tests/inventory/api.integration.test.ts`를 전용 PostgREST/PG 환경에서 다시 실행했다. 3건 모두 통과했다.
+
+- 정상 입고: HTTP 200, `transaction_id`와 transaction item 일치, 재고 1→3, 알림 1회
+- 부족 출고: HTTP 409 `INSUFFICIENT_STOCK`, 실패 거래 원장 0건, 재고 snapshot 불변, 알림 없음
+- 공급자 FK 오류: HTTP 500/`23503`, 재고·거래 원장 불변, 알림 없음
+
+원시 결과: `tests/inventory/results/api-integration-9b776d3e-4ede-4677-b108-08350d5633c3.json`.
+이 결과는 in-process route handler + Supabase JS/PostgREST/PG 경로다. 실제 Next HTTP 서버, cookie session 인증, 운영 gateway까지 검증한 결과로 확대하지 않는다.
+
 이번 보장은 **기존 재고 행에 대한 입출고 RPC끼리**다.
 신규 행 경쟁, moves/adjustments/recalculate/직접 DML과의 경쟁, 운영 데이터 drift, 멱등성/응답 유실/자동 retry는 미해결이다.
 없는 행에 pair UNIQUE/upsert를 추가하거나 글로벌 CHECK를 도입하지 않았다.
