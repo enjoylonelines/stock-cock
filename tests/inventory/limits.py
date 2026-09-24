@@ -65,6 +65,30 @@ def hot_trial(admin, f, n):
             "inventory_quantity":str(qty),"ledger_count":ledger,"latency_ms":{"p50":statistics.median(lat) if lat else None,"p95":lat[min(len(lat)-1,max(0,int(len(lat)*.95)-1))] if lat else None,"max":max(lat) if lat else None},
             "results":results}
 
+def cross_writer_trial(admin, f):
+    """Deterministic stale absolute-writer interleaving against create_transaction."""
+    read_ready=threading.Event(); release=threading.Event(); outcome={}
+    option=f["options"][0]
+    def absolute_writer():
+        with h.connection("absolute-writer", True) as c:
+            c.execute("BEGIN")
+            old=c.execute("SELECT quantity FROM inventory WHERE product_option_id=%s AND warehouse_id=%s", (option,f["warehouse"])).fetchone()[0]
+            outcome["read_quantity"]=str(old); read_ready.set(); release.wait(timeout=10)
+            c.execute("UPDATE inventory SET quantity=%s WHERE product_option_id=%s AND warehouse_id=%s", (old+5,option,f["warehouse"]))
+            c.execute("COMMIT")
+    writer=threading.Thread(target=absolute_writer); writer.start(); read_ready.wait(timeout=10)
+    with h.connection("cross-rpc", True) as c:
+        op=operation(f,"cross-rpc")
+        try:
+            c.execute("SELECT public.create_transaction(%s::jsonb,%s::jsonb)", (Jsonb(op["header"]),Jsonb(op["items"]))).fetchone()
+            outcome["rpc_status"]="success"
+        except Exception as e:
+            outcome["rpc_status"]="error"; outcome["rpc_sqlstate"]=getattr(e,"sqlstate",None); outcome["rpc_error"]=str(e).splitlines()[0]
+    release.set(); writer.join(timeout=10)
+    final=admin.execute("SELECT quantity FROM inventory WHERE product_option_id=%s AND warehouse_id=%s", (option,f["warehouse"])).fetchone()[0]
+    ledger=admin.execute("SELECT coalesce(sum(i.quantity),0) FROM transactions t JOIN transaction_items i ON i.transaction_id=t.id WHERE t.to_warehouse_id=%s", (f["warehouse"],)).fetchone()[0]
+    return {"initial":"100","rpc_delta":"1","absolute_writer_delta":"5","rpc_status":outcome.get("rpc_status"),"rpc_sqlstate":outcome.get("rpc_sqlstate"),"rpc_error":outcome.get("rpc_error"),"final_quantity":str(final),"ledger_delta":str(ledger),"expected_quantity":"106","invariant_holds":str(final)=="106"}
+
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument("--output",required=True); args=ap.parse_args()
     out={}
@@ -81,6 +105,8 @@ def main():
         for n in (2,4,8):
             f=h.fixture(c,100,False)
             out["l1_hot_sku"].append(hot_trial(c,f,n))
+        f=h.fixture(c,100,False)
+        out["l1_cross_writer"] = cross_writer_trial(c,f)
     Path(args.output).write_text(json.dumps(out,ensure_ascii=False,indent=2)+"\n")
     print(json.dumps({"output":args.output,"l0":out["l0_duplicate_gate"]["status"],"hot":[(x["workers"],x["successes"],x["errors"],x["inventory_quantity"]) for x in out["l1_hot_sku"]]}))
 if __name__=="__main__": main()

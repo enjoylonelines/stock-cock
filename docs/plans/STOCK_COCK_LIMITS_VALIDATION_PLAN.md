@@ -80,9 +80,15 @@ commit 직후 응답을 버리는 fault injection을 넣어 현재 API에 idempo
 
 실제 Next HTTP/session/gateway와 운영 데이터 drift는 별도 환경에서 검증한다. 현재 in-process route와 stub auth 결과를 운영 보장으로 확대하지 않는다.
 
+### 교차 writer 결과
+
+실제 `moves`/조정 계열이 사용하는 absolute read→write 패턴을 재현했다. 초기100에서 RPC `+1`과 stale writer `+5`를 교차 실행하면 최종 재고는105, 기대값은106이 되어 원장과 snapshot이 불일치했다. RPC 자체는 성공했고 별도 writer의 transaction 원장은 없었다. 증거는 `tests/inventory/results/limits-p1-v9.json`이다.
+
+이는 현재 정책 migration의 실패가 아니라 **다른 writer가 advisory lock과 원자 증감을 우회하는 한계**다. 다른 writer를 같은 DB 함수 계약으로 통합하거나 전역 정합성을 포기한다는 정책 결정 없이는 자동 수정하지 않는다.
+
 ## 현재 판정
 
-L0 duplicate gate는 예상대로 중복 데이터에서 `P0001 INVENTORY_DUPLICATES_EXIST`로 중단됐고 unique index를 남기지 않았다. L1 2/4/8 workers는 모두 원장과 재고 합계가 일치했다. 다음 한계 검증은 다른 writer 식별 후 교차 경합으로 진행한다.
+L0 duplicate gate는 예상대로 중복 데이터에서 `P0001 INVENTORY_DUPLICATES_EXIST`로 중단됐고 unique index를 남기지 않았다. L1 2/4/8 workers는 모두 원장과 재고 합계가 일치했다. 교차 writer에서는 stale absolute update 반례가 재현됐다. 따라서 현재 RPC 범위의 검증은 종료하고, 다른 writer를 통합할지 여부를 별도 결정한다.
 
 ## 종료 조건
 
