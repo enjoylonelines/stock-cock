@@ -16,20 +16,22 @@
 | variant | inventory rows | transactions | ledger quantity | 판정 |
 |---|---:|---:|---:|---|
 | baseline | 2 | 2 | 20 | 중복 행 생성. 원장 합계와 재고 합계는 일치하지만 단일 행 invariant 미보장 |
-| selected | 2 | 2 | 20 | 기존 보강만으로 신규 행 경쟁은 해결되지 않음 |
+| selected | 2 | 2 | 20 | 기존 행 보강만으로는 신규 행 경쟁 미해결 |
 | advisory-lock test candidate | 1 | 2 | 20 | 두 원장은 보존하면서 한 행으로 합산 |
 
 증거: `tests/inventory/results/p1-new-row-v2.json`. 재현 러너: `tests/inventory/p1_new_row.py`.
 
-## 아직 사용자가 결정할 것
+## 결정 및 반영 상태
 
-1. 첫 입고 동시 요청은 한 재고 행에 합산하는가, 아니면 한 요청을 충돌로 거절하는가.
-2. 이미 중복 행이 존재하는 운영 데이터는 배포 전에 정리할 것인가, migration을 오류로 중단할 것인가.
-3. 조정/재계산 경로에서 음수 재고를 허용할 것인가.
+1. 첫 입고 동시 요청은 모두 커밋하고 한 재고 행에 합산한다.
+2. 기존 중복 행은 자동 정리하지 않고, 중복이 있으면 migration을 중단한다.
+3. 일반 입출고는 음수를 허용하지 않는다. 조정/재계산은 별도 writer 정책으로 남긴다.
+
+정책 구현: `20260924000000_enforce_inventory_pair_policy.sql`. 정책 적용 결과는 `tests/inventory/results/p1-new-row-policy.json`에 있다.
 
 ## 후속 규칙
 
-- 합산을 선택하면 pair unique invariant와 conflict-safe insert 또는 advisory lock 중 하나를 제품 migration 후보로 구현하고, 기존 27개 회귀 + P1.1 반복 실험을 다시 통과시킨다.
+- 합산 정책은 pair unique invariant와 advisory lock으로 제품 migration에 반영했고, 기존 회귀 + P1.1 재검증을 통과했다.
 - 거절을 선택하면 명시적 conflict SQLSTATE와 원장 rollback 계약을 정하고 같은 workload에서 한 건만 커밋되는지 검증한다.
 - 두 경우 모두 기존 중복 데이터 정책을 먼저 정하지 않으면 unique constraint를 제품에 적용하지 않는다.
 

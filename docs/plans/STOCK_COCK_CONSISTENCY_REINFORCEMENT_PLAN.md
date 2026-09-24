@@ -9,7 +9,7 @@
 
 ## 2026-09-24 현재 상태와 두 STOP
 
-현재 checkout은 `inventory-consistency-reinforcement`, HEAD `cb675b1`이며 검토 시작 시 clean이었다. `b763496`에 기존 행 보강, `cb675b1`에 신규 행 경쟁 실험이 있다. 아래 “미실행” 표현은 사전 계획의 기록이며 [실제 결과](../INVENTORY_CONSISTENCY_RESULTS.md)와 [P1.1 결과](STOCK_COCK_P1_1_NEW_ROW_EXPERIMENT.md)를 우선한다. 이번 검토에서는 DB/부하 시험을 다시 실행하지 않았다.
+현재 checkout은 `inventory-consistency-reinforcement`, HEAD `b47d798`이며 clean이다. `b763496`에 기존 행 보강, `cb675b1`에 신규 행 경쟁 실험, `b47d798`에 신규 행 정책 migration과 재검증이 있다. 아래 “미실행” 표현은 사전 계획의 기록이며 [실제 결과](../INVENTORY_CONSISTENCY_RESULTS.md)와 [P1.1 결과](STOCK_COCK_P1_1_NEW_ROW_EXPERIMENT.md)를 우선한다.
 
 | 평가축 | 실제 근거 / 부족한 증거 |
 |---|---|
@@ -29,7 +29,7 @@ Domain Reality는 현장 입출고를 수량과 거래 이력으로 함께 기�
 
 **Vertical evidence와 다음 최소 검증:** baseline C1/C2 → MVCC/동시 UPDATE와 SQLSTATE/영향 행 의미 → 원장=초기+commit 증감·부족 거래 효과0 invariant → A/B → B → count/g·충돌·batch rollback → 원시 latency/lock 관측과 정확도. 실제 p95/처리량 우위는 미측정이다. 추가 vertical 작업은 제품에 남은 **UI/API 업무 오류 경계**에만 한정한다: 기존 부족 출고 fixture → route409/code → UI 표시와 재조회 → 원장/잔량 불변 확인. 새 DB 전략을 적용하는 두 번째 개선 loop가 아니다.
 
-P1.1은 이미 “동시 첫 입고에서 selected도2행, advisory 시험후보는1행”을 보여줬다. 신규 행 합산/거절·기존 중복 데이터 처리·다른 writer 음수 정책이 결정되기 전에는 제품 migration에 반영하지 않는다. 이는 기존 행 Engineering STOP을 무효화하지 않는다.
+P1.1은 selected 2행과 advisory 후보 1행을 보여줬고, 합산·중복 migration 중단·일반 입출고 음수 금지 정책을 결정해 `20260924000000_enforce_inventory_pair_policy.sql`에 반영했다. 다른 writer 음수 정책은 별도 범위다.
 
 Non-goal: queue/cache/분산락 플랫폼·자동 retry·전체 writer 정비·운영 부하. Expansion Trigger는 실제 신규 행 업무 요구와 데이터 정책 결정, 또는 현 scoped invariant를 깨는 반례다. **다음 실제 코드 작업 1개는 기존 재고 부족409 fixture를 사용자 입력→오류 표시→재조회까지 잇는 통합 회귀를 추가하는 것**이다. 사용자의 업무 정책이 없는 신규 행 수정부터 시작하지 않는다.
 
@@ -44,7 +44,7 @@ Non-goal: queue/cache/분산락 플랫폼·자동 retry·전체 writer 정비·�
 
 **Specification 초안(다음 UI 경계):** Problem=부족 출고409가 사용자 안내·재조회까지 이어지는 증거 부족. Constraint=기존 행/RPC 전략 유지·자동 retry 없음. Invariant=거절의 헤더/품목/stock 효과0, UI가 실패를 성공으로 표시하지 않음. Acceptance=입력→409/code→안내→재조회에서 DB 원장/잔량 불변과 정상 대조 통과. Failure=성공 표시·부분 반영·자동 중복 제출 또는 기술 오류를 업무 거절로 오인.
 
-**핵심 코드/Defense:** `supabase/migrations/20260923000000_guard_inventory_transactions.sql`, 해당 API route의 SQLSTATE→409 변환, `tests/inventory/`의 oracle. 핵심 PostgreSQL 동작은 격리수준/동시 UPDATE·row lock·rollback의 현재 경로만 공식 문서와 기존 실험으로 확인한다. 신규 행 unique/upsert나 분산락으로 학습을 확대하지 않는다. AI/본인 작성 구분은 commit·작업 기록 없이 단정하지 않는다.
+**핵심 코드/Defense:** `supabase/migrations/20260923000000_guard_inventory_transactions.sql`, `20260924000000_enforce_inventory_pair_policy.sql`, 해당 API route의 SQLSTATE→409 변환, `tests/inventory/`의 oracle. 핵심 PostgreSQL 동작은 격리수준/동시 UPDATE·advisory lock·unique index·rollback으로 확인했다. AI/본인 작성 구분은 commit·작업 기록 없이 단정하지 않는다.
 
 **Prediction / 다음 코드 1개:** 기존 부족 출고 fixture의 UI409 통합 회귀. 실행 전에 요청→commit/rollback→응답→재조회 순서와 원장/잔량을 예상한다. 기존 DB 실패 결과를 새 blind 예측으로 소급하지 않는다. **기존 측정 범위의 구현·검증 STOP은 유지하되 새 Human Defense/숙지 gate는 미확인**이다. 재시험을 추가하는 대신 우선 기존 증거를 15분 설명하고 작은 변경의 영향을 예측한다. 절약할 UI/test 보일러플레이트·결과 집계 시간을 MVCC/원자 증감·전체 rollback 설명에 투자한다.
 
@@ -92,11 +92,11 @@ baseline은 해결 대안 수에 포함하지 않는다. 두 후보 모두 격�
 2. 기존 행의 입고는 quantity 또는 weight_in_grams를 DB 현재 값 기준으로 증감한다. 읽어 온 값으로 절대값을 덮어쓰는 경로를 제거한다.
 3. 출고는 “현재 잔량 >= 요청량” 조건을 변경문에 포함한다. 변경이 없으면 안정적인 재고 부족 오류를 발생시키며, 정상 반환으로 부분 거래를 commit하지 않는다. 없는 재고의 출고는 생성하지 않고 거절한다.
 4. 품목 처리 순서를 SKU/창고 기준으로 일관되게 정한다. 동일 요청 내 중복 SKU는 동일 단위 검증 후 합계로 처리하거나 명시적으로 거절하는 계약을 비교 전에 고정한다. 최소안은 중복 SKU 거절이며 기존 호출자가 중복을 보내는지 먼저 확인한다.
-5. 신규 행 입고는 기존 동작의 별도 미검증 경계다. 기존 행 보강에 편승해 unique/upsert나 데이터 정리까지 추가하지 않는다. 없는 행 분기를 기존 행과 구분하고 회귀 검사한다. 신규 행 동시 생성까지 안전하다는 주장은 하지 않는다.
+5. 신규 행 입고는 pair unique index와 pair별 advisory lock으로 직렬화한다. 기존 중복 데이터는 자동 정리하지 않고 migration을 중단한다. 이 보장은 `create_transaction` RPC에 한정하며 다른 writer까지 안전하다고 주장하지 않는다.
 6. API는 재고 부족을 식별 가능한 업무 오류(제안 HTTP409, code INSUFFICIENT_STOCK)로 변환한다. 입력 오류400, 기술 장애와 구분한다. 성공 응답은 DB commit 이후에만 발생한다.
 7. 기존 관련 테스트에서 정상 출고 음수를 허용하는 기대는 새 정책과 충돌하는지 확인한다. 관련 경로의 기대만 수정하고 전체 테스트 체계 정비로 확대하지 않는다.
 
-전역 음수 CHECK나 SKU/창고 unique는 이동/조정·기존 데이터에도 영향을 주므로 이번에 자동 도입하지 않는다. 필요한 것으로 판명되면 범위 변경/채택 보류 사유로 남긴다.
+전역 음수 CHECK는 이동/조정·기존 데이터에도 영향을 주므로 도입하지 않았다. SKU/창고 unique는 신규 행 정책 migration에 적용했지만, 적용 전 중복 진단과 정리 gate를 둔다.
 
 ## 재검증 설계
 
@@ -135,7 +135,7 @@ scope 내 실패를 숨기고 완료 처리하지 않으며, 두 번째 전략�
 clean 설치/기존 baseline→새 migration upgrade 양쪽에서 동일 함수와 관련 스키마를 확인한다. 원본 복구 SQL도 폐기 DB에서 검증하되 복구하면 알려진 기존 결함이 돌아온다는 점을 기록한다. 운영 배포는 이번 계획 밖이다.
 실제 Next.js→Supabase 경로에서 성공·부족·FK 오류 각1건의 응답과 DB 효과를 확인한다. 알림은 외부 전송하지 않도록 test adapter를 쓰고 변경점을 manifest에 남긴다.
 현재 알림 await는 commit 뒤에 있다. 알림/응답 실패를 거래 rollback으로 오인하지 않는다. 멱등성 키가 없으므로 timeout·deadlock·응답 유실 후 자동 재시도를 새로 추가하지 않는다.
-retry/idempotency, 신규 행 경쟁, 이동/조정 동시성은 알려진 미검증 범위로 별도 기록한다. 안전한 재시도까지 해결한 것으로 포장하지 않는다.
+retry/idempotency, 이동/조정/직접 DML 동시성, 운영 데이터 drift는 알려진 미검증 범위로 별도 기록한다. 안전한 재시도나 전역 정합성까지 해결한 것으로 포장하지 않는다.
 
 ## 산출물과 역할
 

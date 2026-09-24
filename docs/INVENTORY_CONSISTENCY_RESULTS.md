@@ -1,7 +1,7 @@
 # 재고관리 정합성 보강 결과
 
-2026-09-23 · 브랜치 `fix/inventory-transaction-consistency`
-상태: **기존 행 입출고 RPC 보강 구현·제한된 재검증 완료. 운영 배포 없음.**
+2026-09-24 · 브랜치 `inventory-consistency-reinforcement`
+상태: **기존 행 및 첫 입고 RPC 보강 구현·제한된 재검증 완료. 운영 배포 없음.**
 원본 baseline: `239eb461611729f34ebb9ae345b5054e0d3e0255`.
 계획: [보강 계획](plans/STOCK_COCK_CONSISTENCY_REINFORCEMENT_PLAN.md).
 재현: [시험 README](../tests/inventory/README.md), [원시 결과](../tests/inventory/results).
@@ -21,7 +21,7 @@ B를 선택했다. stale 절대값 계산을 제거하고 출고 조건을 변�
 - 새 migration `20260923000000_guard_inventory_transactions.sql`: 기존 행의 quantity/g를 현재 DB 값으로 증감하고 잔량 부족 시 예외로 거래 전체 rollback.
 - SKU UUID 순서로 품목 처리; 중복 SKU 요청 거절. DB 상품 유형(company/franchise/pb/material)을 기준으로 단위 확인, 완제품 소수 수량 보존.
 - g는 양의 정수 및 int 범위 검증. 기존 UI가 소수 g를 보내기도 하므로 이는 명시적 계약 강화다.
-- 없는 재고 출고 거절; 정상 신규 입고 유지. 신규 행 동시 생성 보호를 추가한 것은 아니다.
+- 없는 재고 출고 거절; 정상 신규 입고 유지. 정책 migration에서 첫 입고 경쟁도 pair별 단일 행으로 직렬화한다.
 - 오염된 재고(중복 행/음수/활성열 NULL/비활성 단위 잔량)는 조용히 보정하지 않고 오류 처리.
 - API: 재고 부족409/INSUFFICIENT_STOCK, 없는 재고409/INVENTORY_NOT_FOUND, SQL 입력 오류400. 기술 오류는 업무 거절로 분류하지 않고 자동 재시도도 추가하지 않음.
 - 성공 응답 형식/RPC 시그니처는 유지. 관련 route 회귀 및 Python DB 시험 도구 추가.
@@ -36,7 +36,7 @@ B를 선택했다. stale 절대값 계산을 제거하고 출고 조건을 변�
 | 입력/단위/헤더/rollback 회귀 | 새로운 계약 확인 대상 | 27case 실패0 |
 | route·관련 단위 테스트 | 과거 전체 통과 주장 없음 | 46pass·기존3skip |
 | 실제 SDK→PostgREST→DB | 해당 비교 미실행 | 3case pass |
-| migration | 원본13개 replay | clean14개·upgrade·복구/재적용 확인 |
+| migration | 원본13개 replay | clean15개·upgrade·복구/재적용 확인 |
 | TypeScript | — | tsc --noEmit 통과 |
 
 각 항목은 목적이 달라 단순 합산 실패율을 만들지 않는다. 개별 trial은2요청이며 stress/포화점 탐색은 없다.
@@ -56,7 +56,7 @@ SQL은 예상 P0003을 반환했고 전후 원시 snapshot은 동일했다. 검�
 ## 환경·migration·API 경계
 
 고정 test DB localhost55439, PG17.11/READ COMMITTED, CPU1/512MiB/max connections12.
-실제13개 migration과 pg_cron1.6을 설치했고 cron 실행은 비활성화했다.
+실제15개 migration과 pg_cron1.6을 설치했고 cron 실행은 비활성화했다.
 auth.users/auth.uid/storage.objects는 stub이다. 운영 RLS/세션 인증·스토리지 구현과 동등하지 않다.
 원본→신규 함수 upgrade는 기존 재고 데이터 보존, 원본 함수 복구 후 재적용 동일성, 빈 스키마에서14개 전체 설치 동일성을 확인했다.
 clean 설치 후 count C0/C2 및 g C2 smoke도 통과했다. 복구 SQL을 운영에 적용한 것은 아니며 원본 복구는 알려진 결함을 되돌린다.
@@ -89,9 +89,9 @@ Ontology 작업과 같은 호스트를 사용했다. 별도 컨테이너/포트�
 
 P1.1 결과는 baseline 2행, selected 2행, policy 1행·2건 원장·최종20으로 확인됐다. clean replay와 upgrade/restore/reapply 검증은 `tests/inventory/results/migration-verify-p1-v11.json`, 정책 P1.1 결과는 `tests/inventory/results/p1-new-row-policy.json`에 보존했다.
 
-이번 보장은 **기존 재고 행에 대한 입출고 RPC끼리**다.
-신규 행 경쟁, moves/adjustments/recalculate/직접 DML과의 경쟁, 운영 데이터 drift, 멱등성/응답 유실/자동 retry는 미해결이다.
-없는 행에 pair UNIQUE/upsert를 추가하거나 글로벌 CHECK를 도입하지 않았다.
+이번 보장은 **`create_transaction` RPC를 통한 기존 행 입출고와 첫 입고 경쟁**이다.
+`moves`/`adjustments`/`recalculate`/직접 DML과의 경쟁, 운영 데이터 drift, 멱등성/응답 유실/자동 retry는 미해결이다.
+pair unique index는 추가했지만 전역 음수 CHECK나 다른 writer의 정합성 보장은 추가하지 않았다.
 기존 데이터의 음수/중복/단위 오염을 임의 정리하지 않는다. 운영 적용 전 데이터·권한·실제 API 경로 확인은 별도 gate다.
 REST API 전체/운영배포 준비까지 무조건 완료한 것으로 해석하지 않는다.
 

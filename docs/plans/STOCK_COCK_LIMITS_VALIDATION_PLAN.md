@@ -1,0 +1,83 @@
+# STOCK_COCK 한계 검증 계획
+
+작성일: 2026-09-24  
+기준 브랜치: `inventory-consistency-reinforcement` @ `b47d798`
+
+현재 정책 migration은 `create_transaction` RPC에 대해 다음을 보장한다.
+
+- 같은 SKU·창고의 첫 입고 요청은 모두 커밋하고 한 inventory 행에 합산한다.
+- 기존 중복 행이 있으면 자동 정리하지 않고 migration을 중단한다.
+- 일반 입출고는 음수 재고를 허용하지 않는다.
+
+이제 검증할 것은 이 정책의 확장이 아니라 **현재 보장의 한계**다.
+
+## 우선순위
+
+### L0 — migration 데이터 gate
+
+중복 inventory fixture를 만든 뒤 정책 migration이 명시적 오류로 중단되는지 확인한다.
+
+완료 기준:
+
+- 중복 행을 조용히 합치지 않음
+- unique index가 부분적으로 남지 않음
+- 정리된 DB에서는 clean replay가 통과함
+
+### L1 — hot SKU 경합 한계
+
+동일 SKU·창고에 대해 worker 수를 2, 8, 32, 64로 늘려 기존 행 입출고와 첫 입고를 각각 실행한다.
+
+측정:
+
+- 성공·업무 거절·기술 오류·unknown 건수
+- 정합성 실패와 원장 불일치
+- p50/p95/p99 RPC latency
+- advisory lock wait와 transaction wait
+- connection pool 고갈, timeout, deadlock
+- 첫 입고 후 inventory 행 수와 원장 합계
+
+판정:
+
+- 정합성 실패 1건이면 correctness 실패
+- timeout/deadlock은 성공이나 업무 거절로 집계하지 않음
+- p95/TPS는 이 workload와 자원 조건 안에서만 보고
+- 특정 worker 수에서 포화가 발생하면 그 지점을 현재 한계로 기록하고 queue 도입을 자동 결정하지 않음
+
+### L1 — 다른 writer 경계
+
+실제 저장소에서 `moves`, `adjustments`, `recalculate`, 직접 inventory DML 경로를 식별한 뒤, 존재하는 writer만 대상으로 동시 실행한다.
+
+검증 질문:
+
+- `create_transaction`의 unique/advisory 정책을 우회하는 writer가 있는가
+- 같은 SKU·창고를 절대값으로 덮어쓰는 writer가 있는가
+- 거래 원장 없이 재고만 변경되는 경로가 있는가
+- 전역 invariant를 주장하려면 어떤 writer를 함께 보강해야 하는가
+
+writer가 없거나 호출 경로가 확인되지 않으면 구현하지 않고 “미확인”으로 남긴다.
+
+### L2 — 응답 유실과 retry
+
+commit 직후 응답을 버리는 fault injection을 넣어 현재 API에 idempotency key가 없다는 사실을 측정한다.
+
+완료 기준:
+
+- 중복 거래가 발생할 수 있는 정확한 경계와 조건을 기록
+- 자동 retry를 추가하지 않음
+- 재시도 정책이 필요할 때 필요한 operation/attempt key와 unique 범위를 제안
+
+### L2 — 운영 경계
+
+실제 Next HTTP/session/gateway와 운영 데이터 drift는 별도 환경에서 검증한다. 현재 in-process route와 stub auth 결과를 운영 보장으로 확대하지 않는다.
+
+## 종료 조건
+
+L0을 통과하고 L1에서 정합성 반례와 포화 지점을 기록하면 이번 한계 검증 사이클을 종료한다. L2는 실제 배포나 retry 요구가 발생할 때 별도 사이클로 시작한다.
+
+이번 사이클에서 자동 도입하지 않는 것:
+
+- Kafka/Redis/queue
+- 분산 lock 서비스
+- 전역 CHECK
+- 자동 retry/idempotency
+- 다른 writer의 전면 재작성
