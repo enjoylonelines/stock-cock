@@ -74,11 +74,42 @@ execution, rollback, lock ordering, or ledger reconciliation in PostgreSQL.
 
 ## Live environment and raw evidence
 
-The existing isolated environment is still unavailable: `docker-compose` cannot
-connect to `unix:///Users/hb/.colima/default/docker.sock`, and
-`tests/inventory/.venv/bin/python` is absent. No container, venv, fixture,
-migration application, production write, or external call was made. No new raw
-DB evidence exists.
+The disposable compose environment was restored on 2026-09-24 and remained
+guarded at `127.0.0.1:55439/inventory_p0_test`. Setup replayed 15 migrations
+on PostgreSQL 17.11 with `READ COMMITTED` and
+`cron.launch_active_jobs=off`; raw manifest:
+`tests/inventory/results/setup-ledgered-live-20260924.json`.
+
+The new focused runner
+`tests/inventory/ledgered_move.py` executed one fixed three-case workload
+against `create_inventory_move(jsonb,jsonb)`, which is a SECURITY DEFINER
+function with `search_path=public`:
+
+1. Two concurrent 60-unit moves from the same 100-unit source were released
+   from the same advisory-lock gate. Both waits were observed; one request
+   committed and one returned `P0001 / INSUFFICIENT_STOCK`. The only
+   persisted move had one header/item, source=40 and destination=60, matching
+   the committed ledger.
+2. A single 11-unit move from a 10-unit source returned
+   `P0001 / INSUFFICIENT_STOCK`; before/after inventory and ledger snapshots
+   were equal.
+3. A test-only foreign-key trigger failed at `transaction_items` insertion
+   after the move function had reached its inventory work. It returned
+   `23503`; before/after inventory and ledger snapshots were equal.
+
+The authoritative raw result is
+`tests/inventory/results/ledgered-move-live-20260924-v3.json`. A first raw
+attempt, `ledgered-move-live-20260924-v2.json`, retained the same database
+outcome but miscompared UUID-sorted rows with fixed source/target order; it is
+a runner-oracle defect, not a product failure. The corrected runner was
+clean-replayed before the v3 execution. Clean replay/upgrade restoration also
+passed with 17 migrations:
+`tests/inventory/results/migration-verify-ledgered-live-20260924.json`.
+
+This establishes only the fixed direct-SQL workload above. It does not establish
+PostgREST/HTTP behavior, RLS grants, retry/idempotency or response-loss policy,
+new-row destination races, sustained load, production data compatibility, or
+server-atomic adjustment-ledger coupling.
 
 ## Limits and stop condition
 

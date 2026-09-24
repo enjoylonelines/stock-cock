@@ -1,0 +1,75 @@
+{
+  "migrations": [
+    {
+      "file": "20260123015831_current_schema.sql",
+      "sha256": "ad9158e6a9f56696edf421e623814dfbcef3c52e38d4ccede79ac203a1a3796c"
+    },
+    {
+      "file": "20260123020355_remove_prices_and_add_material_support.sql",
+      "sha256": "4546da152161f67366f00e6e545e1ad9d2ecf7e3bc68c0939690f2407ee6f277"
+    },
+    {
+      "file": "20260128113606_add_weight_in_grams.sql",
+      "sha256": "9a5d00026d4c6a1105e846a6364bdd6bbcaf9a7b11194fc4a6632669b3450b52"
+    },
+    {
+      "file": "20260128162849_fix_material_weight_data.sql",
+      "sha256": "84bfcdd5ba687b6a456a3500268f90b8a7e08334bdd8ac3bf3f0be3e21fef9ad"
+    },
+    {
+      "file": "20260128163300_fix_material_weight_data_v2.sql",
+      "sha256": "e20afeedb459af2612fa2210e6be938bc4dff83f7f3dffcd3e6ba840a06565ce"
+    },
+    {
+      "file": "20260129100000_cleanup_suppliers.sql",
+      "sha256": "a117a27929ea96c21a61d2865120292f670d35ce868fd60ab1d32f478c7c4600"
+    },
+    {
+      "file": "20260130162623_remove_unit_price_from_transaction_items.sql",
+      "sha256": "c6552a72ba4434107e8c78622d48f20b1d4d459dc5f88739f29dccbf126596be"
+    },
+    {
+      "file": "20260130184355_add_user_image_url_to_transaction_history_view.sql",
+      "sha256": "b67e77857012e97687595d33e33acc5e49d6c3259d41b7c0fb86402025256545"
+    },
+    {
+      "file": "20260131100000_remove_inventory_batches_and_add_create_transaction_rpc.sql",
+      "sha256": "970ada652f99cc5eca196c870d7fd4c99e8b9b42b3a3ed94a2dc0a552f8fe0d4"
+    },
+    {
+      "file": "20260131110000_fix_create_transaction_rpc_signature.sql",
+      "sha256": "9a6992f19db2f1c687e8467fe366aa36183d37d44320f1eb1a09923d41a9a333"
+    },
+    {
+      "file": "20260131120000_drop_create_transaction_jsonb_array_overload.sql",
+      "sha256": "346b94690afae40992497bd13a9b0b28cd272e107c242758c885b4f7e6a05981"
+    },
+    {
+      "file": "20260211000000_user_activity_read_and_prune.sql",
+      "sha256": "0a658115a4f3f37193ebbd3f825315cd65fb32190a90ed1c97336e46705a6fb7"
+    },
+    {
+      "file": "20260211000001_prune_old_transactions_cron.sql",
+      "sha256": "e5cc3dfda17362ffba2669e1136a1dcbb3c7d8ea9da17039d6ca2ccd833dc033"
+    },
+    {
+      "file": "20260924010000_db_authoritative_inventory_mutations.sql",
+      "sha256": "b988a05dc4196099c48ff954b42832e311c3815a3d6666f0e07c614d3e862df7"
+    },
+    {
+      "file": "20260924011000_ledgered_inventory_moves.sql",
+      "sha256": "237c0cc814514ce8db82950f0edf92b43e651a23e5a7f7c639c8ba50eac5eb69"
+    }
+  ],
+  "environment": {
+    "version": "PostgreSQL 17.11 (Debian 17.11-1.pgdg13+2) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "isolation": "read committed",
+    "cron_active": "off",
+    "git_head": "096e9e84c8ea69e26ca5b43bbbf3d8b317560b9a",
+    "dirty": " M docs/evidence/2026-09-24-db-authoritative-inventory-boundary.md\n M docs/plans/2026-09-24-db-authoritative-inventory-boundary.md\n",
+    "harness_hash": "19293badb70d945853462a53568aed591dab2aa918c56ae9a8f46750dc208aa8",
+    "runner_hash": "f39957d2f224fc268655cbd28091c3a781e5475fc9d41a7a31074bfb5e385d75",
+    "mode": "all-repository-migrations; auth/storage stubs; direct SQL",
+    "seed": "UUID fixtures random; amounts/schedule/units fixed; no performance comparison"
+  }
+}

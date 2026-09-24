@@ -66,7 +66,7 @@ Repository: `/Users/hb/Projects/inventory/checkout`
 
 ## Outcome
 
-- Evidence: focused static/contract checks passed; live DB unavailable and therefore MVCC/RPC verification remains pending: `docs/evidence/2026-09-24-db-authoritative-inventory-boundary.md`.
+- Evidence: focused static/contract checks passed. The 2026-09-24 guarded PostgreSQL run also passed its fixed two-session move, insufficient-stock, post-mutation rollback, and ledger reconciliation workload; raw manifests and exclusions are recorded in `docs/evidence/2026-09-24-db-authoritative-inventory-boundary.md`.
 - Decision: `docs/decisions/2026-09-24-db-authoritative-inventory-boundary.md`.
 - Human interpretation and Changed belief: pending human decision.
 

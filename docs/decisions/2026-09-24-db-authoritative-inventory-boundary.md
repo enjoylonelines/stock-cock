@@ -12,11 +12,17 @@ Evidence: `docs/evidence/2026-09-24-db-authoritative-inventory-boundary.md`.
 
 ## Decision required
 
-The move's two legs and canonical ledger are now intentionally one server
-transaction in code. After an authorized isolated-DB migration/RPC run, decide
-whether absolute adjustment must also become one server transaction containing
-both its canonical adjustment ledger entry and its expected-version audit, or
-whether the currently documented two-call adjustment boundary is acceptable.
+The move's two legs and canonical ledger are intentionally one server
+transaction in code. The authorized isolated-DB run now passed the fixed
+two-session same-source move, insufficient-stock, trigger-injected rollback,
+and ledger-reconciliation cases. This closes that move-specific validation
+cycle; it does not decide a retry/idempotency policy or broader operational
+claims.
+
+A human still must decide whether absolute adjustment becomes one server
+transaction containing both its canonical adjustment ledger entry and its
+expected-version audit, or whether the currently documented two-call adjustment
+boundary is acceptable.
 
 Authorization/retention for `actor_id` and `inventory_adjustment_audit`, direct
 DML exceptions for provisioning/warehouse deletion, and whether an adjustment
