@@ -43,6 +43,16 @@
 - p95/TPS는 이 workload와 자원 조건 안에서만 보고
 - 특정 worker 수에서 포화가 발생하면 그 지점을 현재 한계로 기록하고 queue 도입을 자동 결정하지 않음
 
+초기 bounded 실행 결과(`tests/inventory/results/limits-p1-v5.json`):
+
+| workers | successes | errors | final quantity | p95 ms |
+|---:|---:|---:|---:|---:|
+| 2 | 2 | 0 | 102 | 5.84 |
+| 4 | 4 | 0 | 104 | 9.67 |
+| 8 | 8 | 0 | 108 | 16.45 |
+
+이 표본에서는 정합성 실패·기술 오류 없이 advisory lock 대기 시간이 worker 수와 함께 증가했다. 이는 포화점이나 운영 TPS가 아니며, CPU 1·max connections 12의 격리 DB에서 얻은 한계 관측이다.
+
 ### L1 — 다른 writer 경계
 
 실제 저장소에서 `moves`, `adjustments`, `recalculate`, 직접 inventory DML 경로를 식별한 뒤, 존재하는 writer만 대상으로 동시 실행한다.
@@ -69,6 +79,10 @@ commit 직후 응답을 버리는 fault injection을 넣어 현재 API에 idempo
 ### L2 — 운영 경계
 
 실제 Next HTTP/session/gateway와 운영 데이터 drift는 별도 환경에서 검증한다. 현재 in-process route와 stub auth 결과를 운영 보장으로 확대하지 않는다.
+
+## 현재 판정
+
+L0 duplicate gate는 예상대로 중복 데이터에서 `P0001 INVENTORY_DUPLICATES_EXIST`로 중단됐고 unique index를 남기지 않았다. L1 2/4/8 workers는 모두 원장과 재고 합계가 일치했다. 다음 한계 검증은 다른 writer 식별 후 교차 경합으로 진행한다.
 
 ## 종료 조건
 
