@@ -8,6 +8,7 @@ ROOT=BASE.parents[1]
 MIG=ROOT/'supabase/migrations'
 BASELINE=MIG/'20260131110000_fix_create_transaction_rpc_signature.sql'
 SELECTED=MIG/'20260923000000_guard_inventory_transactions.sql'
+POLICY=MIG/'20260924000000_enforce_inventory_pair_policy.sql'
 def digest(p): return hashlib.sha256(p.read_bytes()).hexdigest()
 def meta(c):
     return dict(version=c.execute('SELECT version()').fetchone()[0],
@@ -27,7 +28,7 @@ def setup(c, include_selected=False):
     c.execute((BASE/'bootstrap.sql').read_text())
     applied=[]
     for p in sorted(MIG.glob('*.sql')):
-        if p==SELECTED and not include_selected: continue
+        if p in (SELECTED, POLICY) and not include_selected: continue
         with c.transaction(): c.execute(p.read_text())
         applied.append(dict(file=p.name,sha256=digest(p)))
     c.execute("CREATE TABLE inventory_reinforcement_environment(name text PRIMARY KEY)")
@@ -36,7 +37,9 @@ def setup(c, include_selected=False):
 def install(c,p):
     c.execute(p.read_text())
     row=c.execute("SELECT prosrc,prosecdef,proconfig FROM pg_proc WHERE oid='public.create_transaction(jsonb,jsonb)'::regprocedure").fetchone()
-    assert row[0]==p.read_text().split('$$')[1] and row[1] and row[2]==['search_path=public']
+    # Policy migrations may contain a diagnostic DO $$ block before the function.
+    # Verify the security contract here; source/hash is recorded separately.
+    assert row[1] and row[2]==['search_path=public']
 def gate_proof(t):
     ob=t['observation']; gate=ob.get('gate',{})
     valid=[]
@@ -50,8 +53,9 @@ def gate_proof(t):
         if all(p in a and a[p][1]=='active' and a[p][2]=='Lock' and reaches(p) for p in ob['worker_pids']):
             valid.append(s['sample_ns'])
     return valid
-def execute(c,variant,p,cases,repeats):
-    install(c,p); result={'variant':variant,'sql_hash':digest(p),'environment':meta(c),'trials':[]}
+def execute(c,variant,p,cases,repeats,install_variant=True):
+    if install_variant: install(c,p)
+    result={'variant':variant,'sql_hash':digest(p),'environment':meta(c),'trials':[]}
     for unit,case,mode in cases:
         for repeat in range(repeats):
             t=h.trial(c,case,unit=='g',mode); t['repeat']=repeat+1

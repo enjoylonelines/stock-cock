@@ -8,6 +8,7 @@ import reference_harness as h
 BASE=Path(__file__).resolve().parent
 ROOT=BASE.parents[1]
 SELECTED=ROOT/"supabase/migrations/20260923000000_guard_inventory_transactions.sql"
+POLICY=ROOT/"supabase/migrations/20260924000000_enforce_inventory_pair_policy.sql"
 BASELINE=ROOT/"supabase/migrations/20260131110000_fix_create_transaction_rpc_signature.sql"
 CONFIG=h.CONFIG
 
@@ -81,7 +82,7 @@ def main():
     ap=argparse.ArgumentParser(); ap.add_argument("--output",required=True); args=ap.parse_args()
     out={"experiment":"P1.1 concurrent first inbound","variants":[]}
     with conn("p1.1-admin") as c:
-        for name,sql in [("baseline",BASELINE.read_text()),("selected",SELECTED.read_text()),("advisory-test-candidate",advisory_variant())]:
+        for name,sql in [("baseline",BASELINE.read_text()),("selected",SELECTED.read_text()),("advisory-test-candidate",advisory_variant()),("policy",POLICY.read_text())]:
             # truncate only after each variant; fixture is isolated by random ids.
             for schema in ("public", "auth", "storage"):
                 c.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE")
@@ -89,7 +90,7 @@ def main():
             # Recreate test schema and all repo migrations except selected, then install variant.
             c.execute((BASE/"bootstrap.sql").read_text())
             for p in sorted((ROOT/"supabase/migrations").glob("*.sql")):
-                if p.name=="20260923000000_guard_inventory_transactions.sql": continue
+                if p.name in ("20260923000000_guard_inventory_transactions.sql", "20260924000000_enforce_inventory_pair_policy.sql"): continue
                 with c.transaction(): c.execute(p.read_text())
             c.execute("CREATE TABLE inventory_reinforcement_environment(name text PRIMARY KEY)")
             c.execute("INSERT INTO inventory_reinforcement_environment VALUES ('stock-cock-consistency-test')")

@@ -83,6 +83,12 @@ Ontology 작업과 같은 호스트를 사용했다. 별도 컨테이너/포트�
 원시 결과: `tests/inventory/results/api-integration-9b776d3e-4ede-4677-b108-08350d5633c3.json`.
 이 결과는 in-process route handler + Supabase JS/PostgREST/PG 경로다. 실제 Next HTTP 서버, cookie session 인증, 운영 gateway까지 검증한 결과로 확대하지 않는다.
 
+### 2026-09-24 신규 행 정책 반영
+
+정책을 `동시 첫 입고는 모두 커밋하고 한 행에 합산`, `기존 중복은 자동 정리하지 않고 migration 중단`, `일반 출고 음수 금지`로 확정하고 `20260924000000_enforce_inventory_pair_policy.sql`에 반영했다. migration은 먼저 중복 진단 DO block을 실행한 뒤 `(product_option_id, warehouse_id)` unique index를 만들고, RPC의 missing-row 판단 앞에 pair별 transaction advisory lock을 건다.
+
+P1.1 결과는 baseline 2행, selected 2행, policy 1행·2건 원장·최종20으로 확인됐다. clean replay와 upgrade/restore/reapply 검증은 `tests/inventory/results/migration-verify-p1-v11.json`, 정책 P1.1 결과는 `tests/inventory/results/p1-new-row-policy.json`에 보존했다.
+
 이번 보장은 **기존 재고 행에 대한 입출고 RPC끼리**다.
 신규 행 경쟁, moves/adjustments/recalculate/직접 DML과의 경쟁, 운영 데이터 drift, 멱등성/응답 유실/자동 retry는 미해결이다.
 없는 행에 pair UNIQUE/upsert를 추가하거나 글로벌 CHECK를 도입하지 않았다.
