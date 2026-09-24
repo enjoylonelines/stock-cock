@@ -69,6 +69,7 @@ export type Database = {
           product_option_id: string | null;
           quantity: number | null;
           updated_at: string | null;
+          version: number;
           warehouse_id: string | null;
           weight_in_grams: number | null;
         };
@@ -77,6 +78,7 @@ export type Database = {
           product_option_id?: string | null;
           quantity?: number | null;
           updated_at?: string | null;
+          version?: number;
           warehouse_id?: string | null;
           weight_in_grams?: number | null;
         };
@@ -85,6 +87,7 @@ export type Database = {
           product_option_id?: string | null;
           quantity?: number | null;
           updated_at?: string | null;
+          version?: number;
           warehouse_id?: string | null;
           weight_in_grams?: number | null;
         };
