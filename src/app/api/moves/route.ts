@@ -1,3 +1,4 @@
+import { InventoryMoveApplicationService, type InventoryMoveCommand } from "@/lib/inventory/move-application-service";
 import type { MoveInput } from "@/types/api";
 import { APIError } from "@/utils/api-error";
 import { handleAPIError } from "@/utils/api-handler";
@@ -5,6 +6,10 @@ import { moveInventory } from "@/utils/inventory";
 import { apiLogger } from "@/utils/logger";
 import { sendTransactionNotification } from "@/utils/transaction-notification";
 import { NextResponse } from "next/server";
+
+const moveApplicationService = new InventoryMoveApplicationService({
+  createLedgeredMove: moveInventory,
+});
 
 export async function POST(request: Request) {
   const endpoint = "/api/moves";
@@ -22,7 +27,7 @@ export async function POST(request: Request) {
       throw APIError.badRequest("출발지와 도착지는 같을 수 없습니다.");
     }
 
-    const transactionId = await moveInventory({
+    const command: InventoryMoveCommand = {
       fromWarehouseId: from_warehouse_id,
       toWarehouseId: to_warehouse_id,
       userId: user_id,
@@ -33,7 +38,8 @@ export async function POST(request: Request) {
         quantity: item.quantity,
         productType: item.product_type,
       })),
-    });
+    };
+    const transactionId = await moveApplicationService.execute(command);
 
     // 푸시 알림 전송 (실패해도 전체 프로세스를 중단하지 않음)
     const allMaterial = items.every(item => item.product_type === "material");
