@@ -560,7 +560,22 @@ export type Database = {
       };
     };
     Functions: {
-      [_ in never]: never;
+      create_transaction: {
+        Args: { p_header: Record<string, unknown>; p_items: Record<string, unknown>[] };
+        Returns: { transaction_id: string; success: boolean };
+      };
+      create_move_transaction: {
+        Args: { p_header: Record<string, unknown>; p_items: Record<string, unknown>[] };
+        Returns: { transaction_id: string; success: boolean };
+      };
+      create_adjustment_transaction: {
+        Args: { p_header: Record<string, unknown>; p_items: Record<string, unknown>[] };
+        Returns: { transaction_id: string; success: boolean };
+      };
+      get_inventory_history: {
+        Args: Record<string, never>;
+        Returns: unknown[];
+      };
     };
     Enums: {
       [_ in never]: never;
