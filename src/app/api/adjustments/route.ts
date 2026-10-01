@@ -20,6 +20,9 @@ export async function POST(request: Request) {
     if (!items || !Array.isArray(items) || items.length === 0) {
       throw APIError.badRequest("제품 항목이 필요합니다.");
     }
+    if (!memo?.trim()) {
+      throw APIError.badRequest("재고 조정 사유가 필요합니다.");
+    }
 
     // [1] 트랜잭션 기록
     const { data: transaction, error: txError } = await supabase
@@ -67,6 +70,9 @@ export async function POST(request: Request) {
         quantity: isMaterial ? undefined : item.quantity,
         weightInGrams: isMaterial ? item.quantity : undefined,
         isMaterial,
+        expectedVersion: currentInventory?.version ?? 0,
+        reason: memo,
+        actorId: user_id,
       });
 
       // [3] transaction_items 기록 (조정량 기록)

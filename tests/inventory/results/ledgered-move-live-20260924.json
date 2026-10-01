@@ -1,0 +1,5 @@
+{
+  "experiment": "ledgered create_inventory_move bounded live validation",
+  "cases": [],
+  "blocked": "UndefinedTable: relation \"public.inventory_p0_environment\" does not exist\nLINE 1: SELECT name, mode FROM public.inventory_p0_environment\n                               ^"
+}

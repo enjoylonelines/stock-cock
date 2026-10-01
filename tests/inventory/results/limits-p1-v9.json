@@ -1,0 +1,123 @@
+{
+  "l0_duplicate_gate": {
+    "status": "blocked",
+    "sqlstate": "P0001",
+    "error": "INVENTORY_DUPLICATES_EXIST: clean duplicate product_option_id/warehouse_id rows before applying 20260924000000",
+    "unique_index_after_failure": 0
+  },
+  "l1_hot_sku": [
+    {
+      "workers": 2,
+      "successes": 2,
+      "errors": 0,
+      "error_codes": [],
+      "inventory_quantity": "102",
+      "ledger_count": 2,
+      "latency_ms": {
+        "p50": 6.172042,
+        "p95": 5.849667,
+        "max": 6.494417
+      },
+      "results": [
+        {
+          "status": "success",
+          "latency_ms": 6.494417
+        },
+        {
+          "status": "success",
+          "latency_ms": 5.849667
+        }
+      ]
+    },
+    {
+      "workers": 4,
+      "successes": 4,
+      "errors": 0,
+      "error_codes": [],
+      "inventory_quantity": "104",
+      "ledger_count": 4,
+      "latency_ms": {
+        "p50": 9.443396,
+        "p95": 9.663458,
+        "max": 11.867
+      },
+      "results": [
+        {
+          "status": "success",
+          "latency_ms": 11.867
+        },
+        {
+          "status": "success",
+          "latency_ms": 9.663458
+        },
+        {
+          "status": "success",
+          "latency_ms": 6.949291
+        },
+        {
+          "status": "success",
+          "latency_ms": 9.223334
+        }
+      ]
+    },
+    {
+      "workers": 8,
+      "successes": 8,
+      "errors": 0,
+      "error_codes": [],
+      "inventory_quantity": "108",
+      "ledger_count": 8,
+      "latency_ms": {
+        "p50": 16.251770999999998,
+        "p95": 20.215208,
+        "max": 20.979
+      },
+      "results": [
+        {
+          "status": "success",
+          "latency_ms": 18.124584
+        },
+        {
+          "status": "success",
+          "latency_ms": 13.123166
+        },
+        {
+          "status": "success",
+          "latency_ms": 13.449583
+        },
+        {
+          "status": "success",
+          "latency_ms": 15.071292
+        },
+        {
+          "status": "success",
+          "latency_ms": 20.215208
+        },
+        {
+          "status": "success",
+          "latency_ms": 17.43225
+        },
+        {
+          "status": "success",
+          "latency_ms": 4.111208
+        },
+        {
+          "status": "success",
+          "latency_ms": 20.979
+        }
+      ]
+    }
+  ],
+  "l1_cross_writer": {
+    "initial": "100",
+    "rpc_delta": "1",
+    "absolute_writer_delta": "5",
+    "rpc_status": "success",
+    "rpc_sqlstate": null,
+    "rpc_error": null,
+    "final_quantity": "105",
+    "ledger_delta": "1",
+    "expected_quantity": "106",
+    "invariant_holds": false
+  }
+}

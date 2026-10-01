@@ -1,272 +1,114 @@
-import { createClient } from "@/lib/supabase/client";
-import { updateInventory } from "@/utils/inventory";
+import { moveInventory, setInventory } from "@/utils/inventory";
 
-// supabase 모킹
-const supabase = { from: jest.fn() } as { from: jest.Mock };
+const rpc = jest.fn();
+const from = jest.fn();
 
-jest.mock("@/lib/supabase/client", () => ({
-  createClient: () => supabase,
+jest.mock("@/lib/supabase/server", () => ({
+  createClient: jest.fn(async () => ({ rpc, from })),
 }));
 
-describe("updateInventory", () => {
-  const productOptionId = "option-123";
-  const warehouseId = "warehouse-456";
-
+describe("inventory mutation boundary", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    rpc.mockResolvedValue({ data: { transaction_id: "transaction-123" }, error: null });
   });
 
-  describe("기존 재고가 있는 경우", () => {
-    it("재고 수량을 증가시킨다", async () => {
-      const existingInventory = {
-        id: "inv-123",
-        product_option_id: productOptionId,
-        warehouse_id: warehouseId,
-        quantity: 10,
-      };
+  it("sends a move as one ledgered server operation without table reads/writes", async () => {
+    await expect(
+      moveInventory({
+        fromWarehouseId: "warehouse-from",
+        toWarehouseId: "warehouse-to",
+        userId: "user-789",
+        memo: "shelf transfer",
+        createdAt: "2026-09-24T00:00:00.000Z",
+        items: [{ optionId: "option-123", quantity: 5, productType: "company" }],
+      })
+    ).resolves.toBe("transaction-123");
 
-      const selectMock = jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            maybeSingle: jest.fn().mockResolvedValue({
-              data: existingInventory,
-              error: null,
-            }),
-          }),
-        }),
-      });
-
-      const updateMock = jest.fn().mockReturnValue({
-        eq: jest.fn().mockResolvedValue({ error: null }),
-      });
-
-      (supabase.from as jest.Mock).mockImplementation((table: string) => {
-        if (table === "inventory") {
-          return {
-            select: selectMock,
-            update: updateMock,
-          };
-        }
-        return {};
-      });
-
-      await updateInventory(productOptionId, warehouseId, 5);
-
-      expect(selectMock).toHaveBeenCalledWith("*");
-      expect(updateMock).toHaveBeenCalledWith({ quantity: 15 });
+    expect(rpc).toHaveBeenCalledWith("create_inventory_move", {
+      p_header: {
+        from_warehouse_id: "warehouse-from",
+        to_warehouse_id: "warehouse-to",
+        user_id: "user-789",
+        memo: "shelf transfer",
+        created_at: "2026-09-24T00:00:00.000Z",
+      },
+      p_items: [{ option_id: "option-123", quantity: 5, product_type: "company" }],
     });
-
-    it("재고 수량을 감소시킨다", async () => {
-      const existingInventory = {
-        id: "inv-123",
-        product_option_id: productOptionId,
-        warehouse_id: warehouseId,
-        quantity: 10,
-      };
-
-      const selectMock = jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            maybeSingle: jest.fn().mockResolvedValue({
-              data: existingInventory,
-              error: null,
-            }),
-          }),
-        }),
-      });
-
-      const updateMock = jest.fn().mockReturnValue({
-        eq: jest.fn().mockResolvedValue({ error: null }),
-      });
-
-      (supabase.from as jest.Mock).mockImplementation((table: string) => {
-        if (table === "inventory") {
-          return {
-            select: selectMock,
-            update: updateMock,
-          };
-        }
-        return {};
-      });
-
-      await updateInventory(productOptionId, warehouseId, -3);
-
-      expect(updateMock).toHaveBeenCalledWith({ quantity: 7 });
-    });
-
-    it("재고 조회 실패 시 에러를 던진다", async () => {
-      const selectMock = jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            maybeSingle: jest.fn().mockResolvedValue({
-              data: null,
-              error: { message: "조회 실패" },
-            }),
-          }),
-        }),
-      });
-
-      (supabase.from as jest.Mock).mockReturnValue({
-        select: selectMock,
-      });
-
-      await expect(updateInventory(productOptionId, warehouseId, 5)).rejects.toThrow("재고 조회 실패: 조회 실패");
-    });
-
-    it("재고 업데이트 실패 시 에러를 던진다", async () => {
-      const existingInventory = {
-        id: "inv-123",
-        product_option_id: productOptionId,
-        warehouse_id: warehouseId,
-        quantity: 10,
-      };
-
-      const selectMock = jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            maybeSingle: jest.fn().mockResolvedValue({
-              data: existingInventory,
-              error: null,
-            }),
-          }),
-        }),
-      });
-
-      const updateMock = jest.fn().mockReturnValue({
-        eq: jest.fn().mockResolvedValue({
-          error: { message: "업데이트 실패" },
-        }),
-      });
-
-      (supabase.from as jest.Mock).mockReturnValue({
-        select: selectMock,
-        update: updateMock,
-      });
-
-      await expect(updateInventory(productOptionId, warehouseId, 5)).rejects.toThrow(
-        "재고 업데이트 실패: 업데이트 실패"
-      );
-    });
+    expect(from).not.toHaveBeenCalled();
   });
 
-  describe("기존 재고가 없는 경우", () => {
-    it("새로운 재고를 생성한다", async () => {
-      const selectMock = jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            maybeSingle: jest.fn().mockResolvedValue({
-              data: null,
-              error: null,
-            }),
-          }),
-        }),
-      });
-
-      const insertMock = jest.fn().mockResolvedValue({ error: null });
-
-      (supabase.from as jest.Mock).mockReturnValue({
-        select: selectMock,
-        insert: insertMock,
-      });
-
-      await updateInventory(productOptionId, warehouseId, 10);
-
-      expect(insertMock).toHaveBeenCalledWith([
-        {
-          product_option_id: productOptionId,
-          warehouse_id: warehouseId,
-          quantity: 10,
-        },
-      ]);
-    });
-
-    it("음수 수량으로도 재고를 생성할 수 있다", async () => {
-      const selectMock = jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            maybeSingle: jest.fn().mockResolvedValue({
-              data: null,
-              error: null,
-            }),
-          }),
-        }),
-      });
-
-      const insertMock = jest.fn().mockResolvedValue({ error: null });
-
-      (supabase.from as jest.Mock).mockReturnValue({
-        select: selectMock,
-        insert: insertMock,
-      });
-
-      await updateInventory(productOptionId, warehouseId, -5);
-
-      expect(insertMock).toHaveBeenCalledWith([
-        {
-          product_option_id: productOptionId,
-          warehouse_id: warehouseId,
-          quantity: -5,
-        },
-      ]);
-    });
-
-    it("재고 생성 실패 시 에러를 던진다", async () => {
-      const selectMock = jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            maybeSingle: jest.fn().mockResolvedValue({
-              data: null,
-              error: null,
-            }),
-          }),
-        }),
-      });
-
-      const insertMock = jest.fn().mockResolvedValue({
-        error: { message: "생성 실패" },
-      });
-
-      (supabase.from as jest.Mock).mockReturnValue({
-        select: selectMock,
-        insert: insertMock,
-      });
-
-      await expect(updateInventory(productOptionId, warehouseId, 10)).rejects.toThrow("재고 생성 실패: 생성 실패");
-    });
+  it("rejects invalid move input before an RPC", async () => {
+    await expect(
+      moveInventory({
+        fromWarehouseId: "warehouse-1",
+        toWarehouseId: "warehouse-1",
+        userId: "user-789",
+        items: [],
+      })
+    ).rejects.toMatchObject({ statusCode: 400, code: "BAD_REQUEST" });
+    expect(rpc).not.toHaveBeenCalled();
   });
 
-  describe("재고 수량이 null인 경우", () => {
-    it("null을 0으로 처리하여 재고를 증가시킨다", async () => {
-      const existingInventory = {
-        id: "inv-123",
-        product_option_id: productOptionId,
-        warehouse_id: warehouseId,
-        quantity: null,
-      };
+  it("maps canonical insufficient stock to a documented 409", async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: "P0001", message: "INSUFFICIENT_STOCK" } });
 
-      const selectMock = jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            maybeSingle: jest.fn().mockResolvedValue({
-              data: existingInventory,
-              error: null,
-            }),
-          }),
-        }),
-      });
+    await expect(
+      moveInventory({
+        fromWarehouseId: "warehouse-from",
+        toWarehouseId: "warehouse-to",
+        userId: "user-789",
+        items: [{ optionId: "option-123", quantity: 5 }],
+      })
+    ).rejects.toMatchObject({ statusCode: 409, code: "INSUFFICIENT_STOCK" });
+  });
 
-      const updateMock = jest.fn().mockReturnValue({
-        eq: jest.fn().mockResolvedValue({ error: null }),
-      });
-
-      (supabase.from as jest.Mock).mockReturnValue({
-        select: selectMock,
-        update: updateMock,
-      });
-
-      await updateInventory(productOptionId, warehouseId, 5);
-
-      expect(updateMock).toHaveBeenCalledWith({ quantity: 5 });
+  it("sends absolute correction only with reason and expected version", async () => {
+    await setInventory({
+      productOptionId: "option-123",
+      warehouseId: "warehouse-456",
+      quantity: 15,
+      expectedVersion: 7,
+      reason: "counted shelf stock",
+      actorId: "user-789",
     });
+
+    expect(rpc).toHaveBeenCalledWith("apply_inventory_adjustment", {
+      p_product_option_id: "option-123",
+      p_warehouse_id: "warehouse-456",
+      p_quantity: 15,
+      p_weight: null,
+      p_expected_version: 7,
+      p_reason: "counted shelf stock",
+      p_actor_id: "user-789",
+    });
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it("rejects an absolute correction without an explicit reason", async () => {
+    await expect(
+      setInventory({
+        productOptionId: "option-123",
+        warehouseId: "warehouse-456",
+        quantity: 15,
+        expectedVersion: 0,
+        reason: "   ",
+      })
+    ).rejects.toThrow("재고 조정 사유가 필요합니다.");
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("maps the server's stale-adjustment conflict to a documented 409 error", async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: "P0001", message: "INVENTORY_ADJUSTMENT_CONFLICT" } });
+
+    await expect(
+      setInventory({
+        productOptionId: "option-123",
+        warehouseId: "warehouse-456",
+        quantity: 15,
+        expectedVersion: 0,
+        reason: "counted shelf stock",
+      })
+    ).rejects.toMatchObject({ statusCode: 409, code: "INVENTORY_ADJUSTMENT_CONFLICT" });
   });
 });
