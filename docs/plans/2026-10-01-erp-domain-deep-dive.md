@@ -456,6 +456,7 @@ trace/log는 request id, business transaction id, stock movement id, interface e
 - 현재 transaction/RPC 경계 확인
 - 실제 서비스에 불필요한 변경 금지
 - 공통 fixture와 invariant 정의
+- Evidence: `docs/evidence/2026-10-06-erp-domain-cycle-0-baseline.md`
 
 ## Cycle 1 — ECOUNT DD-A1
 
