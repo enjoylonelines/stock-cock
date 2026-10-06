@@ -75,6 +75,31 @@ Command
 
 `quantity = quantity - n` 같은 단순 CRUD가 아니라, 업무 이벤트를 원장으로 남기고 현재 재고를 일관되게 계산·갱신한다.
 
+### 업무 전표와 재고 반영 경계
+
+전표를 단순한 수량 변경 요청으로 취급하지 않는다. 최소 상태는 다음처럼 둔다.
+
+```text
+DRAFT -> CONFIRMED -> POSTED -> REVERSED
+```
+
+- `DRAFT`: 입력 검증 중인 전표로, 재고에 영향을 주지 않는다.
+- `CONFIRMED`: 업무 규칙과 권한을 통과했지만 아직 재고 반영 전인 상태다.
+- `POSTED`: 원장(Stock Ledger)과 현재고(InventoryBalance)를 하나의 transaction으로 반영한 확정 상태다.
+- `REVERSED`: 과거 `POSTED` 전표를 수정하거나 삭제하지 않고, 원 전표를 참조하는 역분개 전표를 별도로 기록한 상태다.
+
+반품은 가능한 경우 원 입출고 전표/항목을 참조하며, 창고 간 이동은 출발지 차감과 목적지 증가를 하나의 업무 전표로 묶는다. 실패한 이동은 어느 한쪽만 반영된 상태로 남아서는 안 된다.
+
+### 최소 도메인 경계
+
+이번 Deep Dive는 재고 수량 정합성에 집중한다. 다만 ERP 제품의 데이터 경계를 드러내기 위해 다음을 최소 모델에 포함한다.
+
+- 모든 전표·원장·현재고 조회와 unique key는 `tenantId` 경계를 가진다.
+- 재고는 `warehouseId`와 필요한 경우 `locationId` 단위로 구분한다.
+- 입력 단위가 여러 개여도 원장에는 Product의 기본 단위로 정규화한 수량을 기록한다.
+
+원가 평가, 회계 분개, 기간 마감은 이번 범위에 포함하지 않는다. 이들은 재고 수량 정합성이 검증된 뒤 별도 도메인으로 확장할 후보이며, 미구현 기능을 구현 완료처럼 표현하지 않는다.
+
 ### 핵심 검증
 
 1. 동일 SKU 동시 출고
@@ -84,13 +109,21 @@ Command
 5. 창고 간 이동 중 한 단계 실패
 6. 일괄 전표 처리 중 일부 오류
 
-### 비교 후보
+### 설계 선택과 비교 경계
 
-- Read → Modify → Write
-- Row Lock
-- Conditional Atomic Update
-- Ledger + Balance Projection
-- 전체 rollback vs 건별 결과
+다음 항목은 같은 수준의 대안이 아니므로 분리해 비교한다.
+
+| 구분 | 비교 대상 | 판단 질문 |
+| --- | --- | --- |
+| 업무 모델 | 직접 수량 수정 vs Ledger + Balance Projection | 취소·반품·추적을 원 전표 보존 상태로 설명할 수 있는가? |
+| 동시성 제어 | Read → Modify → Write, Row Lock, Conditional Atomic Update | 동일 SKU/창고의 경합에서 어떤 격리와 실패 결과를 보장하는가? |
+| 일괄 전표 정책 | 전체 rollback vs 건별 성공/실패 | 업무 단위가 원자적으로 완료되어야 하는가, 오류 행을 분리해 계속 처리해도 되는가? |
+
+일괄 전표 정책은 성능 측정만으로 자동 결정하지 않는다. 아래를 Human Decision Gate로 기록한다.
+
+- 창고 간 이동은 한 항목이라도 실패하면 전체 rollback한다.
+- 대량 입고 업로드는 성공 행과 실패 행을 분리할 수 있으며, 실패 행에는 업무 오류 사유를 남긴다.
+- 동일 business transaction ID/idempotency key의 재시도는 새 원장을 만들지 않고 최초 확정 결과를 반환한다.
 
 ### Evidence
 
@@ -100,10 +133,22 @@ Command
 - duplicate 처리 결과
 - reversal 이후 balance 검증
 - audit trail 재현 가능 여부
+- tenant별 원장/현재고 분리 검증
+- 시나리오 종료 뒤 원장 합계와 현재고를 대사한 결과
+
+### 사후 대사(Reconciliation) acceptance
+
+각 동시성·실패 주입 시나리오가 끝난 뒤 HTTP 응답이나 처리량만으로 성공을 판단하지 않는다. 자동 대사에서 다음을 확인한다.
+
+1. 각 `tenantId`·SKU·warehouse/location별 `POSTED` 원장 합계와 `InventoryBalance`가 일치한다.
+2. 동일 idempotency key는 원장 한 건만 생성하며 같은 확정 결과를 반환한다.
+3. 실패한 이동은 출발지와 목적지 모두에 수량 변화가 없다.
+4. 역분개 후 원 전표는 보존되고, 참조 관계와 잔액 복구를 추적할 수 있다.
+5. 다른 tenant의 전표·현재고가 조회 또는 갱신에 섞이지 않는다.
 
 ### 종료 조건
 
-재고 정합성을 유지한 채 입고/출고/반품/이동/취소를 동일한 업무 모델로 설명할 수 있고, 선택한 transaction 전략과 버린 대안을 근거로 설명할 수 있다.
+재고 정합성을 유지한 채 입고/출고/반품/이동/취소를 동일한 업무 모델과 전표 상태 전이로 설명할 수 있고, 사후 대사를 통과한다. 선택한 transaction 전략·일괄 전표 정책·버린 대안을 근거와 함께 설명할 수 있다.
 
 ---
 
@@ -137,6 +182,17 @@ Command
 6. 필요할 때만 Redis 적용
 
 Redis는 "기술 사용"이 목적이 아니다. SQL 최적화 후에도 반복 조회가 병목으로 남았을 때만 적용한다.
+
+### 직접 구현 자료구조: bounded LRU cache
+
+이 항목은 Redis 도입이나 실제 재고 write path 적용을 전제하지 않는 독립된 TypeScript 학습·검증 산출물이다. `Map`과 직접 구현한 doubly linked list를 결합한 generic `LruCache<K, V>`를 Lab의 shared 구조로 둔다.
+
+- `get(key)`: hash map으로 노드를 찾고, hit 노드를 최근 사용 위치(head)로 옮긴다.
+- `put(key, value)`: 기존 key는 값을 갱신해 head로 옮기고, 새 key는 head에 넣는다.
+- capacity 초과: 가장 오래 사용되지 않은 tail 노드를 연결 리스트와 hash map에서 함께 제거한다.
+- 시간 복잡도: `get`, `put`, 최근 항목 이동, tail eviction 모두 평균 O(1)이다.
+
+구현체는 hit/miss, 기존 key 갱신, 최근 사용 순서 승격, capacity 초과 eviction, capacity 0을 단위 테스트로 검증한다. 이 구현은 지원서의 "직접 구현한 자료구조" 증거로 사용할 수 있지만, 재고 조회 성능 개선에 적용했다고 주장하지 않는다. 실제 cache 채택은 DD-A2 workload에서 반복 조회 병목과 stale-data 정책이 확인된 뒤의 Human Decision Gate다.
 
 ### 조회 시나리오
 
@@ -348,6 +404,7 @@ stock-cock/
         │   ├── mock-erp/
         │   └── experiments/
         └── shared/
+            ├── structures/
             ├── workload/
             └── fixtures/
 ```
