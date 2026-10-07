@@ -12,6 +12,9 @@ line reference and a later reversal preserves history.
   current balances.
 - PostgreSQL의 전표 확정 및 재고 반영은 `CONFIRMED` 문서만 받아 문서 상태,
   원장 항목, 현재고 projection을 하나의 transaction으로 기록한다.
+- 완제품은 `EA`, 포장 완제품은 `BOX = 24 EA`, 원재료는 `g`를 기준 단위로
+  삼는다. `BOX`·`kg` 입력은 전표 행에 보존하면서 원장·현재고에는 각각 `EA`·`g`로
+  정규화한다.
 - A disposable-DB integration harness covers duplicate receipt, negative-stock
   rejection, failed transfer rollback, tenant partitioning, reversal history,
   concurrent reversal/shipment, concurrent shipment, partial return limits,
@@ -30,7 +33,7 @@ python labs/erp-domain/ecount/test/posting_integration.py \
 ```
 
 The harness refuses to overwrite an evidence file. Its checked result is
-`evidence/2026-10-06-posting-v7-cycle-1-lock-order.json`.
+`evidence/2026-10-07-posting-v9-package-normalization.json`.
 
 ## DD-A2 read workload
 

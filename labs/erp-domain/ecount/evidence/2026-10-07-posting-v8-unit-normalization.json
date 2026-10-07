@@ -1,0 +1,110 @@
+{
+  "dsn_scope": "fixed disposable loopback Lab DB",
+  "cases": [
+    {
+      "name": "receipt",
+      "document_id": "60c77848-c815-44b5-8205-f63c98e5d14e",
+      "balance": "10"
+    },
+    {
+      "name": "duplicate_receipt",
+      "document_id": "60c77848-c815-44b5-8205-f63c98e5d14e",
+      "document_count": 1
+    },
+    {
+      "name": "shipment",
+      "document_id": "b5a9efe7-10f8-4c65-9751-481de683bc48",
+      "balance": "6"
+    },
+    {
+      "name": "failed_transfer_rolls_back",
+      "source_balance": "6",
+      "destination_balance": "0"
+    },
+    {
+      "name": "tenant_partition",
+      "document_id": "d4e756ac-6ecb-45e4-b1e5-44b434f9d7ca",
+      "tenant_a_balance": "6",
+      "tenant_b_balance": "5"
+    },
+    {
+      "name": "material_unit_normalization",
+      "receipt_input": "2 kg",
+      "receipt_base_quantity": "2000 g",
+      "shipment_input": "500 g",
+      "balance": "1500 g",
+      "invalid_unit_rejected": true
+    },
+    {
+      "name": "partial_return",
+      "document_id": "8fe4e1c0-8df8-45b8-98f3-71cb66f9cb4a",
+      "source_document_id": "993b38db-8129-4af7-8704-5fadab8d9695",
+      "balance": "8",
+      "over_return_rejected": true
+    },
+    {
+      "name": "adjustments",
+      "balance": "10"
+    },
+    {
+      "name": "multi_line_transfer",
+      "document_id": "b5d30060-c35d-4dc3-b68d-2b725097800d",
+      "source_balance": "6",
+      "destination_balance": "4",
+      "failed_multi_line_transfer_rolled_back": true
+    },
+    {
+      "name": "bulk_receipt_row_policy",
+      "rows": [
+        {
+          "row_index": 1,
+          "status": "POSTED",
+          "error_code": null
+        },
+        {
+          "row_index": 2,
+          "status": "REJECTED",
+          "error_code": "22023"
+        }
+      ],
+      "destination_balance": "6"
+    },
+    {
+      "name": "shipment_reversal_concurrent_with_shipment",
+      "document_id": "6f3dec52-b036-4824-8f3d-edf7a05e4ac4",
+      "original_status": "REVERSED",
+      "reversal_status": "POSTED",
+      "balance_after_both_posted": "4",
+      "concurrent_results": [
+        {
+          "status": "POSTED",
+          "elapsed_ms": 546.030833
+        },
+        {
+          "status": "POSTED",
+          "elapsed_ms": 284.259083
+        }
+      ],
+      "duplicate_reversal_returns_original": true,
+      "second_reversal_rejected": true
+    },
+    {
+      "name": "concurrent_shipment",
+      "results": [
+        {
+          "status": "error",
+          "sqlstate": "P0001",
+          "message": "INSUFFICIENT_STOCK",
+          "elapsed_ms": 545.125417
+        },
+        {
+          "status": "POSTED",
+          "elapsed_ms": 284.480208
+        }
+      ]
+    }
+  ],
+  "reconciliation_mismatches": 0,
+  "final_tenant_a_balance": "1",
+  "status": "passed"
+}

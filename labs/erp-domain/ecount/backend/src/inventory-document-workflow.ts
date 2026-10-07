@@ -4,6 +4,7 @@ export type InventoryDocumentStatus = "DRAFT" | "CONFIRMED" | "POSTED" | "REVERS
 export interface InventoryDocumentLineCommand {
   productId: string;
   quantity: number;
+  unit?: string;
   sourceLocationId?: string;
   destinationLocationId?: string;
   sourceDocumentLineId?: string;
@@ -68,6 +69,9 @@ export class InventoryDocumentWorkflowService {
       this.assertIdentifier(line.productId, "productId");
       if (!Number.isFinite(line.quantity) || line.quantity <= 0) {
         throw new Error("line quantity must be a positive finite number");
+      }
+      if (line.unit !== undefined) {
+        this.assertIdentifier(line.unit, "unit");
       }
 
       if (command.type === "receipt" || command.type === "adjustment_in") {

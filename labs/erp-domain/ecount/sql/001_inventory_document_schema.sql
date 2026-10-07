@@ -15,6 +15,16 @@ CREATE TABLE erp_lab.products (
   UNIQUE (tenant_id, sku)
 );
 
+-- Every document line is normalized to the product's base_unit before it
+-- reaches the ledger or balance projection. The input unit remains on the line
+-- for auditability.
+CREATE TABLE erp_lab.product_unit_conversions (
+  product_id uuid NOT NULL REFERENCES erp_lab.products(id),
+  unit text NOT NULL,
+  base_quantity_per_unit numeric NOT NULL CHECK (base_quantity_per_unit > 0),
+  PRIMARY KEY (product_id, unit)
+);
+
 CREATE TABLE erp_lab.warehouses (
   id uuid PRIMARY KEY,
   tenant_id uuid NOT NULL REFERENCES erp_lab.tenants(id),
@@ -53,6 +63,8 @@ CREATE TABLE erp_lab.inventory_document_lines (
   document_id uuid NOT NULL REFERENCES erp_lab.inventory_documents(id),
   product_id uuid NOT NULL REFERENCES erp_lab.products(id),
   quantity numeric NOT NULL CHECK (quantity > 0),
+  input_quantity numeric CHECK (input_quantity > 0),
+  input_unit text,
   source_location_id uuid REFERENCES erp_lab.locations(id),
   destination_location_id uuid REFERENCES erp_lab.locations(id),
   source_document_line_id uuid REFERENCES erp_lab.inventory_document_lines(id)

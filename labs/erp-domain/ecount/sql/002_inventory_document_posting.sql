@@ -30,6 +30,10 @@ DECLARE
   v_document_id uuid;
   v_line jsonb;
   v_product_id uuid;
+  v_input_quantity numeric;
+  v_input_unit text;
+  v_base_unit text;
+  v_base_quantity_per_unit numeric;
   v_quantity numeric;
   v_source_location_id uuid;
   v_destination_location_id uuid;
@@ -57,19 +61,31 @@ BEGIN
   LOOP
     BEGIN
       v_product_id := (v_line->>'product_id')::uuid;
-      v_quantity := (v_line->>'quantity')::numeric;
+      v_input_quantity := (v_line->>'quantity')::numeric;
+      v_input_unit := NULLIF(btrim(v_line->>'unit'), '');
       v_source_location_id := NULLIF(v_line->>'source_location_id', '')::uuid;
       v_destination_location_id := NULLIF(v_line->>'destination_location_id', '')::uuid;
     EXCEPTION WHEN invalid_text_representation OR numeric_value_out_of_range THEN
       RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'INVALID_DOCUMENT_LINE';
     END;
 
-    IF v_quantity IS NULL OR v_quantity <= 0
-       OR NOT EXISTS (
-         SELECT 1 FROM erp_lab.products WHERE id = v_product_id AND tenant_id = p_tenant_id
-       ) THEN
+    IF v_input_quantity IS NULL OR v_input_quantity <= 0 THEN
       RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'INVALID_DOCUMENT_LINE';
     END IF;
+
+    SELECT products.base_unit, conversions.base_quantity_per_unit
+      INTO v_base_unit, v_base_quantity_per_unit
+      FROM erp_lab.products
+      JOIN erp_lab.product_unit_conversions AS conversions
+        ON conversions.product_id = products.id
+       AND conversions.unit = COALESCE(v_input_unit, products.base_unit)
+     WHERE products.id = v_product_id
+       AND products.tenant_id = p_tenant_id;
+    IF NOT FOUND THEN
+      RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'INVALID_DOCUMENT_UNIT';
+    END IF;
+    v_input_unit := COALESCE(v_input_unit, v_base_unit);
+    v_quantity := v_input_quantity * v_base_quantity_per_unit;
 
     IF p_document_type IN ('receipt', 'adjustment_in') THEN
       PERFORM erp_lab.assert_location_in_tenant(v_destination_location_id, p_tenant_id, 'DESTINATION_LOCATION');
@@ -90,9 +106,9 @@ BEGIN
     END IF;
 
     INSERT INTO erp_lab.inventory_document_lines(
-      id, document_id, product_id, quantity, source_location_id, destination_location_id
+      id, document_id, product_id, quantity, input_quantity, input_unit, source_location_id, destination_location_id
     ) VALUES (
-      gen_random_uuid(), v_document_id, v_product_id, v_quantity,
+      gen_random_uuid(), v_document_id, v_product_id, v_quantity, v_input_quantity, v_input_unit,
       v_source_location_id, v_destination_location_id
     );
   END LOOP;
@@ -221,6 +237,7 @@ DECLARE
   v_source_line_id uuid;
   v_product_id uuid;
   v_quantity numeric;
+  v_input_unit text;
   v_destination_location_id uuid;
   v_already_returned numeric;
   v_source_quantity numeric;
@@ -267,10 +284,12 @@ BEGIN
       RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'INVALID_RETURN_LINE';
     END;
 
-    SELECT product_id, quantity INTO v_product_id, v_source_quantity
-      FROM erp_lab.inventory_document_lines
-     WHERE id = v_source_line_id
-       AND document_id = p_source_document_id;
+    SELECT source_line.product_id, source_line.quantity, products.base_unit
+      INTO v_product_id, v_source_quantity, v_input_unit
+      FROM erp_lab.inventory_document_lines AS source_line
+      JOIN erp_lab.products ON products.id = source_line.product_id
+     WHERE source_line.id = v_source_line_id
+       AND source_line.document_id = p_source_document_id;
     IF NOT FOUND OR v_quantity IS NULL OR v_quantity <= 0 THEN
       RAISE EXCEPTION USING ERRCODE = '22023', MESSAGE = 'INVALID_RETURN_LINE';
     END IF;
@@ -286,9 +305,9 @@ BEGIN
     END IF;
 
     INSERT INTO erp_lab.inventory_document_lines(
-      id, document_id, product_id, quantity, destination_location_id, source_document_line_id
+      id, document_id, product_id, quantity, input_quantity, input_unit, destination_location_id, source_document_line_id
     ) VALUES (
-      gen_random_uuid(), v_document_id, v_product_id, v_quantity, v_destination_location_id, v_source_line_id
+      gen_random_uuid(), v_document_id, v_product_id, v_quantity, v_quantity, v_input_unit, v_destination_location_id, v_source_line_id
     );
   END LOOP;
 

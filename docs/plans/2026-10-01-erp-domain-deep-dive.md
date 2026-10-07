@@ -469,10 +469,11 @@ trace/log는 request id, business transaction id, stock movement id, interface e
   duplicate delivery, 역분개 원장/원 전표 보존, 중복 역분개 차단,
   역분개와 출고 동시 실행, 동일 재고 키 동시 출고, 원 출고 항목 참조 부분 반품과
   과다 반품 차단, 조정 입·출고, 다중 항목 이동의 전체 rollback, 대량 입고 행별
-  성공/실패, ledger/balance 사후 대사
+  성공/실패, 완제품 `EA`·원재료 `g` 기준 단위, `BOX → EA`·`kg → g` 입력 정규화,
+  ledger/balance 사후 대사
 - Cycle 1 종료: 선택한 수량 도메인과 fixture에서 종료 조건을 충족했다.
 - 미완료: 부분 역분개, 반품 출고/반품 교환, 원가·회계·기간 마감, API/RLS,
-  restart/retry, 다중 문서 교착 회피 증명, 성능 workload. 이 결과를 기존
+  restart/retry, 다중 문서 교착 회피 증명, 포장·수율·BOM·lot 단위 정책, 성능 workload. 이 결과를 기존
   Stock-Cock 또는 운영 정합성 주장으로 확장하지 않는다.
 
 ## Cycle 2 — ECOUNT DD-A2

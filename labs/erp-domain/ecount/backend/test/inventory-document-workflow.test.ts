@@ -47,6 +47,10 @@ describe("InventoryDocumentWorkflowService", () => {
     { ...receipt, lines: [] },
     { ...receipt, lines: [{ productId: "sku-finished-001", quantity: 0, destinationLocationId: "receiving-a" }] },
     { ...receipt, lines: [{ productId: "sku-finished-001", quantity: 10 }] },
+    {
+      ...receipt,
+      lines: [{ productId: "sku-finished-001", quantity: 10, unit: "", destinationLocationId: "receiving-a" }],
+    },
   ])("rejects invalid receipt input before the port is called", async invalidCommand => {
     const service = new InventoryDocumentWorkflowService(port);
 

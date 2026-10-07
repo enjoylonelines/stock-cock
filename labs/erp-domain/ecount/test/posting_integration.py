@@ -21,6 +21,8 @@ TENANT_B = uuid.UUID("00000000-0000-0000-0000-0000000000b1")
 PRODUCT_A = uuid.UUID("00000000-0000-0000-0000-000000000101")
 PRODUCT_B = uuid.UUID("00000000-0000-0000-0000-000000000102")
 PRODUCT_C = uuid.UUID("00000000-0000-0000-0000-000000000103")
+PRODUCT_MATERIAL = uuid.UUID("00000000-0000-0000-0000-000000000104")
+PRODUCT_PACKAGED = uuid.UUID("00000000-0000-0000-0000-000000000105")
 WAREHOUSE_A = uuid.UUID("00000000-0000-0000-0000-000000000201")
 WAREHOUSE_B = uuid.UUID("00000000-0000-0000-0000-000000000202")
 WAREHOUSE_TENANT_B = uuid.UUID("00000000-0000-0000-0000-000000000203")
@@ -45,8 +47,12 @@ def seed(connection):
     with connection.cursor() as cursor:
         cursor.execute("INSERT INTO erp_lab.tenants(id, code) VALUES (%s, 'tenant-a'), (%s, 'tenant-b')", (TENANT_A, TENANT_B))
         cursor.execute(
-            "INSERT INTO erp_lab.products(id, tenant_id, sku, base_unit) VALUES (%s, %s, 'sku-001', 'EA'), (%s, %s, 'sku-001', 'EA'), (%s, %s, 'sku-002', 'EA')",
-            (PRODUCT_A, TENANT_A, PRODUCT_B, TENANT_B, PRODUCT_C, TENANT_A),
+            "INSERT INTO erp_lab.products(id, tenant_id, sku, base_unit) VALUES (%s, %s, 'finished-001', 'EA'), (%s, %s, 'finished-001', 'EA'), (%s, %s, 'finished-002', 'EA'), (%s, %s, 'material-001', 'g'), (%s, %s, 'finished-box-001', 'EA')",
+            (PRODUCT_A, TENANT_A, PRODUCT_B, TENANT_B, PRODUCT_C, TENANT_A, PRODUCT_MATERIAL, TENANT_A, PRODUCT_PACKAGED, TENANT_A),
+        )
+        cursor.execute(
+            "INSERT INTO erp_lab.product_unit_conversions(product_id, unit, base_quantity_per_unit) VALUES (%s, 'EA', 1), (%s, 'EA', 1), (%s, 'EA', 1), (%s, 'g', 1), (%s, 'kg', 1000), (%s, 'EA', 1), (%s, 'BOX', 24)",
+            (PRODUCT_A, PRODUCT_B, PRODUCT_C, PRODUCT_MATERIAL, PRODUCT_MATERIAL, PRODUCT_PACKAGED, PRODUCT_PACKAGED),
         )
         cursor.execute(
             "INSERT INTO erp_lab.warehouses(id, tenant_id, code) VALUES (%s, %s, 'warehouse-a'), (%s, %s, 'warehouse-b'), (%s, %s, 'warehouse-b')",
@@ -185,6 +191,94 @@ def run():
         assert balance(connection, TENANT_B, PRODUCT_B, LOCATION_TENANT_B) == 5
         assert balance(connection, TENANT_A, PRODUCT_A, LOCATION_A) == 6
         result["cases"].append({"name": "tenant_partition", "document_id": str(tenant_b_receipt), "tenant_a_balance": "6", "tenant_b_balance": "5"})
+
+        material_receipt_id = create_confirm_post(
+            connection,
+            TENANT_A,
+            "receipt",
+            "material-receipt-2kg",
+            [{"product_id": str(PRODUCT_MATERIAL), "quantity": 2, "unit": "kg", "destination_location_id": str(LOCATION_A)}],
+        )
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT quantity, input_quantity, input_unit FROM erp_lab.inventory_document_lines WHERE document_id = %s",
+                (material_receipt_id,),
+            )
+            normalized_quantity, input_quantity, input_unit = cursor.fetchone()
+        assert (normalized_quantity, input_quantity, input_unit) == (2000, 2, "kg")
+        create_confirm_post(
+            connection,
+            TENANT_A,
+            "shipment",
+            "material-shipment-500g",
+            [{"product_id": str(PRODUCT_MATERIAL), "quantity": 500, "unit": "g", "source_location_id": str(LOCATION_A)}],
+        )
+        assert balance(connection, TENANT_A, PRODUCT_MATERIAL, LOCATION_A) == 1500
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT erp_lab.create_inventory_document(%s, 'adjustment_in', 'material-invalid-unit', %s::jsonb)",
+                    (TENANT_A, Jsonb([{"product_id": str(PRODUCT_MATERIAL), "quantity": 1, "unit": "EA", "destination_location_id": str(LOCATION_A)}])),
+                )
+            connection.commit()
+            raise AssertionError("invalid material unit unexpectedly accepted")
+        except psycopg.Error as error:
+            connection.rollback()
+            assert error.sqlstate == "22023"
+        result["cases"].append(
+            {
+                "name": "material_unit_normalization",
+                "receipt_input": "2 kg",
+                "receipt_base_quantity": "2000 g",
+                "shipment_input": "500 g",
+                "balance": "1500 g",
+                "invalid_unit_rejected": True,
+            }
+        )
+
+        packaged_receipt_id = create_confirm_post(
+            connection,
+            TENANT_A,
+            "receipt",
+            "packaged-receipt-2box",
+            [{"product_id": str(PRODUCT_PACKAGED), "quantity": 2, "unit": "BOX", "destination_location_id": str(LOCATION_A)}],
+        )
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "SELECT quantity, input_quantity, input_unit FROM erp_lab.inventory_document_lines WHERE document_id = %s",
+                (packaged_receipt_id,),
+            )
+            normalized_quantity, input_quantity, input_unit = cursor.fetchone()
+        assert (normalized_quantity, input_quantity, input_unit) == (48, 2, "BOX")
+        create_confirm_post(
+            connection,
+            TENANT_A,
+            "shipment",
+            "packaged-shipment-12ea",
+            [{"product_id": str(PRODUCT_PACKAGED), "quantity": 12, "unit": "EA", "source_location_id": str(LOCATION_A)}],
+        )
+        assert balance(connection, TENANT_A, PRODUCT_PACKAGED, LOCATION_A) == 36
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT erp_lab.create_inventory_document(%s, 'adjustment_in', 'packaged-invalid-unit', %s::jsonb)",
+                    (TENANT_A, Jsonb([{"product_id": str(PRODUCT_PACKAGED), "quantity": 1, "unit": "kg", "destination_location_id": str(LOCATION_A)}])),
+                )
+            connection.commit()
+            raise AssertionError("invalid finished-good unit unexpectedly accepted")
+        except psycopg.Error as error:
+            connection.rollback()
+            assert error.sqlstate == "22023"
+        result["cases"].append(
+            {
+                "name": "finished_good_package_normalization",
+                "receipt_input": "2 BOX",
+                "receipt_base_quantity": "48 EA",
+                "shipment_input": "12 EA",
+                "balance": "36 EA",
+                "invalid_unit_rejected": True,
+            }
+        )
 
         create_confirm_post(
             connection,
