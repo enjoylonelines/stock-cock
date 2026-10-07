@@ -35,6 +35,20 @@ python labs/erp-domain/ecount/test/posting_integration.py \
 The harness refuses to overwrite an evidence file. Its checked result is
 `evidence/2026-10-07-posting-v9-package-normalization.json`.
 
+## TypeScript HTTP vertical slice
+
+`backend/src/http-server.ts` exposes the Lab-only document workflow at
+`POST /lab/erp/inventory-documents`, `POST .../:id/confirm`, `POST .../:id/post`,
+`POST .../:id/reverse`, and `GET .../:id?tenantId=...`. Run it with
+`ERP_LAB_DSN=... pnpm lab:erp:http`.
+
+`test/http_integration.py` rebuilds the same disposable DB and starts that
+TypeScript process. It proves the HTTP path for the posting state transition,
+idempotency, unit-feedback response, insufficient-stock rejection without a
+ledger write, tenant-scoped read, reversal, and final ledger/balance
+reconciliation. Its checked result is
+`evidence/2026-10-07-http-vertical-slice-v1.json`.
+
 ## DD-A2 read workload
 
 `test/query_benchmark.py` rebuilds the disposable schema, seeds the fixed
@@ -45,6 +59,14 @@ result is `evidence/2026-10-07-dd-a2-read-baseline-v2.json`.
 The fixture is deliberately synthetic and read-only after seeding. It supports
 an index decision for this Lab; it is not a production capacity, cache, or
 customer-data claim.
+
+## Unit-entry feedback contract
+
+`backend/src/unit-entry-feedback.ts` is a presentation-only model for showing
+the selected input unit, its normalized preview, and line-level correction
+guidance. It does not replace server-side validation. The API payload and bulk
+row behavior are recorded in
+`docs/decisions/2026-10-07-erp-domain-unit-entry-response-contract.md`.
 
 ## Boundary
 

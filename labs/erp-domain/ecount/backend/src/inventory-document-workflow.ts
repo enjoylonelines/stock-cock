@@ -26,6 +26,8 @@ export interface InventoryDocument {
   idempotencyKey: string;
 }
 
+export class InventoryDocumentValidationError extends Error {}
+
 /**
  * The SQL adapter owns the transaction that posts a confirmed document, ledger
  * entries, and balance projection together. This service only validates the
@@ -62,13 +64,13 @@ export class InventoryDocumentWorkflowService {
     this.assertIdentifier(command.idempotencyKey, "idempotencyKey");
 
     if (command.lines.length === 0) {
-      throw new Error("at least one document line is required");
+      throw new InventoryDocumentValidationError("at least one document line is required");
     }
 
     for (const line of command.lines) {
       this.assertIdentifier(line.productId, "productId");
       if (!Number.isFinite(line.quantity) || line.quantity <= 0) {
-        throw new Error("line quantity must be a positive finite number");
+        throw new InventoryDocumentValidationError("line quantity must be a positive finite number");
       }
       if (line.unit !== undefined) {
         this.assertIdentifier(line.unit, "unit");
@@ -84,7 +86,7 @@ export class InventoryDocumentWorkflowService {
         this.assertIdentifier(line.sourceLocationId, "sourceLocationId");
         this.assertIdentifier(line.destinationLocationId, "destinationLocationId");
         if (line.sourceLocationId === line.destinationLocationId) {
-          throw new Error("transfer source and destination must differ");
+          throw new InventoryDocumentValidationError("transfer source and destination must differ");
         }
       }
       if (command.type === "return") {
@@ -97,7 +99,7 @@ export class InventoryDocumentWorkflowService {
 
   private assertIdentifier(value: string | undefined, name: string): asserts value is string {
     if (!value?.trim()) {
-      throw new Error(`${name} is required`);
+      throw new InventoryDocumentValidationError(`${name} is required`);
     }
   }
 }

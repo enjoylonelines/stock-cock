@@ -464,7 +464,7 @@ trace/log는 request id, business transaction id, stock movement id, interface e
 - ledger/slip model
 - concurrency/reversal 검증
 - 첫 전표 확정 및 재고 반영 slice evidence: `docs/evidence/2026-10-06-erp-domain-dd-a1-posting-cycle.md`
-- raw result: `labs/erp-domain/ecount/evidence/2026-10-06-posting-v7-cycle-1-lock-order.json`
+- raw result: `labs/erp-domain/ecount/evidence/2026-10-07-posting-v9-package-normalization.json`
 - 현재 검증 범위: 입고, 출고, 단일 항목 이동 실패 rollback, tenant 분리,
   duplicate delivery, 역분개 원장/원 전표 보존, 중복 역분개 차단,
   역분개와 출고 동시 실행, 동일 재고 키 동시 출고, 원 출고 항목 참조 부분 반품과
@@ -475,6 +475,26 @@ trace/log는 request id, business transaction id, stock movement id, interface e
 - 미완료: 부분 역분개, 반품 출고/반품 교환, 원가·회계·기간 마감, API/RLS,
   restart/retry, 다중 문서 교착 회피 증명, 포장·수율·BOM·lot 단위 정책, 성능 workload. 이 결과를 기존
   Stock-Cock 또는 운영 정합성 주장으로 확장하지 않는다.
+
+## Cycle 1.5 — ECOUNT TypeScript HTTP vertical slice
+
+Cycle 1의 SQL·Python harness 검증을 실제 TypeScript Web Backend 경로로 연결한다.
+기존 Stock-Cock route와 database는 변경하지 않고, disposable ERP Lab PostgreSQL에만 연결한다.
+
+- `POST /lab/erp/inventory-documents`: TypeScript command validation 뒤 `DRAFT` 생성
+- `POST /lab/erp/inventory-documents/:id/confirm`: `CONFIRMED` 전이
+- `POST /lab/erp/inventory-documents/:id/post`: `POSTED` 전이와 원장·현재고 반영
+- `GET /lab/erp/inventory-documents/:id`: 전표 상태, line, ledger, balance를 tenant 경계로 조회
+- SQLSTATE/업무 오류는 기술 메시지 대신 HTTP status와 안정된 code로 변환한다. `INVALID_DOCUMENT_UNIT`은 line index, 허용 단위, 기준 단위를 포함하는 사용자 피드백 계약으로 변환한다.
+- HTTP integration harness는 disposable DB에서 입고→확정→반영, 중복 요청, 단위 오류, 재고 부족, tenant 경계, 역분개를 호출하고 원장·현재고 대사를 확인한다.
+- raw result: `labs/erp-domain/ecount/evidence/2026-10-07-http-vertical-slice-v1.json`
+
+### Acceptance
+
+1. TypeScript HTTP process가 PostgreSQL adapter를 통해 전표 상태 전이를 수행한다.
+2. 단위 오류와 재고 부족은 예상 가능한 HTTP 응답으로 구분되며, 실패 요청은 원장·현재고를 변경하지 않는다.
+3. HTTP 결과만으로 성공을 판단하지 않고, 각 시나리오 후 대사 결과를 확인한다.
+4. 이 slice는 인증/RLS, production connection pool, restart recovery, global writer, 실제 사용자 UI를 증명하지 않는다.
 
 ## Cycle 2 — ECOUNT DD-A2
 
