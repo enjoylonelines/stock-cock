@@ -73,6 +73,36 @@ describe("InventoryDocumentWorkflowService", () => {
     ).rejects.toThrow("transfer source and destination must differ");
   });
 
+  it("requires a source shipment and source line for a return", async () => {
+    const service = new InventoryDocumentWorkflowService(port);
+
+    await expect(
+      service.createDraft({
+        ...receipt,
+        type: "return",
+        lines: [{ productId: "sku-finished-001", quantity: 2, destinationLocationId: "returns-a" }],
+      })
+    ).rejects.toThrow("sourceDocumentId is required");
+
+    await expect(
+      service.createDraft({
+        ...receipt,
+        type: "return",
+        sourceDocumentId: "shipment-001",
+        lines: [{ productId: "sku-finished-001", quantity: 2, destinationLocationId: "returns-a" }],
+      })
+    ).rejects.toThrow("sourceDocumentLineId is required");
+  });
+
+  it.each([
+    { type: "adjustment_in" as const, line: { productId: "sku-finished-001", quantity: 2 } },
+    { type: "adjustment_out" as const, line: { productId: "sku-finished-001", quantity: 2 } },
+  ])("rejects an adjustment without its required inventory location", async ({ type, line }) => {
+    const service = new InventoryDocumentWorkflowService(port);
+
+    await expect(service.createDraft({ ...receipt, type, lines: [line] })).rejects.toThrow();
+  });
+
   it("keeps confirmation and posting as explicit workflow calls", async () => {
     const service = new InventoryDocumentWorkflowService(port);
 

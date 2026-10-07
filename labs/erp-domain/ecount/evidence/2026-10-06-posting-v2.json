@@ -1,0 +1,49 @@
+{
+  "dsn_scope": "fixed disposable loopback Lab DB",
+  "cases": [
+    {
+      "name": "receipt",
+      "document_id": "671e24c5-41ce-4040-882c-00c3b9560fc1",
+      "balance": "10"
+    },
+    {
+      "name": "duplicate_receipt",
+      "document_id": "671e24c5-41ce-4040-882c-00c3b9560fc1",
+      "document_count": 1
+    },
+    {
+      "name": "shipment",
+      "document_id": "4cb7525e-df33-4b89-ac5d-c9895981bba4",
+      "balance": "6"
+    },
+    {
+      "name": "failed_transfer_rolls_back",
+      "source_balance": "6",
+      "destination_balance": "0"
+    },
+    {
+      "name": "tenant_partition",
+      "document_id": "3c842315-7bbc-4361-b07f-1b999480de7b",
+      "tenant_a_balance": "6",
+      "tenant_b_balance": "5"
+    },
+    {
+      "name": "concurrent_shipment",
+      "results": [
+        {
+          "status": "error",
+          "sqlstate": "P0001",
+          "message": "INSUFFICIENT_STOCK",
+          "elapsed_ms": 538.190584
+        },
+        {
+          "status": "POSTED",
+          "elapsed_ms": 277.2485
+        }
+      ]
+    }
+  ],
+  "reconciliation_mismatches": 0,
+  "final_tenant_a_balance": "2",
+  "status": "passed"
+}

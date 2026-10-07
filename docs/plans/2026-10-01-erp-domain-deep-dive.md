@@ -463,13 +463,28 @@ trace/log는 request id, business transaction id, stock movement id, interface e
 - TypeScript ERP inventory domain
 - ledger/slip model
 - concurrency/reversal 검증
+- 첫 전표 확정 및 재고 반영 slice evidence: `docs/evidence/2026-10-06-erp-domain-dd-a1-posting-cycle.md`
+- raw result: `labs/erp-domain/ecount/evidence/2026-10-06-posting-v7-cycle-1-lock-order.json`
+- 현재 검증 범위: 입고, 출고, 단일 항목 이동 실패 rollback, tenant 분리,
+  duplicate delivery, 역분개 원장/원 전표 보존, 중복 역분개 차단,
+  역분개와 출고 동시 실행, 동일 재고 키 동시 출고, 원 출고 항목 참조 부분 반품과
+  과다 반품 차단, 조정 입·출고, 다중 항목 이동의 전체 rollback, 대량 입고 행별
+  성공/실패, ledger/balance 사후 대사
+- Cycle 1 종료: 선택한 수량 도메인과 fixture에서 종료 조건을 충족했다.
+- 미완료: 부분 역분개, 반품 출고/반품 교환, 원가·회계·기간 마감, API/RLS,
+  restart/retry, 다중 문서 교착 회피 증명, 성능 workload. 이 결과를 기존
+  Stock-Cock 또는 운영 정합성 주장으로 확장하지 않는다.
 
 ## Cycle 2 — ECOUNT DD-A2
 
-- synthetic data generator
-- SQL baseline
-- index/query/aggregation/cache 비교
-- bottleneck report
+- synthetic read fixture: tenant 1, SKU 1,000, ledger 120,000행, location 2,
+  hot SKU 50% (`labs/erp-domain/ecount/test/query_benchmark.py`)
+- baseline / after raw result: `labs/erp-domain/ecount/evidence/2026-10-07-dd-a2-read-baseline-v2.json`
+- Evidence: `docs/evidence/2026-10-07-erp-domain-dd-a2-read-cycle.md`
+- Decision: `docs/decisions/2026-10-07-erp-domain-dd-a2-read-index-decision.md`
+- 선택: 최근 원장·기간 집계·부족 재고에 복합 index. current-stock은 기존 PK로 충분했다.
+- 미선택: Redis, aggregation table, queue, Kubernetes. 이 workload에서 필요성이 측정되지 않았다.
+- 종료: 고정 synthetic read fixture의 병목을 plan과 수치로 식별하고, index가 가장 큰 효과를 냈음을 확인했다. write 비용·운영 규모·cache stale policy는 별도 workload 전까지 미검증이다.
 
 ## Cycle 3 — INDONG DD-B1
 

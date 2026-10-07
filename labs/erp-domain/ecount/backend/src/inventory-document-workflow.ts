@@ -1,4 +1,4 @@
-export type InventoryDocumentType = "receipt" | "shipment" | "transfer";
+export type InventoryDocumentType = "receipt" | "shipment" | "transfer" | "return" | "adjustment_in" | "adjustment_out";
 export type InventoryDocumentStatus = "DRAFT" | "CONFIRMED" | "POSTED" | "REVERSED";
 
 export interface InventoryDocumentLineCommand {
@@ -6,6 +6,7 @@ export interface InventoryDocumentLineCommand {
   quantity: number;
   sourceLocationId?: string;
   destinationLocationId?: string;
+  sourceDocumentLineId?: string;
 }
 
 export interface CreateInventoryDocumentCommand {
@@ -13,6 +14,7 @@ export interface CreateInventoryDocumentCommand {
   type: InventoryDocumentType;
   idempotencyKey: string;
   lines: InventoryDocumentLineCommand[];
+  sourceDocumentId?: string;
 }
 
 export interface InventoryDocument {
@@ -68,10 +70,10 @@ export class InventoryDocumentWorkflowService {
         throw new Error("line quantity must be a positive finite number");
       }
 
-      if (command.type === "receipt") {
+      if (command.type === "receipt" || command.type === "adjustment_in") {
         this.assertIdentifier(line.destinationLocationId, "destinationLocationId");
       }
-      if (command.type === "shipment") {
+      if (command.type === "shipment" || command.type === "adjustment_out") {
         this.assertIdentifier(line.sourceLocationId, "sourceLocationId");
       }
       if (command.type === "transfer") {
@@ -80,6 +82,11 @@ export class InventoryDocumentWorkflowService {
         if (line.sourceLocationId === line.destinationLocationId) {
           throw new Error("transfer source and destination must differ");
         }
+      }
+      if (command.type === "return") {
+        this.assertIdentifier(command.sourceDocumentId, "sourceDocumentId");
+        this.assertIdentifier(line.sourceDocumentLineId, "sourceDocumentLineId");
+        this.assertIdentifier(line.destinationLocationId, "destinationLocationId");
       }
     }
   }

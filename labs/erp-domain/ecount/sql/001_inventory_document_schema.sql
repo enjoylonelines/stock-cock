@@ -1,4 +1,5 @@
 -- Isolated ERP Domain Lab schema. Do not apply this to Stock-Cock's public schema.
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE SCHEMA IF NOT EXISTS erp_lab;
 
 CREATE TABLE erp_lab.tenants (
@@ -32,13 +33,20 @@ CREATE TABLE erp_lab.locations (
 CREATE TABLE erp_lab.inventory_documents (
   id uuid PRIMARY KEY,
   tenant_id uuid NOT NULL REFERENCES erp_lab.tenants(id),
-  document_type text NOT NULL CHECK (document_type IN ('receipt', 'shipment', 'transfer')),
+  document_type text NOT NULL CHECK (document_type IN (
+    'receipt', 'shipment', 'transfer', 'reversal', 'return', 'adjustment_in', 'adjustment_out'
+  )),
   status text NOT NULL CHECK (status IN ('DRAFT', 'CONFIRMED', 'POSTED', 'REVERSED')),
   idempotency_key text NOT NULL,
   reversed_document_id uuid REFERENCES erp_lab.inventory_documents(id),
+  source_document_id uuid REFERENCES erp_lab.inventory_documents(id),
   created_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (tenant_id, idempotency_key)
 );
+
+CREATE UNIQUE INDEX inventory_documents_one_reversal_per_source_idx
+  ON erp_lab.inventory_documents(reversed_document_id)
+  WHERE reversed_document_id IS NOT NULL;
 
 CREATE TABLE erp_lab.inventory_document_lines (
   id uuid PRIMARY KEY,
@@ -46,7 +54,8 @@ CREATE TABLE erp_lab.inventory_document_lines (
   product_id uuid NOT NULL REFERENCES erp_lab.products(id),
   quantity numeric NOT NULL CHECK (quantity > 0),
   source_location_id uuid REFERENCES erp_lab.locations(id),
-  destination_location_id uuid REFERENCES erp_lab.locations(id)
+  destination_location_id uuid REFERENCES erp_lab.locations(id),
+  source_document_line_id uuid REFERENCES erp_lab.inventory_document_lines(id)
 );
 
 CREATE TABLE erp_lab.stock_ledger (

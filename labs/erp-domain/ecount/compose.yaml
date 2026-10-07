@@ -1,0 +1,19 @@
+name: ecount-erp-domain-lab
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ecount-erp-domain-lab-db
+    ports:
+      - "127.0.0.1:55441:5432"
+    environment:
+      POSTGRES_DB: erp_domain_lab
+      POSTGRES_USER: erp_lab_test
+      POSTGRES_PASSWORD: erp-lab-test-only
+    command: ["postgres", "-c", "max_connections=20", "-c", "log_lock_waits=on", "-c", "deadlock_timeout=100ms"]
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U erp_lab_test -d erp_domain_lab"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
