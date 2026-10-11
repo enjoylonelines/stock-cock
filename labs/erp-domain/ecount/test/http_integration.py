@@ -46,6 +46,13 @@ def request_json(method, path, body=None):
         return error.code, json.loads(error.read())
 
 
+def availability(product_id, location_id):
+    return request_json(
+        "GET",
+        f"/lab/erp/inventory-availability?tenantId={TENANT_A}&productId={product_id}&locationId={location_id}",
+    )
+
+
 def wait_for_health(process):
     deadline = time.monotonic() + 10
     while time.monotonic() < deadline:
@@ -83,7 +90,7 @@ def run():
         apply_schema(connection)
         seed(connection)
 
-    environment = {**os.environ, "ERP_LAB_DSN": DSN, "ERP_LAB_PORT": str(PORT)}
+    environment = {**os.environ, "ERP_LAB_DSN": DSN, "ERP_LAB_PORT": str(PORT), "ERP_LAB_LRU_CAPACITY": "10"}
     process = subprocess.Popen(
         ["pnpm", "exec", "tsx", "labs/erp-domain/ecount/backend/src/http-server.ts"],
         cwd=ROOT,
@@ -184,15 +191,23 @@ def run():
             "lines": [{"productId": str(PRODUCT_PACKAGED), "quantity": 2, "unit": "BOX", "destinationLocationId": str(LOCATION_A)}],
         }
         package_id = create_confirm_post(package_receipt)
+        status, first_availability = availability(PRODUCT_PACKAGED, LOCATION_A)
+        assert status == 200 and first_availability["cache"] == "MISS", first_availability
+        status, cached_availability = availability(PRODUCT_PACKAGED, LOCATION_A)
+        assert status == 200 and cached_availability["cache"] == "HIT", cached_availability
+        assert cached_availability["availability"] == first_availability["availability"], cached_availability
         status, reversal = request_json(
             "POST",
             f"/lab/erp/inventory-documents/{package_id}/reverse",
             {"tenantId": str(TENANT_A), "idempotencyKey": "http-package-receipt-reversal"},
         )
         assert status == 201 and reversal["document"]["status"] == "POSTED", reversal
+        status, reversed_availability = availability(PRODUCT_PACKAGED, LOCATION_A)
+        assert status == 200 and reversed_availability["cache"] == "MISS", reversed_availability
+        assert reversed_availability["availability"]["quantity"] == 0, reversed_availability
         status, original = request_json("GET", f"/lab/erp/inventory-documents/{package_id}?tenantId={TENANT_A}")
         assert status == 200 and original["document"]["status"] == "REVERSED", original
-        result["cases"].append({"name": "reversal_preserves_original_and_posts_counter_ledger", "document_id": package_id})
+        result["cases"].append({"name": "availability_lru_and_reversal_invalidation", "document_id": package_id})
 
         with connect() as connection:
             mismatches = assert_reconciled(connection)

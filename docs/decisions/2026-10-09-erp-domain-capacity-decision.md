@@ -42,3 +42,7 @@
 | 재조회가 DB 비용의 주원인이고 stale 정책 합의됨 | targeted cache | hit/miss, invalidation, stale 허용 범위, write 비용 비교 |
 
 이 결정은 “대규모 분산 처리 구현” 주장이 아니라, 단순 구조의 측정 가능한 한계를 먼저 확인하고 복잡성 도입 조건을 남긴 결과다.
+
+## 종료 범위
+
+ERP Lab은 단일 TypeScript worker와 PostgreSQL로 종료한다. durable import의 lease는 중단 후 재개 가능한 작업 계약을 검증한 것이며, 독립된 두 worker 프로세스의 claim 경쟁·failover·캐시 일관성을 검증한 결과가 아니다. 따라서 해당 요구가 생기기 전에는 worker pool, Redis, Kafka를 추가하지 않는다.

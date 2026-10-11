@@ -1,5 +1,6 @@
 import { type IncomingMessage, type Server, type ServerResponse, createServer } from "node:http";
 
+import { LruCache } from "../../../shared/structures/lru-cache";
 import {
   type CreateInventoryDocumentCommand,
   InventoryDocumentValidationError,
@@ -62,6 +63,15 @@ function asCommand(body: Record<string, unknown>): CreateInventoryDocumentComman
 export function createErpLabHttpServer(connectionString: string): { server: Server; close: () => Promise<void> } {
   const port = new PostgresInventoryDocumentPort(connectionString);
   const workflow = new InventoryDocumentWorkflowService(port);
+  const cache = new LruCache<string, { quantity: number }>(Number(process.env.ERP_LAB_LRU_CAPACITY ?? "0"));
+  let cacheHits = 0;
+  let cacheMisses = 0;
+  const availabilityKey = (tenantId: string, productId: string, locationId: string) =>
+    `${tenantId}:${productId}:${locationId}`;
+  const invalidate = (document: { balances?: Array<Record<string, unknown>>; tenantId: string }) => {
+    for (const balance of document.balances ?? [])
+      cache.delete(availabilityKey(document.tenantId, String(balance.product_id), String(balance.location_id)));
+  };
   const server = createServer(async (request, response) => {
     try {
       const method = request.method ?? "GET";
@@ -74,6 +84,28 @@ export function createErpLabHttpServer(connectionString: string): { server: Serv
       if (method === "POST" && url.pathname === "/lab/erp/inventory-documents") {
         const document = await workflow.createDraft(asCommand(await readJson(request)));
         respond(response, 201, { document });
+        return;
+      }
+      if (method === "GET" && url.pathname === "/lab/erp/inventory-availability") {
+        const tenantId = url.searchParams.get("tenantId") ?? "";
+        const productId = url.searchParams.get("productId") ?? "";
+        const locationId = url.searchParams.get("locationId") ?? "";
+        if (!tenantId || !productId || !locationId)
+          throw new LabHttpError(400, "INVALID_AVAILABILITY_QUERY", "tenantId, productId, locationId가 필요합니다.");
+        const key = availabilityKey(tenantId, productId, locationId);
+        const cached = cache.get(key);
+        if (cached) {
+          cacheHits += 1;
+          respond(response, 200, {
+            availability: { tenantId, productId, locationId, quantity: cached.quantity },
+            cache: "HIT",
+          });
+          return;
+        }
+        cacheMisses += 1;
+        const availability = await port.getAvailability(tenantId, productId, locationId);
+        cache.put(key, { quantity: availability.quantity });
+        respond(response, 200, { availability, cache: "MISS" });
         return;
       }
       const documentId = segments[3];
@@ -92,12 +124,17 @@ export function createErpLabHttpServer(connectionString: string): { server: Serv
         return;
       }
       if (method === "POST" && segments[4] === "post") {
-        respond(response, 200, { document: await workflow.postConfirmed(documentId, tenantId) });
+        const document = await workflow.postConfirmed(documentId, tenantId);
+        invalidate(await port.getDocument(document.id, tenantId));
+        respond(response, 200, { document, cache: { hits: cacheHits, misses: cacheMisses } });
         return;
       }
       if (method === "POST" && segments[4] === "reverse") {
+        const document = await port.reverse(documentId, tenantId, String(body.idempotencyKey ?? ""));
+        invalidate(await port.getDocument(document.id, tenantId));
         respond(response, 201, {
-          document: await port.reverse(documentId, tenantId, String(body.idempotencyKey ?? "")),
+          document,
+          cache: { hits: cacheHits, misses: cacheMisses },
         });
         return;
       }

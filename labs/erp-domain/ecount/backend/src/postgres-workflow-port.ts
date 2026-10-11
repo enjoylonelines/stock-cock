@@ -25,6 +25,13 @@ export interface ErpLabDocumentDetail extends InventoryDocument {
   balances: Array<Record<string, unknown>>;
 }
 
+export interface InventoryAvailability {
+  tenantId: string;
+  productId: string;
+  locationId: string;
+  quantity: number;
+}
+
 function toDocument(row: Record<string, unknown>): InventoryDocument {
   return {
     id: String(row.id),
@@ -133,24 +140,32 @@ export class PostgresInventoryDocumentPort implements InventoryDocumentWorkflowP
       if (!document) {
         throw new LabHttpError(404, "DOCUMENT_NOT_FOUND", "전표를 찾을 수 없습니다.");
       }
-      const [lines, ledger, balances] = await Promise.all([
-        client.query<Record<string, unknown>>(
-          "SELECT id, product_id, quantity, input_quantity, input_unit, source_location_id, destination_location_id, source_document_line_id FROM erp_lab.inventory_document_lines WHERE document_id = $1 ORDER BY id",
-          [documentId]
-        ),
-        client.query<Record<string, unknown>>(
-          "SELECT id, product_id, location_id, quantity_delta, posted_at FROM erp_lab.stock_ledger WHERE document_id = $1 ORDER BY id",
-          [documentId]
-        ),
-        client.query<Record<string, unknown>>(
-          "SELECT DISTINCT balances.product_id, balances.location_id, balances.quantity FROM erp_lab.inventory_balances AS balances JOIN erp_lab.inventory_document_lines AS lines ON lines.product_id = balances.product_id AND (lines.source_location_id = balances.location_id OR lines.destination_location_id = balances.location_id) WHERE lines.document_id = $1 AND balances.tenant_id = $2 ORDER BY balances.product_id, balances.location_id",
-          [documentId, tenantId]
-        ),
-      ]);
+      // node-postgres permits one active query per checked-out client. Keep these
+      // reads sequential rather than issuing concurrent client.query calls.
+      const lines = await client.query<Record<string, unknown>>(
+        "SELECT id, product_id, quantity, input_quantity, input_unit, source_location_id, destination_location_id, source_document_line_id FROM erp_lab.inventory_document_lines WHERE document_id = $1 ORDER BY id",
+        [documentId]
+      );
+      const ledger = await client.query<Record<string, unknown>>(
+        "SELECT id, product_id, location_id, quantity_delta, posted_at FROM erp_lab.stock_ledger WHERE document_id = $1 ORDER BY id",
+        [documentId]
+      );
+      const balances = await client.query<Record<string, unknown>>(
+        "SELECT DISTINCT balances.product_id, balances.location_id, balances.quantity FROM erp_lab.inventory_balances AS balances JOIN erp_lab.inventory_document_lines AS lines ON lines.product_id = balances.product_id AND (lines.source_location_id = balances.location_id OR lines.destination_location_id = balances.location_id) WHERE lines.document_id = $1 AND balances.tenant_id = $2 ORDER BY balances.product_id, balances.location_id",
+        [documentId, tenantId]
+      );
       return { ...toDocument(document), lines: lines.rows, ledger: ledger.rows, balances: balances.rows };
     } finally {
       client.release();
     }
+  }
+
+  async getAvailability(tenantId: string, productId: string, locationId: string): Promise<InventoryAvailability> {
+    const result = await this.pool.query<{ quantity: string }>(
+      "SELECT quantity FROM erp_lab.inventory_balances WHERE tenant_id = $1 AND product_id = $2 AND location_id = $3",
+      [tenantId, productId, locationId]
+    );
+    return { tenantId, productId, locationId, quantity: Number(result.rows[0]?.quantity ?? 0) };
   }
 
   private async validateUnits(command: CreateInventoryDocumentCommand): Promise<void> {

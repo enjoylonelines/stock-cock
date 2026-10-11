@@ -66,3 +66,16 @@
 | receipt set-based, chunk 1,000 | **9,462.683ms** | **5,283.914 rows/s** | 49,999 반영 / 1 거절 / lease 재개·대사 통과 |
 
 완료 시간은 95.3% 감소했다. 원시 결과: `labs/erp-domain/ecount/evidence/2026-10-09-durable-import-job-set-based-v1.json`. 이 개선은 receipt fixture에서만 검증됐으며, 다중 worker 경합·HTTP API·다른 전표 유형에는 확장하지 않는다.
+
+## LRU 가용재고 조회 workload
+
+직접 구현한 in-process `LruCache`를 tenant·product·location 키의 가용재고 조회에만 연결했다. 동일 local HTTP process와 seeded balance에서 동일 키를 300회 순차 조회했다.
+
+| 조건 | 총 시간 | 요청당 시간 | cache 상태 |
+| --- | ---: | ---: | --- |
+| LRU capacity 0 | 568.192ms | 1.894ms | 300 MISS |
+| LRU capacity 10 | 79.017ms | 0.263ms | 300 HIT |
+
+동일 loopback hot-read에서 요청당 시간은 86.1% 감소했다. 입고 전표를 HTTP로 반영한 뒤 같은 키는 `MISS`로 다시 DB를 조회했고, 수량이 10에서 15로 갱신된 것을 확인했다. HTTP 통합 검증은 capacity 10에서 `MISS -> HIT ->` 반전 전표 `-> MISS`와 수량 0 복귀, 전표/원장/잔량 대사 불일치 0을 통과했다.
+
+이 결과는 단일 process·순차 요청·단일 hot key의 synthetic 결과다. 이번 cycle은 **단일 TypeScript worker에서 종료**하며, multi-process cache coherence, TTL, cache stampede, 실제 사용자 트래픽과 다중 worker import 경합은 구현·검증 범위에 포함하지 않는다.

@@ -519,7 +519,7 @@ Cycle 2의 읽기 benchmark는 용량 계획이 아니다. Cycle 2.5는 이미 �
 - 원칙: Kafka/Redis/queue/job worker를 선도입하지 않는다. baseline이 durable progress/restart 또는 특정 병목을 요구할 때만 하나의 후속 개선을 선택한다.
 - 경계: disposable loopback DB + local TypeScript process의 synthetic Lab 결과이며, Stock-Cock 운영 트래픽, 고객 규모, production capacity, global writer 보증이 아니다.
 - 완료 범위: import는 10,000행/60초 예산이 최고 안정, 50,000행에서 최초 예산 초과. HTTP는 짧은 8초 반복에서 read 128→256, hot-key write 128→256, mixed 64→128이 각각 안정→최초 기준 초과 구간이었다. 장시간 soak과 durable import recovery는 미검증이다.
-- 후속 개선: 50,000행의 동기 요청 예산 초과에만 대응해 DB 기반 durable import job을 구현했다. 1,000행 chunk와 lease를 사용하며, 3,000행 처리 뒤 lease 교체 후 50,000행(49,999 반영/1 거절)을 대사 0으로 완료했다. HTTP API·다중 worker·장시간 운영은 여전히 미검증이다.
+- 후속 개선: 50,000행의 동기 요청 예산 초과에만 대응해 DB 기반 durable import job을 구현했다. 1,000행 chunk와 lease를 사용하며, 3,000행 처리 뒤 lease 교체 후 50,000행(49,999 반영/1 거절)을 대사 0으로 완료했다. 이번 cycle은 단일 TypeScript worker로 종료한다. HTTP API·다중 worker·장시간 운영은 의도적으로 범위 밖이며, 이를 도입·검증했다고 주장하지 않는다.
 
 ## Cycle 3 — INDONG DD-B1
 

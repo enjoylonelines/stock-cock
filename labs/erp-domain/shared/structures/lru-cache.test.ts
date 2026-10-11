@@ -44,6 +44,15 @@ describe("LruCache", () => {
     expect(cache.size).toBe(0);
   });
 
+  it("removes an entry so a subsequent read is a miss", () => {
+    const cache = new LruCache<string, number>(2);
+    cache.put("sku-a", 10);
+
+    expect(cache.delete("sku-a")).toBe(true);
+    expect(cache.get("sku-a")).toBeUndefined();
+    expect(cache.delete("sku-a")).toBe(false);
+  });
+
   it("rejects a negative or non-integer capacity", () => {
     expect(() => new LruCache<string, number>(-1)).toThrow("capacity must be a non-negative integer");
     expect(() => new LruCache<string, number>(1.5)).toThrow("capacity must be a non-negative integer");

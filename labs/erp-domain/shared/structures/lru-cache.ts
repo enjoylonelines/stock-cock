@@ -55,6 +55,16 @@ export class LruCache<K, V> {
     }
   }
 
+  delete(key: K): boolean {
+    const node = this.entries.get(key);
+    if (!node) {
+      return false;
+    }
+    this.detach(node);
+    this.entries.delete(key);
+    return true;
+  }
+
   private moveToHead(node: CacheNode<K, V>): void {
     if (node === this.head) {
       return;
