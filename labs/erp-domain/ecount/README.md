@@ -60,6 +60,40 @@ The fixture is deliberately synthetic and read-only after seeding. It supports
 an index decision for this Lab; it is not a production capacity, cache, or
 customer-data claim.
 
+## Capacity-boundary workload
+
+`test/capacity_benchmark.py` measures the existing bulk-receipt SQL path and
+the separate local TypeScript HTTP read/write/mixed paths. It rebuilds a
+synthetic 1,000-product fixture, samples PostgreSQL activity, verifies
+ledger/balance reconciliation, and refuses to overwrite evidence. A direct
+bulk result is explicitly not an HTTP capacity result.
+
+For a smoke run after starting the disposable database:
+
+```bash
+pnpm lab:erp:capacity --profile import --rows 1000 --chunk-size 100 \
+  --output labs/erp-domain/ecount/evidence/<new-result>.json
+```
+
+For a repeated ladder, `lab:erp:capacity-ladder` writes one immutable evidence
+file per step/repeat plus a summary that records the highest three-run stable
+step and first breach (or explicitly says no breach was observed at the tested
+ceiling):
+
+```bash
+pnpm lab:erp:capacity-ladder --profile http-write --steps 1,2,4,8,16,32 \
+  --duration-seconds 120 --repeats 3 \
+  --evidence-prefix labs/erp-domain/ecount/evidence/<run> \
+  --output labs/erp-domain/ecount/evidence/<run>-summary.json
+```
+
+The capacity ladder and predeclared acceptance criteria are in
+`docs/plans/2026-10-08-erp-lab-capacity-boundary.md`. The completed isolated
+Lab boundary, raw-evidence links, and its decision are recorded in
+`docs/evidence/2026-10-09-erp-domain-capacity-boundary.md` and
+`docs/decisions/2026-10-09-erp-domain-capacity-decision.md`; they are not a
+production or customer-traffic capacity claim.
+
 ## Unit-entry feedback contract
 
 `backend/src/unit-entry-feedback.ts` is a presentation-only model for showing

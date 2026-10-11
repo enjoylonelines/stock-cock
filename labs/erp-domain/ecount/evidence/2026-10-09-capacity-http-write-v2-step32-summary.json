@@ -1,0 +1,140 @@
+{
+  "status": "passed",
+  "profile": "http-write",
+  "axis": "concurrency",
+  "steps": [
+    {
+      "step": 32,
+      "passed": true,
+      "runs": [
+        {
+          "repeat": 1,
+          "status": "passed",
+          "evidence": "labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v2-step32-http-write-step-32-repeat-1.json",
+          "measurement": {
+            "operation": "http-write",
+            "concurrency": 32,
+            "duration_seconds": 8,
+            "request_count": 2708,
+            "success_count": 2708,
+            "unexpected_error_count": 0,
+            "throughput_per_second": 335.718,
+            "client_latency_ms": {
+              "p50": 93.725,
+              "p95": 103.393,
+              "p99": 121.461
+            },
+            "by_operation": {
+              "write": {
+                "request_count": 2708,
+                "success_count": 2708,
+                "unexpected_error_count": 0,
+                "client_latency_ms": {
+                  "p50": 93.725,
+                  "p95": 103.393,
+                  "p99": 121.461
+                }
+              }
+            }
+          },
+          "reconciliation": {
+            "reconciliation_mismatches": 0,
+            "documents": 2728,
+            "ledger_rows": 2728,
+            "posted_documents": 2728,
+            "ledger_documents": 2728,
+            "posted_without_ledger": 0
+          },
+          "error": null,
+          "runner_exit_code": 0
+        },
+        {
+          "repeat": 2,
+          "status": "passed",
+          "evidence": "labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v2-step32-http-write-step-32-repeat-2.json",
+          "measurement": {
+            "operation": "http-write",
+            "concurrency": 32,
+            "duration_seconds": 8,
+            "request_count": 2750,
+            "success_count": 2750,
+            "unexpected_error_count": 0,
+            "throughput_per_second": 334.462,
+            "client_latency_ms": {
+              "p50": 92.248,
+              "p95": 104.526,
+              "p99": 217.859
+            },
+            "by_operation": {
+              "write": {
+                "request_count": 2750,
+                "success_count": 2750,
+                "unexpected_error_count": 0,
+                "client_latency_ms": {
+                  "p50": 92.248,
+                  "p95": 104.526,
+                  "p99": 217.859
+                }
+              }
+            }
+          },
+          "reconciliation": {
+            "reconciliation_mismatches": 0,
+            "documents": 2770,
+            "ledger_rows": 2770,
+            "posted_documents": 2770,
+            "ledger_documents": 2770,
+            "posted_without_ledger": 0
+          },
+          "error": null,
+          "runner_exit_code": 0
+        },
+        {
+          "repeat": 3,
+          "status": "passed",
+          "evidence": "labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v2-step32-http-write-step-32-repeat-3.json",
+          "measurement": {
+            "operation": "http-write",
+            "concurrency": 32,
+            "duration_seconds": 8,
+            "request_count": 2551,
+            "success_count": 2551,
+            "unexpected_error_count": 0,
+            "throughput_per_second": 315.949,
+            "client_latency_ms": {
+              "p50": 98.96,
+              "p95": 118.112,
+              "p99": 127.39
+            },
+            "by_operation": {
+              "write": {
+                "request_count": 2551,
+                "success_count": 2551,
+                "unexpected_error_count": 0,
+                "client_latency_ms": {
+                  "p50": 98.96,
+                  "p95": 118.112,
+                  "p99": 127.39
+                }
+              }
+            }
+          },
+          "reconciliation": {
+            "reconciliation_mismatches": 0,
+            "documents": 2571,
+            "ledger_rows": 2571,
+            "posted_documents": 2571,
+            "ledger_documents": 2571,
+            "posted_without_ledger": 0
+          },
+          "error": null,
+          "runner_exit_code": 0
+        }
+      ]
+    }
+  ],
+  "highest_stable": 32,
+  "first_breach": null,
+  "recorded_at": "2026-10-09T10:26:54.812225+00:00",
+  "no_breach_observed_within_tested_ceiling": true
+}

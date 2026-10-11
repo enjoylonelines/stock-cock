@@ -1,0 +1,218 @@
+{
+  "status": "passed",
+  "manifest": {
+    "scope": "fixed disposable loopback Lab DB; one local TypeScript process; synthetic data only",
+    "recorded_at": "2026-10-08T08:47:47.640485+00:00",
+    "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+    "logical_cpu_count": 10,
+    "physical_memory_bytes": 68719476736,
+    "postgres_version": "16.15",
+    "pool_max": 4,
+    "git_sha": "5603e0c78ef0ba1e77f60c9f64a23be061520d77",
+    "dirty_paths": [
+      " M docs/plans/2026-10-01-erp-domain-deep-dive.md",
+      " M labs/erp-domain/ecount/README.md",
+      " M package.json",
+      "?? docs/plans/2026-10-08-erp-lab-capacity-boundary.md",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-http-read-smoke-v1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-http-write-smoke-v1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-smoke-v1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-v1-import-step-10000-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-v2-import-step-1000-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-v2-import-step-1000-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-v2-import-step-1000-repeat-3.json",
+      "?? labs/erp-domain/ecount/test/__pycache__/",
+      "?? labs/erp-domain/ecount/test/capacity_benchmark.py",
+      "?? labs/erp-domain/ecount/test/capacity_ladder.py"
+    ]
+  },
+  "profile": "import",
+  "telemetry": {
+    "before": {
+      "recorded_at": "2026-10-08T08:47:47.701770+00:00",
+      "active_sessions": 1,
+      "active_wait_event_sessions": 0,
+      "lock_waiting_sessions": 0,
+      "xact_commit": 15189,
+      "xact_rollback": 1,
+      "blocks_read": 685,
+      "blocks_hit": 51072508,
+      "database_size_bytes": 9878551
+    },
+    "during": [
+      {
+        "recorded_at": "2026-10-08T08:47:47.723550+00:00",
+        "active_sessions": 2,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 15190,
+        "xact_rollback": 1,
+        "blocks_read": 685,
+        "blocks_hit": 51072539,
+        "database_size_bytes": 9960471
+      },
+      {
+        "recorded_at": "2026-10-08T08:47:48.738828+00:00",
+        "active_sessions": 2,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 15212,
+        "xact_rollback": 1,
+        "blocks_read": 701,
+        "blocks_hit": 51348995,
+        "database_size_bytes": 12164119
+      },
+      {
+        "recorded_at": "2026-10-08T08:47:49.758824+00:00",
+        "active_sessions": 2,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 15229,
+        "xact_rollback": 1,
+        "blocks_read": 701,
+        "blocks_hit": 51645220,
+        "database_size_bytes": 13573143
+      },
+      {
+        "recorded_at": "2026-10-08T08:47:50.778363+00:00",
+        "active_sessions": 2,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 15244,
+        "xact_rollback": 1,
+        "blocks_read": 701,
+        "blocks_hit": 51964569,
+        "database_size_bytes": 14687255
+      },
+      {
+        "recorded_at": "2026-10-08T08:47:51.801056+00:00",
+        "active_sessions": 2,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 15257,
+        "xact_rollback": 1,
+        "blocks_read": 701,
+        "blocks_hit": 52276817,
+        "database_size_bytes": 15735831
+      },
+      {
+        "recorded_at": "2026-10-08T08:47:52.823864+00:00",
+        "active_sessions": 1,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 15269,
+        "xact_rollback": 1,
+        "blocks_read": 701,
+        "blocks_hit": 52593992,
+        "database_size_bytes": 16604183
+      },
+      {
+        "recorded_at": "2026-10-08T08:47:53.843615+00:00",
+        "active_sessions": 2,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 15280,
+        "xact_rollback": 1,
+        "blocks_read": 701,
+        "blocks_hit": 52904858,
+        "database_size_bytes": 17284119
+      },
+      {
+        "recorded_at": "2026-10-08T08:47:54.865826+00:00",
+        "active_sessions": 2,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 15291,
+        "xact_rollback": 1,
+        "blocks_read": 701,
+        "blocks_hit": 53243139,
+        "database_size_bytes": 18029591
+      },
+      {
+        "recorded_at": "2026-10-08T08:47:55.883684+00:00",
+        "active_sessions": 2,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 15301,
+        "xact_rollback": 1,
+        "blocks_read": 701,
+        "blocks_hit": 53561676,
+        "database_size_bytes": 18766871
+      },
+      {
+        "recorded_at": "2026-10-08T08:47:56.902260+00:00",
+        "active_sessions": 2,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 15311,
+        "xact_rollback": 1,
+        "blocks_read": 701,
+        "blocks_hit": 53901221,
+        "database_size_bytes": 19438615
+      },
+      {
+        "recorded_at": "2026-10-08T08:47:57.923443+00:00",
+        "active_sessions": 2,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 15355,
+        "xact_rollback": 1,
+        "blocks_read": 701,
+        "blocks_hit": 53911827,
+        "database_size_bytes": 19979287
+      },
+      {
+        "recorded_at": "2026-10-08T08:47:58.943553+00:00",
+        "active_sessions": 2,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 15365,
+        "xact_rollback": 1,
+        "blocks_read": 701,
+        "blocks_hit": 54272904,
+        "database_size_bytes": 20134935
+      }
+    ],
+    "after": {
+      "recorded_at": "2026-10-08T08:47:59.031743+00:00",
+      "active_sessions": 1,
+      "active_wait_event_sessions": 0,
+      "lock_waiting_sessions": 0,
+      "xact_commit": 15460,
+      "xact_rollback": 1,
+      "blocks_read": 701,
+      "blocks_hit": 54480517,
+      "database_size_bytes": 20134935
+    }
+  },
+  "measurement": {
+    "operation": "direct_bulk_receipt",
+    "total_rows": 10000,
+    "chunk_size": 100,
+    "hot_key_share": "uniform",
+    "completed_rows": 10000,
+    "terminal_results": {
+      "POSTED": 9999,
+      "REJECTED": 1
+    },
+    "expected_rejected": 1,
+    "max_elapsed_seconds": 60,
+    "time_budget_breached": false,
+    "elapsed_ms": 10558.009,
+    "rows_per_second": 947.148,
+    "replay_elapsed_ms": 738.079,
+    "replay_document_delta": 0,
+    "replay_ledger_delta": 0
+  },
+  "reconciliation": {
+    "reconciliation_mismatches": 0,
+    "documents": 9999,
+    "ledger_rows": 9999
+  },
+  "acceptance": {
+    "max_elapsed_seconds": 60,
+    "completed_rows": 10000,
+    "time_budget_breached": false
+  }
+}

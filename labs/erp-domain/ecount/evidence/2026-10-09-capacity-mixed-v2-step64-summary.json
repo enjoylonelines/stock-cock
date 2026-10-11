@@ -1,0 +1,170 @@
+{
+  "status": "passed",
+  "profile": "mixed",
+  "axis": "concurrency",
+  "steps": [
+    {
+      "step": 64,
+      "passed": true,
+      "runs": [
+        {
+          "repeat": 1,
+          "status": "passed",
+          "evidence": "labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step64-mixed-step-64-repeat-1.json",
+          "measurement": {
+            "operation": "mixed",
+            "concurrency": 64,
+            "duration_seconds": 8,
+            "request_count": 6837,
+            "success_count": 6837,
+            "unexpected_error_count": 0,
+            "throughput_per_second": 844.855,
+            "client_latency_ms": {
+              "p50": 35.266,
+              "p95": 241.729,
+              "p99": 253.665
+            },
+            "by_operation": {
+              "read": {
+                "request_count": 5470,
+                "success_count": 5470,
+                "unexpected_error_count": 0,
+                "client_latency_ms": {
+                  "p50": 34.575,
+                  "p95": 41.048,
+                  "p99": 47.799
+                }
+              },
+              "write": {
+                "request_count": 1367,
+                "success_count": 1367,
+                "unexpected_error_count": 0,
+                "client_latency_ms": {
+                  "p50": 236.151,
+                  "p95": 253.665,
+                  "p99": 258.752
+                }
+              }
+            }
+          },
+          "reconciliation": {
+            "reconciliation_mismatches": 0,
+            "documents": 1387,
+            "ledger_rows": 1387,
+            "posted_documents": 1387,
+            "ledger_documents": 1387,
+            "posted_without_ledger": 0
+          },
+          "error": null,
+          "runner_exit_code": 0
+        },
+        {
+          "repeat": 2,
+          "status": "passed",
+          "evidence": "labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step64-mixed-step-64-repeat-2.json",
+          "measurement": {
+            "operation": "mixed",
+            "concurrency": 64,
+            "duration_seconds": 8,
+            "request_count": 6915,
+            "success_count": 6915,
+            "unexpected_error_count": 0,
+            "throughput_per_second": 854.278,
+            "client_latency_ms": {
+              "p50": 34.864,
+              "p95": 239.794,
+              "p99": 248.502
+            },
+            "by_operation": {
+              "read": {
+                "request_count": 5532,
+                "success_count": 5532,
+                "unexpected_error_count": 0,
+                "client_latency_ms": {
+                  "p50": 34.185,
+                  "p95": 40.237,
+                  "p99": 44.881
+                }
+              },
+              "write": {
+                "request_count": 1383,
+                "success_count": 1383,
+                "unexpected_error_count": 0,
+                "client_latency_ms": {
+                  "p50": 233.161,
+                  "p95": 248.502,
+                  "p99": 260.28
+                }
+              }
+            }
+          },
+          "reconciliation": {
+            "reconciliation_mismatches": 0,
+            "documents": 1403,
+            "ledger_rows": 1403,
+            "posted_documents": 1403,
+            "ledger_documents": 1403,
+            "posted_without_ledger": 0
+          },
+          "error": null,
+          "runner_exit_code": 0
+        },
+        {
+          "repeat": 3,
+          "status": "passed",
+          "evidence": "labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step64-mixed-step-64-repeat-3.json",
+          "measurement": {
+            "operation": "mixed",
+            "concurrency": 64,
+            "duration_seconds": 8,
+            "request_count": 6771,
+            "success_count": 6771,
+            "unexpected_error_count": 0,
+            "throughput_per_second": 822.26,
+            "client_latency_ms": {
+              "p50": 35.401,
+              "p95": 242.299,
+              "p99": 256.652
+            },
+            "by_operation": {
+              "read": {
+                "request_count": 5417,
+                "success_count": 5417,
+                "unexpected_error_count": 0,
+                "client_latency_ms": {
+                  "p50": 34.633,
+                  "p95": 40.723,
+                  "p99": 51.878
+                }
+              },
+              "write": {
+                "request_count": 1354,
+                "success_count": 1354,
+                "unexpected_error_count": 0,
+                "client_latency_ms": {
+                  "p50": 235.608,
+                  "p95": 256.652,
+                  "p99": 383.548
+                }
+              }
+            }
+          },
+          "reconciliation": {
+            "reconciliation_mismatches": 0,
+            "documents": 1374,
+            "ledger_rows": 1374,
+            "posted_documents": 1374,
+            "ledger_documents": 1374,
+            "posted_without_ledger": 0
+          },
+          "error": null,
+          "runner_exit_code": 0
+        }
+      ]
+    }
+  ],
+  "highest_stable": 64,
+  "first_breach": null,
+  "recorded_at": "2026-10-09T10:24:40.278452+00:00",
+  "no_breach_observed_within_tested_ceiling": true
+}

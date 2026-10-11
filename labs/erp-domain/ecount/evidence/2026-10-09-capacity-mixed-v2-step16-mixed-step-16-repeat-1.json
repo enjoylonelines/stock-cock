@@ -1,0 +1,261 @@
+{
+  "status": "passed",
+  "manifest": {
+    "scope": "fixed disposable loopback Lab DB; one local TypeScript process; synthetic data only",
+    "recorded_at": "2026-10-09T10:23:27.188763+00:00",
+    "python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.7-arm64-arm-64bit-Mach-O",
+    "logical_cpu_count": 10,
+    "physical_memory_bytes": 68719476736,
+    "postgres_version": "16.15",
+    "pool_max": 4,
+    "git_sha": "5603e0c78ef0ba1e77f60c9f64a23be061520d77",
+    "dirty_paths": [
+      " M docs/plans/2026-10-01-erp-domain-deep-dive.md",
+      " M labs/erp-domain/ecount/README.md",
+      " M package.json",
+      "?? docs/plans/2026-10-08-erp-lab-capacity-boundary.md",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-http-read-smoke-v1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-http-write-smoke-v1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-smoke-v1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-chunk500-v1-import-step-50000-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-chunk500-v1-import-step-50000-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-v1-import-step-10000-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-v2-import-step-1000-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-v2-import-step-1000-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-v2-import-step-1000-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-v2-import-step-10000-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-v2-import-step-10000-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-v2-import-step-10000-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-v2-import-step-50000-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-v2-import-step-50000-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-v2-import-step-50000-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-08-capacity-import-uniform-v2-summary.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-1-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-1-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-1-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-16-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-16-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-16-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-2-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-2-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-2-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-32-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-32-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-32-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-4-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-4-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-4-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-8-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-8-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-http-write-step-8-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-write-v1-summary.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v1-mixed-step-1-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v1-mixed-step-1-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v1-mixed-step-1-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v1-mixed-step-2-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v1-mixed-step-2-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v1-mixed-step-2-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v1-step2-mixed-step-2-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v1-step2-mixed-step-2-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v1-step2-mixed-step-2-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v1-step2-summary.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v1-summary.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step1-mixed-step-1-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step1-mixed-step-1-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step1-mixed-step-1-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step1-summary.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step2-mixed-step-2-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step2-mixed-step-2-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step2-mixed-step-2-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step2-summary.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step4-mixed-step-4-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step4-mixed-step-4-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step4-mixed-step-4-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step4-summary.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step8-mixed-step-8-repeat-1.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step8-mixed-step-8-repeat-2.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step8-mixed-step-8-repeat-3.json",
+      "?? labs/erp-domain/ecount/evidence/2026-10-09-capacity-mixed-v2-step8-summary.json",
+      "?? labs/erp-domain/ecount/test/__pycache__/",
+      "?? labs/erp-domain/ecount/test/capacity_benchmark.py",
+      "?? labs/erp-domain/ecount/test/capacity_ladder.py"
+    ]
+  },
+  "profile": "mixed",
+  "telemetry": {
+    "before": {
+      "recorded_at": "2026-10-09T10:23:27.253863+00:00",
+      "active_sessions": 1,
+      "active_wait_event_sessions": 0,
+      "lock_waiting_sessions": 0,
+      "xact_commit": 887305,
+      "xact_rollback": 19,
+      "blocks_read": 1525,
+      "blocks_hit": 156981727,
+      "database_size_bytes": 11213847
+    },
+    "during": [
+      {
+        "recorded_at": "2026-10-09T10:23:27.274147+00:00",
+        "active_sessions": 1,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 887306,
+        "xact_rollback": 19,
+        "blocks_read": 1525,
+        "blocks_hit": 156981759,
+        "database_size_bytes": 11213847
+      },
+      {
+        "recorded_at": "2026-10-09T10:23:28.291364+00:00",
+        "active_sessions": 2,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 887313,
+        "xact_rollback": 19,
+        "blocks_read": 1525,
+        "blocks_hit": 156982425,
+        "database_size_bytes": 11344919
+      },
+      {
+        "recorded_at": "2026-10-09T10:23:29.307786+00:00",
+        "active_sessions": 2,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 892690,
+        "xact_rollback": 19,
+        "blocks_read": 1525,
+        "blocks_hit": 157025835,
+        "database_size_bytes": 11549719
+      },
+      {
+        "recorded_at": "2026-10-09T10:23:30.324285+00:00",
+        "active_sessions": 2,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 898093,
+        "xact_rollback": 19,
+        "blocks_read": 1525,
+        "blocks_hit": 157071908,
+        "database_size_bytes": 11746327
+      },
+      {
+        "recorded_at": "2026-10-09T10:23:31.341731+00:00",
+        "active_sessions": 2,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 903961,
+        "xact_rollback": 19,
+        "blocks_read": 1525,
+        "blocks_hit": 157137419,
+        "database_size_bytes": 11885591
+      },
+      {
+        "recorded_at": "2026-10-09T10:23:32.360119+00:00",
+        "active_sessions": 4,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 909219,
+        "xact_rollback": 19,
+        "blocks_read": 1525,
+        "blocks_hit": 157206194,
+        "database_size_bytes": 12016663
+      },
+      {
+        "recorded_at": "2026-10-09T10:23:33.377539+00:00",
+        "active_sessions": 1,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 914795,
+        "xact_rollback": 19,
+        "blocks_read": 1525,
+        "blocks_hit": 157289266,
+        "database_size_bytes": 12164119
+      },
+      {
+        "recorded_at": "2026-10-09T10:23:34.394444+00:00",
+        "active_sessions": 1,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 920431,
+        "xact_rollback": 19,
+        "blocks_read": 1525,
+        "blocks_hit": 157384879,
+        "database_size_bytes": 12295191
+      },
+      {
+        "recorded_at": "2026-10-09T10:23:35.413804+00:00",
+        "active_sessions": 3,
+        "active_wait_event_sessions": 0,
+        "lock_waiting_sessions": 0,
+        "xact_commit": 925592,
+        "xact_rollback": 19,
+        "blocks_read": 1525,
+        "blocks_hit": 157480980,
+        "database_size_bytes": 12426263
+      }
+    ],
+    "after": {
+      "recorded_at": "2026-10-09T10:23:36.048192+00:00",
+      "active_sessions": 1,
+      "active_wait_event_sessions": 0,
+      "lock_waiting_sessions": 0,
+      "xact_commit": 930792,
+      "xact_rollback": 19,
+      "blocks_read": 1525,
+      "blocks_hit": 157589779,
+      "database_size_bytes": 12532759
+    }
+  },
+  "measurement": {
+    "operation": "mixed",
+    "concurrency": 16,
+    "duration_seconds": 8,
+    "request_count": 6790,
+    "success_count": 6790,
+    "unexpected_error_count": 0,
+    "throughput_per_second": 845.645,
+    "client_latency_ms": {
+      "p50": 9.385,
+      "p95": 58.386,
+      "p99": 63.445
+    },
+    "by_operation": {
+      "read": {
+        "request_count": 5432,
+        "success_count": 5432,
+        "unexpected_error_count": 0,
+        "client_latency_ms": {
+          "p50": 9.066,
+          "p95": 11.347,
+          "p99": 15.22
+        }
+      },
+      "write": {
+        "request_count": 1358,
+        "success_count": 1358,
+        "unexpected_error_count": 0,
+        "client_latency_ms": {
+          "p50": 55.651,
+          "p95": 63.445,
+          "p99": 75.531
+        }
+      }
+    }
+  },
+  "reconciliation": {
+    "reconciliation_mismatches": 0,
+    "documents": 1378,
+    "ledger_rows": 1378,
+    "posted_documents": 1378,
+    "ledger_documents": 1378,
+    "posted_without_ledger": 0
+  },
+  "acceptance": {
+    "read_p95_limit_ms": 200,
+    "read_observed_p95_ms": 11.347,
+    "write_p95_limit_ms": 500,
+    "write_observed_p95_ms": 63.445
+  }
+}

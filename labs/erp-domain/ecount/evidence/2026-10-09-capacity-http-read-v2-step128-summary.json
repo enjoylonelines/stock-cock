@@ -1,0 +1,140 @@
+{
+  "status": "passed",
+  "profile": "http-read",
+  "axis": "concurrency",
+  "steps": [
+    {
+      "step": 128,
+      "passed": true,
+      "runs": [
+        {
+          "repeat": 1,
+          "status": "passed",
+          "evidence": "labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-read-v2-step128-http-read-step-128-repeat-1.json",
+          "measurement": {
+            "operation": "http-read",
+            "concurrency": 128,
+            "duration_seconds": 8,
+            "request_count": 10694,
+            "success_count": 10694,
+            "unexpected_error_count": 0,
+            "throughput_per_second": 1320.545,
+            "client_latency_ms": {
+              "p50": 93.904,
+              "p95": 111.506,
+              "p99": 139.554
+            },
+            "by_operation": {
+              "read": {
+                "request_count": 10694,
+                "success_count": 10694,
+                "unexpected_error_count": 0,
+                "client_latency_ms": {
+                  "p50": 93.904,
+                  "p95": 111.506,
+                  "p99": 139.554
+                }
+              }
+            }
+          },
+          "reconciliation": {
+            "reconciliation_mismatches": 0,
+            "documents": 20,
+            "ledger_rows": 20,
+            "posted_documents": 20,
+            "ledger_documents": 20,
+            "posted_without_ledger": 0
+          },
+          "error": null,
+          "runner_exit_code": 0
+        },
+        {
+          "repeat": 2,
+          "status": "passed",
+          "evidence": "labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-read-v2-step128-http-read-step-128-repeat-2.json",
+          "measurement": {
+            "operation": "http-read",
+            "concurrency": 128,
+            "duration_seconds": 8,
+            "request_count": 11010,
+            "success_count": 11010,
+            "unexpected_error_count": 0,
+            "throughput_per_second": 1360.669,
+            "client_latency_ms": {
+              "p50": 93.018,
+              "p95": 101.888,
+              "p99": 104.738
+            },
+            "by_operation": {
+              "read": {
+                "request_count": 11010,
+                "success_count": 11010,
+                "unexpected_error_count": 0,
+                "client_latency_ms": {
+                  "p50": 93.018,
+                  "p95": 101.888,
+                  "p99": 104.738
+                }
+              }
+            }
+          },
+          "reconciliation": {
+            "reconciliation_mismatches": 0,
+            "documents": 20,
+            "ledger_rows": 20,
+            "posted_documents": 20,
+            "ledger_documents": 20,
+            "posted_without_ledger": 0
+          },
+          "error": null,
+          "runner_exit_code": 0
+        },
+        {
+          "repeat": 3,
+          "status": "passed",
+          "evidence": "labs/erp-domain/ecount/evidence/2026-10-09-capacity-http-read-v2-step128-http-read-step-128-repeat-3.json",
+          "measurement": {
+            "operation": "http-read",
+            "concurrency": 128,
+            "duration_seconds": 8,
+            "request_count": 11397,
+            "success_count": 11397,
+            "unexpected_error_count": 0,
+            "throughput_per_second": 1408.413,
+            "client_latency_ms": {
+              "p50": 88.932,
+              "p95": 100.768,
+              "p99": 107.612
+            },
+            "by_operation": {
+              "read": {
+                "request_count": 11397,
+                "success_count": 11397,
+                "unexpected_error_count": 0,
+                "client_latency_ms": {
+                  "p50": 88.932,
+                  "p95": 100.768,
+                  "p99": 107.612
+                }
+              }
+            }
+          },
+          "reconciliation": {
+            "reconciliation_mismatches": 0,
+            "documents": 20,
+            "ledger_rows": 20,
+            "posted_documents": 20,
+            "ledger_documents": 20,
+            "posted_without_ledger": 0
+          },
+          "error": null,
+          "runner_exit_code": 0
+        }
+      ]
+    }
+  ],
+  "highest_stable": 128,
+  "first_breach": null,
+  "recorded_at": "2026-10-09T10:30:01.343694+00:00",
+  "no_breach_observed_within_tested_ceiling": true
+}

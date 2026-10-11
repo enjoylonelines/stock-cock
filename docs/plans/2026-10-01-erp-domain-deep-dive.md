@@ -507,6 +507,20 @@ Cycle 1의 SQL·Python harness 검증을 실제 TypeScript Web Backend 경로로
 - 미선택: Redis, aggregation table, queue, Kubernetes. 이 workload에서 필요성이 측정되지 않았다.
 - 종료: 고정 synthetic read fixture의 병목을 plan과 수치로 식별하고, index가 가장 큰 효과를 냈음을 확인했다. write 비용·운영 규모·cache stale policy는 별도 workload 전까지 미검증이다.
 
+## Cycle 2.5 — ECOUNT 용량 경계: 대량 입고·동시 HTTP·혼합 부하
+
+Cycle 2의 읽기 benchmark는 용량 계획이 아니다. Cycle 2.5는 이미 구현된 `bulk_receipt_documents`와 TypeScript HTTP slice를 출발점으로, 단일 Lab topology가 어떤 **명시된 synthetic workload**에서 안정적인지와 최초 임계 신호를 측정한다.
+
+- 상세 계획: `docs/plans/2026-10-08-erp-lab-capacity-boundary.md`
+- 측정 기록: `docs/evidence/2026-10-09-erp-domain-capacity-boundary.md`
+- 설계 결정: `docs/decisions/2026-10-09-erp-domain-capacity-decision.md`
+- 대상: 대량 입고 volume/chunk, hot-key 경합, HTTP read/write/mixed concurrency
+- 결과: profile별 최고 안정 단계, 최초 breach, reconciliation, DB/pool/lock telemetry, 다음 설계 선택 또는 미선택 근거
+- 원칙: Kafka/Redis/queue/job worker를 선도입하지 않는다. baseline이 durable progress/restart 또는 특정 병목을 요구할 때만 하나의 후속 개선을 선택한다.
+- 경계: disposable loopback DB + local TypeScript process의 synthetic Lab 결과이며, Stock-Cock 운영 트래픽, 고객 규모, production capacity, global writer 보증이 아니다.
+- 완료 범위: import는 10,000행/60초 예산이 최고 안정, 50,000행에서 최초 예산 초과. HTTP는 짧은 8초 반복에서 read 128→256, hot-key write 128→256, mixed 64→128이 각각 안정→최초 기준 초과 구간이었다. 장시간 soak과 durable import recovery는 미검증이다.
+- 후속 개선: 50,000행의 동기 요청 예산 초과에만 대응해 DB 기반 durable import job을 구현했다. 1,000행 chunk와 lease를 사용하며, 3,000행 처리 뒤 lease 교체 후 50,000행(49,999 반영/1 거절)을 대사 0으로 완료했다. HTTP API·다중 worker·장시간 운영은 여전히 미검증이다.
+
 ## Cycle 3 — INDONG DD-B1
 
 - Spring/MyBatis/Oracle baseline

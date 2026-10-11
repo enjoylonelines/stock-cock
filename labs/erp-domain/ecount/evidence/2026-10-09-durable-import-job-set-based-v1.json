@@ -1,0 +1,33 @@
+{
+  "status": "passed",
+  "scope": "disposable DB; direct DB job-command measurement, not HTTP",
+  "baseline": {
+    "sync_50k": "60-second budget breached after 27600/27600/27700 rows"
+  },
+  "job": {
+    "id": "595406d6-6865-4005-86fc-71104ad7f136",
+    "worker": "set_based_receipt",
+    "status": "COMPLETED_WITH_REJECTIONS",
+    "requested": 50000,
+    "processed": 50000,
+    "posted": 49999,
+    "rejected": 1,
+    "pending": 0,
+    "chunk_size": 1000,
+    "chunks_before_forced_lease_expiry": 3,
+    "lease_changed": true
+  },
+  "timing": {
+    "enqueue_ms": 799.693,
+    "worker_elapsed_ms": 9462.683,
+    "worker_rows_per_second": 5283.914
+  },
+  "reconciliation": {
+    "reconciliation_mismatches": 0,
+    "documents": 49999,
+    "ledger_rows": 49999,
+    "posted_documents": 49999,
+    "ledger_documents": 49999,
+    "posted_without_ledger": 0
+  }
+}
