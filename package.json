@@ -18,6 +18,7 @@
     "lab:erp:capacity": "python3 labs/erp-domain/ecount/test/capacity_benchmark.py",
     "lab:erp:capacity-ladder": "python3 labs/erp-domain/ecount/test/capacity_ladder.py",
     "lab:erp:durable-import": "python3 labs/erp-domain/ecount/test/durable_import_experiment.py",
+    "capture:portfolio:stock-cock-erp": "node scripts/capture-stock-cock-erp-scenario.mjs",
     "supabase": "supabase",
     "db:start": "pnpm dlx supabase start",
     "db:stop": "pnpm dlx supabase stop",

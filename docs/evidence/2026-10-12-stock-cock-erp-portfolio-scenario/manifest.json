@@ -1,0 +1,23 @@
+{
+  "capturedAt": "2026-10-12T13:09:18.976Z",
+  "type": "portfolio scenario video",
+  "sourceUi": "public/screenshots/mobile.png",
+  "sourceEvidence": [
+    "docs/portfolio/PRODUCT_WORKFLOW_EVIDENCE.md",
+    "docs/portfolio/TRANSACTION_INTEGRITY_EVIDENCE.md",
+    "labs/erp-domain/ecount/evidence/2026-10-09-durable-import-job-set-based-v1.json",
+    "labs/erp-domain/ecount/evidence/2026-10-09-durable-import-job-v1.json"
+  ],
+  "supportedClaims": [
+    "mobile stock workflow UI",
+    "in/out RPC code path",
+    "disposable single-line receipt fixture result"
+  ],
+  "unsupportedClaims": [
+    "stock-cock production throughput",
+    "production concurrency safety",
+    "negative stock prevention",
+    "HTTP or multi-worker ERP performance",
+    "actual cost savings"
+  ]
+}
