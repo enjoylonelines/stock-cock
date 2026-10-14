@@ -20,6 +20,7 @@
     "lab:erp:durable-import": "python3 labs/erp-domain/ecount/test/durable_import_experiment.py",
     "seed:local-demo": "node scripts/seed-local-stock-cock-demo.mjs",
     "capture:local-ui": "node scripts/capture-local-stock-cock-ui.mjs",
+    "test:inventory-documents": "uv run --with-requirements tests/inventory/requirements.txt python tests/inventory/inventory_document_workflow.py",
     "supabase": "supabase",
     "db:start": "pnpm dlx supabase start",
     "db:stop": "pnpm dlx supabase stop",

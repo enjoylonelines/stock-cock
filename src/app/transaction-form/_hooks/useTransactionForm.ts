@@ -1,25 +1,23 @@
 import { useUser } from "@/contexts/UserContext";
-import { useInventories } from "@/hooks/useInventories";
 import { useFormStateStore } from "@/store/formStateStore";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
-import { mutate } from "swr";
-import { transactionFormatter } from "../_lib/transaction-formatter";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { transactionValidator } from "../_lib/transaction-validator";
-import { transactionService } from "../_services/transaction-service";
+import { inventoryDocumentService } from "../_services/inventory-document-service";
 
 /**
  * 입출고 거래 폼 비즈니스 로직 훅
  */
 export function useTransactionForm(mode: "in" | "out", closeDrawer: () => void) {
   const [isLoading, setIsLoading] = useState(false);
+  const submissionKeyRef = useRef<string | null>(null);
   const router = useRouter();
   const user = useUser();
-  const { inventories } = useInventories();
   const transactionFormState = useFormStateStore(state => state.transactionForms[mode]);
   const updateTransactionForm = useFormStateStore(state => state.updateTransactionForm);
   const resetTransactionForm = useFormStateStore(state => state.resetTransactionForm);
-  const { selectedLocation, selectedSupplier, selectedProducts, selectedDate, memo } = transactionFormState;
+  const { selectedLocation, selectedSupplier, selectedProducts, selectedDate, memo, salesAmount } =
+    transactionFormState;
 
   // 폼 검증
   const validation = useMemo(
@@ -29,8 +27,9 @@ export function useTransactionForm(mode: "in" | "out", closeDrawer: () => void) 
         selectedSupplier,
         selectedProducts,
         mode,
+        salesAmount,
       }),
-    [selectedLocation, selectedSupplier, selectedProducts, mode]
+    [selectedLocation, selectedSupplier, selectedProducts, mode, salesAmount]
   );
 
   const isFormValid = validation.isValid;
@@ -50,25 +49,27 @@ export function useTransactionForm(mode: "in" | "out", closeDrawer: () => void) 
     try {
       setIsLoading(true);
 
-      const formattedData = transactionFormatter.formatTransactionData({
-        type: mode,
+      const requestKey = submissionKeyRef.current ?? crypto.randomUUID();
+      submissionKeyRef.current = requestKey;
+
+      await inventoryDocumentService.submit({
+        document_type: mode,
         warehouse_id: selectedLocation,
         supplier_id: mode === "in" ? null : selectedSupplier || null,
+        ...(mode === "out" ? { sales_amount: Number(salesAmount) } : {}),
         memo: memo || "",
-        selectedDate,
-        selectedProducts,
-        user_id: user.id,
+        effective_at: selectedDate.toISOString(),
+        idempotency_key: requestKey,
+        items: selectedProducts.map(product => ({
+          option_id: product.productOptionId,
+          quantity: product.quantity,
+        })),
       });
 
-      await transactionService.create(formattedData);
-
-      await Promise.all([
-        mutate("inventories"),
-        mutate(["transaction-history", inventories.length]),
-      ]);
+      submissionKeyRef.current = null;
       resetTransactionForm(mode);
       closeDrawer();
-      router.replace("/transactions");
+      router.replace("/documents");
     } catch (error) {
       const message = error instanceof Error ? error.message : "처리 중 오류가 발생했습니다.";
       alert(message);
@@ -84,8 +85,8 @@ export function useTransactionForm(mode: "in" | "out", closeDrawer: () => void) 
     selectedProducts,
     selectedDate,
     memo,
+    salesAmount,
     user?.id,
-    inventories.length,
     resetTransactionForm,
     closeDrawer,
     router,
@@ -101,6 +102,7 @@ export function useTransactionForm(mode: "in" | "out", closeDrawer: () => void) 
     selectedProducts,
     selectedDate,
     memo,
+    salesAmount,
     // 액션
     updateTransactionForm: useCallback(
       (updates: Partial<typeof transactionFormState>) => {

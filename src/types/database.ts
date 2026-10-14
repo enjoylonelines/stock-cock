@@ -576,6 +576,34 @@ export type Database = {
         Args: Record<string, never>;
         Returns: unknown[];
       };
+      create_inventory_document: {
+        Args: { p_header: Record<string, unknown>; p_items: Record<string, unknown>[] };
+        Returns: Json;
+      };
+      create_sales_inventory_document: {
+        Args: { p_header: Record<string, unknown>; p_items: Record<string, unknown>[] };
+        Returns: Json;
+      };
+      submit_inventory_document: {
+        Args: { p_document_id: string };
+        Returns: Json;
+      };
+      approve_and_reflect_inventory_document: {
+        Args: { p_document_id: string };
+        Returns: Json;
+      };
+      reject_inventory_document: {
+        Args: { p_document_id: string; p_reason: string };
+        Returns: Json;
+      };
+      cancel_inventory_document: {
+        Args: { p_document_id: string };
+        Returns: Json;
+      };
+      list_inventory_documents: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
     };
     Enums: {
       [_ in never]: never;
