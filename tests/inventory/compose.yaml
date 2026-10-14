@@ -19,7 +19,7 @@ services:
       POSTGRES_DB: inventory_p0_test
       POSTGRES_USER: inventory_p0_test
       POSTGRES_PASSWORD: inventory-p0-test-only
-    command: ["postgres", "-c", "shared_preload_libraries=pg_cron", "-c", "cron.database_name=inventory_p0_test", "-c", "cron.launch_active_jobs=off", "-c", "max_connections=12", "-c", "log_lock_waits=on", "-c", "deadlock_timeout=100ms"]
+    command: ["postgres", "-c", "shared_preload_libraries=pg_cron", "-c", "cron.database_name=inventory_p0_test", "-c", "cron.launch_active_jobs=off", "-c", "max_connections=128", "-c", "log_lock_waits=on", "-c", "deadlock_timeout=100ms"]
     cpus: 1
     mem_limit: 512m
     tmpfs: ["/var/lib/postgresql/data"]
