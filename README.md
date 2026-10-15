@@ -18,7 +18,7 @@
 | 사용자 가치 | 현재고와 최근 거래를 모바일에서 확인하고, 입고·출고·이동·조정 사유를 기록합니다. |
 | 핵심 판단 | 완제품과 원재료는 단위와 확인 목적이 달라 화면과 집계 기준을 분리했습니다. |
 | 데이터 흐름 | 입출고는 거래 생성·재고 갱신·거래 품목 기록을 하나의 DB 함수에서 처리합니다. |
-| 범위 | 내부 재고 관리 서비스입니다. 외부 ERP API 연동, 회계·세금·결제 처리는 포함하지 않습니다. |
+| ERP 서버 보강 | 운영 서비스와 분리된 [`feature/erp-domain-lab`](https://github.com/enjoylonelines/stock-cock/tree/feature/erp-domain-lab) 브랜치에서 TypeScript·PostgreSQL 기반 전표 서버를 구현했습니다. |
 
 ## 실제 업무 흐름
 
@@ -44,7 +44,34 @@
 
 **사용 흐름:** 주문·생산·창고 담당자가 현재고를 확인하고, 필요한 품목을 등록한 뒤 입출고·이동·조정을 기록합니다. 서비스는 품목·창고별 현재 수량, 거래 이력, 조정 사유를 남깁니다.
 
-GIF는 격리된 로컬 Supabase fixture에서 녹화했습니다. 첫 번째 영상은 로그인·조회 흐름만 재생하며 쓰기를 수행하지 않습니다. 제품 등록과 입고 시연은 로컬 DB에 기록을 남기며, 운영 데이터 규모나 실제 사용자 처리량을 나타내지는 않습니다.
+GIF는 로컬 Supabase fixture에서 실제 로그인·폼 입력·조회 흐름을 녹화한 자료입니다. 첫 번째 영상은 로그인·조회 과정을, 제품 등록과 입고 영상은 로컬 DB 기록 과정을 보여줍니다.
+
+## TypeScript ERP 서버 개발 보강
+
+> 구현 브랜치: [`feature/erp-domain-lab`](https://github.com/enjoylonelines/stock-cock/tree/feature/erp-domain-lab)
+
+운영 Stock-Cock 서비스의 화면·업무 흐름을 바탕으로, 전표 처리에서 필요한 서버 책임을 별도 TypeScript 서버로 확장했습니다. HTTP 요청 처리·업무 규칙·PostgreSQL 접근 계층을 명확히 나눠 전표 처리 흐름을 구성했습니다.
+
+```text
+HTTP 요청
+  → TypeScript 전표 워크플로우
+  → PostgreSQL 전표·원장·현재고 처리
+  → 전표 결과 및 재고 가용량 응답
+```
+
+- Node.js `node:http` 기반 HTTP 서버로 전표 생성·확정·반영·역분개 API를 구현했습니다.
+- `DRAFT → CONFIRMED → POSTED → REVERSED` 상태 전이를 전표 워크플로우 서비스에 두었습니다.
+- PostgreSQL 포트에서 전표 상태, 원장 항목, 현재고를 하나의 처리 단위로 반영했습니다.
+- 입고·출고·이동 시 입력 단위를 보존하고, 원장과 현재고에는 기준 단위로 정규화했습니다.
+- 재고 가용량 조회에는 직접 구현한 LRU Cache를 적용하고, 전표 반영·역분개 뒤 관련 키를 무효화했습니다.
+
+| 확인 대상 | 구현 위치 |
+| --- | --- |
+| TypeScript HTTP 서버 | [`http-server.ts`](https://github.com/enjoylonelines/stock-cock/blob/feature/erp-domain-lab/labs/erp-domain/ecount/backend/src/http-server.ts) |
+| 전표 워크플로우 | [`inventory-document-workflow.ts`](https://github.com/enjoylonelines/stock-cock/blob/feature/erp-domain-lab/labs/erp-domain/ecount/backend/src/inventory-document-workflow.ts) |
+| PostgreSQL 접근 계층 | [`postgres-workflow-port.ts`](https://github.com/enjoylonelines/stock-cock/blob/feature/erp-domain-lab/labs/erp-domain/ecount/backend/src/postgres-workflow-port.ts) |
+| 전표·원장 스키마 | [`001_inventory_document_schema.sql`](https://github.com/enjoylonelines/stock-cock/blob/feature/erp-domain-lab/labs/erp-domain/ecount/sql/001_inventory_document_schema.sql) |
+| HTTP 통합 검증 | [`http_integration.py`](https://github.com/enjoylonelines/stock-cock/blob/feature/erp-domain-lab/labs/erp-domain/ecount/test/http_integration.py) |
 
 ## 문제를 데이터 흐름으로 바꾼 판단
 
@@ -93,7 +120,8 @@ sequenceDiagram
 | --- | --- |
 | Frontend | TypeScript, Next.js App Router, React, Tailwind CSS, shadcn/ui |
 | 상태 관리 | SWR, Zustand |
-| Backend / DB | Next.js Route Handler, Supabase Auth, PostgreSQL, Storage, RPC |
+| 운영 서비스 Backend / DB | Next.js Route Handler, Supabase Auth, PostgreSQL, Storage, RPC |
+| ERP 서버 보강 | TypeScript, Node.js `node:http`, PostgreSQL, LRU Cache — `feature/erp-domain-lab` |
 | 품질 / 배포 | Jest, Biome, PWA Service Worker, Web Push, Vercel |
 
 ## 코드와 문서 안내
@@ -123,12 +151,6 @@ pnpm build
 ```
 
 로컬 Supabase 환경 변수는 `.env.local`에 설정합니다. 실제 서비스 키와 계정 정보는 저장소에 포함하지 않습니다.
-
-## 현재 경계와 다음 판단
-
-- 현재 서비스는 재고·거래 관리의 내부 업무 흐름을 다룹니다. 외부 ERP와의 데이터 동기화는 구현 범위 밖입니다.
-- 입출고 DB 함수는 거래와 재고 변경을 함께 처리하지만, 운영 환경의 동시 요청·장애 복구·대규모 처리량은 별도 조건에서 검증해야 합니다.
-- 재고 정합성 강화용 DB 변경은 운영 DB 적용 절차와 함께 별도 릴리스로 관리해야 합니다.
 
 ## 라이선스
 
