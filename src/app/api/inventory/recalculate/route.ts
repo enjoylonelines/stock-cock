@@ -131,23 +131,34 @@ export async function POST(request: Request) {
           continue;
         }
 
-        // Recalculation is an explicit absolute correction, not a movement.
-        // The RPC checks the observed version and writes a server audit record.
-        if (existingInventory || calculatedQuantity !== 0) {
-          const { error: adjustmentError } = await supabase.rpc("apply_inventory_adjustment", {
-            p_product_option_id: productOptionId,
-            p_warehouse_id: warehouseId,
-            p_quantity: calculatedQuantity,
-            p_weight: null,
-            p_expected_version: existingInventory?.version ?? 0,
-            p_reason: "recalculate from transaction history",
-            p_actor_id: null,
-          });
+        if (existingInventory) {
+          // 기존 레코드 업데이트
+          const { error: updateError } = await supabase
+            .from("inventory")
+            .update({ quantity: calculatedQuantity })
+            .eq("id", existingInventory.id);
 
-          if (adjustmentError) {
-            errors.push(`재고 조정 실패 (${productOptionId}, ${warehouseId}): ${adjustmentError.message}`);
+          if (updateError) {
+            errors.push(`재고 업데이트 실패 (${productOptionId}, ${warehouseId}): ${updateError.message}`);
           } else {
             recalculated++;
+          }
+        } else {
+          // 새 레코드 생성 (재고가 0이 아닌 경우만)
+          if (calculatedQuantity !== 0) {
+            const { error: insertError } = await supabase.from("inventory").insert([
+              {
+                product_option_id: productOptionId,
+                warehouse_id: warehouseId,
+                quantity: calculatedQuantity,
+              },
+            ]);
+
+            if (insertError) {
+              errors.push(`재고 생성 실패 (${productOptionId}, ${warehouseId}): ${insertError.message}`);
+            } else {
+              recalculated++;
+            }
           }
         }
       }

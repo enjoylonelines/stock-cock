@@ -12,7 +12,6 @@ export const transactionValidator = {
     selectedSupplier: string | null;
     selectedProducts: DomainStockItem[];
     mode: "in" | "out";
-    salesAmount?: string;
   }): { isValid: boolean; error?: string } {
     if (!data.selectedLocation) {
       return {
@@ -26,16 +25,6 @@ export const transactionValidator = {
       return {
         isValid: false,
         error: "거래처를 선택해주세요.",
-      };
-    }
-
-    if (
-      data.mode === "out" &&
-      (!data.salesAmount || !Number.isFinite(Number(data.salesAmount)) || Number(data.salesAmount) <= 0)
-    ) {
-      return {
-        isValid: false,
-        error: "판매 금액을 입력해주세요.",
       };
     }
 

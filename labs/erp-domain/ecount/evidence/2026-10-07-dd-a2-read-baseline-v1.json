@@ -1,4 +1,0 @@
-{
-  "status": "failed",
-  "error": "ProgrammingError(\"incomplete placeholder: '%'; if you want to use '%' as an operator you can double it up, i.e. use '%%'\")"
-}

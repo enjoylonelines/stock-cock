@@ -46,21 +46,20 @@ export default function TransactionForm({ mode, closeDrawer }: TransactionFormPr
     selectedProducts,
     selectedDate,
     memo,
-    salesAmount,
     updateTransactionForm,
     handleSubmit,
   } = useTransactionForm(mode, closeDrawer);
 
   // 선택된 창고 이름
   const selectedWarehouseName = useMemo(
-    () => warehouses.find(loc => loc.id === selectedLocation)?.name || "선택",
-    [warehouses, selectedLocation]
+    () => warehouses.find((loc) => loc.id === selectedLocation)?.name || "선택",
+    [warehouses, selectedLocation],
   );
 
   // 선택된 거래처 이름
   const selectedSupplierName = useMemo(
-    () => suppliers.find(sup => sup.id === selectedSupplier)?.name || "선택",
-    [suppliers, selectedSupplier]
+    () => suppliers.find((sup) => sup.id === selectedSupplier)?.name || "선택",
+    [suppliers, selectedSupplier],
   );
 
   // 날짜 포맷팅
@@ -69,9 +68,7 @@ export default function TransactionForm({ mode, closeDrawer }: TransactionFormPr
   // 출고 모드일 때 해당 위치에 재고가 있는지 확인
   const hasStockInLocation = useMemo(() => {
     if (mode !== "out" || !selectedLocation) return true;
-    return inventories.some(
-      inv => inv.warehouse_id === selectedLocation && ((inv.quantity ?? 0) > 0 || (inv.weight_in_grams ?? 0) > 0)
-    );
+    return inventories.some((inv) => inv.warehouse_id === selectedLocation && ((inv.quantity ?? 0) > 0 || (inv.weight_in_grams ?? 0) > 0));
   }, [mode, selectedLocation, inventories]);
 
   // 제품 버튼 상태
@@ -120,14 +117,12 @@ export default function TransactionForm({ mode, closeDrawer }: TransactionFormPr
           selectedSupplierName={selectedSupplierName}
           selectedProducts={selectedProducts}
           memo={memo}
-          salesAmount={salesAmount}
           mode={mode}
           onDateClick={() => setIsDatePickerVisible(true)}
           onWarehouseClick={() => setIsWarehouseViewVisible(true)}
           onSupplierClick={() => setIsSupplierViewVisible(true)}
           onProductClick={() => setIsProductViewVisible(true)}
           onMemoClick={() => setIsMemoViewVisible(true)}
-          onSalesAmountChange={value => updateTransactionForm({ salesAmount: value })}
           productDisabled={productButtonState.disabled}
           productStatusText={productButtonState.text}
         />
@@ -147,7 +142,7 @@ export default function TransactionForm({ mode, closeDrawer }: TransactionFormPr
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >
-            {isLoading ? "요청 중..." : mode === "in" ? "입고 승인 요청" : "출고 승인 요청"}
+            {isLoading ? "처리 중..." : mode === "in" ? "입고완료" : "출고완료"}
           </Button>
         </div>
       </div>
@@ -203,7 +198,7 @@ export default function TransactionForm({ mode, closeDrawer }: TransactionFormPr
       <DrawerView isVisible={isMemoViewVisible}>
         <MemoView
           value={memo}
-          onChange={value => updateTransactionForm({ memo: value })}
+          onChange={(value) => updateTransactionForm({ memo: value })}
           onBack={() => setIsMemoViewVisible(false)}
           onDone={handleMemoDone}
         />

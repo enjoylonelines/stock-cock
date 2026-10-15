@@ -102,7 +102,6 @@ export interface TransactionFormState {
   selectedProducts: DomainStockItem[];
   selectedDate: Date;
   memo: string;
-  salesAmount: string;
 }
 
 const createDefaultTransactionFormState = (): TransactionFormState => ({
@@ -111,7 +110,6 @@ const createDefaultTransactionFormState = (): TransactionFormState => ({
   selectedProducts: [],
   selectedDate: new Date(),
   memo: "",
-  salesAmount: "",
 });
 
 export interface MoveFormState {

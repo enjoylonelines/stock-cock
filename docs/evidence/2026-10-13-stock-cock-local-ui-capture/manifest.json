@@ -1,8 +1,0 @@
-{
-  "capturedAt": "2026-10-13T10:19:29.313Z",
-  "baseUrl": "http://127.0.0.1:3001",
-  "flow": ["local sign-in", "current inventory home", "transaction history"],
-  "fixture": "local Supabase only; capture user and seeded data",
-  "submittedMutations": false,
-  "unsupportedClaims": ["production data", "production user behavior", "live operational writes", "ERP Lab performance"]
-}

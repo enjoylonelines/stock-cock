@@ -1,1 +1,0 @@
-- [Testing Patterns for 한끼재고](project_testing_patterns.md) — Supabase mock patterns, risky areas, domain edge cases, test file index

@@ -1,4 +1,0 @@
-__pycache__/
-.venv/
-# Disposable P1 iteration outputs; curated evidence is force-added explicitly.
-results/*-p1*.json

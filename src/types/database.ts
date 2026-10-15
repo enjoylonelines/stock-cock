@@ -69,7 +69,6 @@ export type Database = {
           product_option_id: string | null;
           quantity: number | null;
           updated_at: string | null;
-          version: number;
           warehouse_id: string | null;
           weight_in_grams: number | null;
         };
@@ -78,7 +77,6 @@ export type Database = {
           product_option_id?: string | null;
           quantity?: number | null;
           updated_at?: string | null;
-          version?: number;
           warehouse_id?: string | null;
           weight_in_grams?: number | null;
         };
@@ -87,7 +85,6 @@ export type Database = {
           product_option_id?: string | null;
           quantity?: number | null;
           updated_at?: string | null;
-          version?: number;
           warehouse_id?: string | null;
           weight_in_grams?: number | null;
         };
@@ -560,50 +557,7 @@ export type Database = {
       };
     };
     Functions: {
-      create_transaction: {
-        Args: { p_header: Record<string, unknown>; p_items: Record<string, unknown>[] };
-        Returns: { transaction_id: string; success: boolean };
-      };
-      create_move_transaction: {
-        Args: { p_header: Record<string, unknown>; p_items: Record<string, unknown>[] };
-        Returns: { transaction_id: string; success: boolean };
-      };
-      create_adjustment_transaction: {
-        Args: { p_header: Record<string, unknown>; p_items: Record<string, unknown>[] };
-        Returns: { transaction_id: string; success: boolean };
-      };
-      get_inventory_history: {
-        Args: Record<string, never>;
-        Returns: unknown[];
-      };
-      create_inventory_document: {
-        Args: { p_header: Record<string, unknown>; p_items: Record<string, unknown>[] };
-        Returns: Json;
-      };
-      create_sales_inventory_document: {
-        Args: { p_header: Record<string, unknown>; p_items: Record<string, unknown>[] };
-        Returns: Json;
-      };
-      submit_inventory_document: {
-        Args: { p_document_id: string };
-        Returns: Json;
-      };
-      approve_and_reflect_inventory_document: {
-        Args: { p_document_id: string };
-        Returns: Json;
-      };
-      reject_inventory_document: {
-        Args: { p_document_id: string; p_reason: string };
-        Returns: Json;
-      };
-      cancel_inventory_document: {
-        Args: { p_document_id: string };
-        Returns: Json;
-      };
-      list_inventory_documents: {
-        Args: Record<string, never>;
-        Returns: Json;
-      };
+      [_ in never]: never;
     };
     Enums: {
       [_ in never]: never;
