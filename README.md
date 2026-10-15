@@ -22,20 +22,29 @@
 
 ## 실제 업무 흐름
 
-<p align="center">
-  <img src="./docs/evidence/2026-10-13-stock-cock-local-ui-capture/stock-cock-local-ui-flow.gif" alt="로그인 뒤 현재 재고와 거래 이력을 조회하는 Stock-Cock 화면" width="250" />
-  <img src="./docs/evidence/2026-10-13-stock-cock-local-ui-capture/stock-cock-product-registration.gif" alt="제품과 초기 재고를 등록하는 Stock-Cock 화면" width="250" />
-  <img src="./docs/evidence/2026-10-13-stock-cock-local-ui-capture/stock-cock-inbound.gif" alt="입고를 기록하고 거래 이력에서 확인하는 Stock-Cock 화면" width="250" />
-</p>
+<table>
+  <tr>
+    <td width="33.3%" align="center" valign="top">
+      <strong>01. 재고·거래 이력 확인</strong><br />
+      <sub>로그인 → 현재고 요약 → 최근 거래 조회</sub><br /><br />
+      <img src="./docs/evidence/2026-10-13-stock-cock-local-ui-capture/stock-cock-local-ui-flow.gif" alt="로그인 뒤 현재 재고와 거래 이력을 조회하는 화면" width="220" />
+    </td>
+    <td width="33.3%" align="center" valign="top">
+      <strong>02. 제품과 초기 재고 등록</strong><br />
+      <sub>제품 유형·창고·초기 수량 입력</sub><br /><br />
+      <img src="./docs/evidence/2026-10-13-stock-cock-local-ui-capture/stock-cock-product-registration.gif" alt="제품과 초기 재고를 등록하는 화면" width="220" />
+    </td>
+    <td width="33.3%" align="center" valign="top">
+      <strong>03. 입고 기록과 이력 반영</strong><br />
+      <sub>창고·제품·수량 입력 → 거래 이력 확인</sub><br /><br />
+      <img src="./docs/evidence/2026-10-13-stock-cock-local-ui-capture/stock-cock-inbound.gif" alt="입고를 기록하고 거래 이력에서 확인하는 화면" width="220" />
+    </td>
+  </tr>
+</table>
 
-| 흐름 | 사용자가 하는 일 | 서비스가 남기는 정보 |
-| --- | --- | --- |
-| 재고 확인 | 주문·생산·창고 담당자가 현재고와 최근 입출고를 조회 | 품목·창고별 현재 수량과 거래 이력 |
-| 제품 등록 | 제품 유형, 보관 창고, 초기 수량을 입력 | 제품 정보와 초기 재고 |
-| 입고·출고 | 수량과 거래 맥락을 기록 | 거래 헤더, 품목별 거래, 재고 변화 |
-| 재고 조정 | 실제 수량과 차이가 난 이유를 기록 | 조정 사유와 조정 거래 이력 |
+**사용 흐름:** 주문·생산·창고 담당자가 현재고를 확인하고, 필요한 품목을 등록한 뒤 입출고·이동·조정을 기록합니다. 서비스는 품목·창고별 현재 수량, 거래 이력, 조정 사유를 남깁니다.
 
-GIF는 격리된 로컬 Supabase fixture에서 실제 로그인·폼 입력·조회·쓰기 흐름을 녹화한 자료입니다. 제품 등록과 입고 시연은 로컬 DB에 기록을 남기며, 운영 데이터 규모나 실제 사용자 처리량을 나타내지는 않습니다.
+GIF는 격리된 로컬 Supabase fixture에서 녹화했습니다. 첫 번째 영상은 로그인·조회 흐름만 재생하며 쓰기를 수행하지 않습니다. 제품 등록과 입고 시연은 로컬 DB에 기록을 남기며, 운영 데이터 규모나 실제 사용자 처리량을 나타내지는 않습니다.
 
 ## 문제를 데이터 흐름으로 바꾼 판단
 
