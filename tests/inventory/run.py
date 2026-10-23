@@ -33,6 +33,9 @@ def setup(c, include_selected=False):
         applied.append(dict(file=p.name,sha256=digest(p)))
     c.execute("CREATE TABLE inventory_reinforcement_environment(name text PRIMARY KEY)")
     c.execute("INSERT INTO inventory_reinforcement_environment VALUES ('stock-cock-consistency-test')")
+    # PostgREST starts before this runner applies migrations, so refresh its schema cache
+    # before the opt-in HTTP integration suite addresses newly created tables and RPCs.
+    c.execute("SELECT pg_notify('pgrst', 'reload schema')")
     return applied
 def install(c,p):
     c.execute(p.read_text())
