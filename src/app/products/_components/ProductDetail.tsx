@@ -13,7 +13,10 @@ import { useDrawerStore } from "@/store/drawerStore";
 import { useFormStateStore } from "@/store/formStateStore";
 import type { DomainStockItem } from "@/types/domain";
 import { clientLogger } from "@/utils/client-logger";
-import { Edit } from "lucide-react";
+import { deleteProduct } from "@/services/product-api";
+import { Edit, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { mutate } from "swr";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -23,6 +26,22 @@ interface ProductDetailProps {
 
 export default function ProductDetail({ product }: ProductDetailProps) {
   const supabase = createClient();
+  const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
+  const handleDelete = async () => {
+    if (deleting || !window.confirm(`“${product.name}” 제품과 모든 옵션을 삭제할까요?\n창고별 재고가 모두 0이어야 하며, 과거 입출고 이력은 보존됩니다.`)) return;
+    setDeleting(true);
+    try {
+      await deleteProduct(product.productId);
+      await mutate(() => true, undefined, { revalidate: true });
+      router.push("/products");
+      router.refresh();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "제품 삭제에 실패했습니다.");
+    } finally {
+      setDeleting(false);
+    }
+  };
   const { inventories } = useInventories();
   const { warehouses } = useWarehouses();
   const { grouped } = useTransactionHistory();
@@ -128,6 +147,9 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                     <h2 className="text-lg font-semibold">{product.name}</h2>
                     <Button variant="ghost" size="icon" className="w-8 h-8" onClick={handleEdit}>
                       <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="w-8 h-8 text-red-600" aria-label="제품 삭제" disabled={deleting} onClick={handleDelete}>
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                   <p className="text-sm text-gray-500">{""}</p>

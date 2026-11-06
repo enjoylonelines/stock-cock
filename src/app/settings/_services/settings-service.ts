@@ -18,7 +18,7 @@ export const settingsService = {
     const supabase = await createClient();
 
     const [productsCountResult, membersCountResult, warehousesCountResult, suppliersCountResult] = await Promise.all([
-      supabase.from("products").select("*", { count: "exact", head: true }),
+      supabase.from("products").select("*", { count: "exact", head: true }).is("deleted_at", null),
       supabase.from("profiles").select("*", { count: "exact", head: true }),
       supabase.from("warehouses").select("*", { count: "exact", head: true }),
       supabase.from("suppliers").select("*", { count: "exact", head: true }),

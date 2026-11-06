@@ -4,6 +4,7 @@ import { formatSpecWeight, formatStock } from "@/lib/domain/format";
 import { createClient } from "@/lib/supabase/client";
 import type { TransactionHistoryView } from "@/types/database";
 import { clientLogger } from "@/utils/client-logger";
+import TransactionActions from "./TransactionActions";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -44,7 +45,7 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
   }, [transactionId, supabase]);
 
   if (loading) return <div className="p-8 text-center">로딩중...</div>;
-  if (!data) return <div className="p-8 text-center">데이터 없음</div>;
+  if (!data?.length) return <div className="p-8 text-center">데이터 없음</div>;
 
   // 타입 색상 및 텍스트
   const typeMap = {
@@ -67,6 +68,7 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
 
   return (
     <div className="p-4 mx-auto w-full max-w-3xl bg-white">
+      <TransactionActions transactionId={transactionId} />
       {/* 헤더: 뒤로가기 + 제목 + 타입 뱃지 */}
       <div className="flex justify-start items-center mb-4">
         <span
@@ -125,7 +127,7 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
         <div className="space-y-3">
           {data.map(item => {
             const product = products.find(p => p.productOptionId === item.product_option_id);
-            const stockUnit = product?.stockUnit ?? "EA";
+            const stockUnit = product?.stockUnit ?? (item.product_type === "material" ? "GRAM" : "EA");
             const qty = Math.abs(item.quantity ?? 0);
             const sign = item.type === "in" ? "+" : item.type === "out" ? "-" : "";
             const weightGrams = item.weight ?? 0;
@@ -156,7 +158,7 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
       {/* 메모 */}
       <div className="text-sm text-gray-600">
         <div className="mb-1 font-medium text-gray-500">메모</div>
-        <div>{data[0].memo || <span className="text-gray-400">-</span>}</div>
+        <div className="whitespace-pre-wrap break-words">{data[0].memo || <span className="text-gray-400">-</span>}</div>
       </div>
     </div>
   );
