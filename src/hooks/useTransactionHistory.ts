@@ -140,11 +140,15 @@ export function useTransactionHistory() {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "transactions",
         },
-        () => mutate(swrKeyRef.current),
+        () => {
+          void mutate("inventories");
+          void mutate("products");
+          void mutate(swrKeyRef.current);
+        },
       )
       .subscribe();
 

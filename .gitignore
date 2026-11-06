@@ -16,6 +16,10 @@
 
 # next.js
 /.next/
+/.next-management/
+/.next-management-build/
+/tools/dev-sandbox/supabase/.temp/
+/tools/dev-sandbox/supabase/.branches/
 /out/
 
 # production

@@ -523,6 +523,7 @@ export type Database = {
       };
       transaction_history_view: {
         Row: {
+          product_type: string | null;
           created_at: string | null;
           from_warehouse_name: string | null;
           memo: string | null;

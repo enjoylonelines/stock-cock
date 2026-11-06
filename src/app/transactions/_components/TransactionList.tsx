@@ -36,7 +36,7 @@ const groupByTransactionId = (transactions: TransactionHistoryItem[]): Transacti
 /**
  * 입출고 수량 표시 (도메인 formatStock 사용: 원재료 g→kg, 완제품 개)
  */
-const formatQuantityDisplay = (quantity: number, product: DomainStockItem | undefined): string => {
+const formatQuantityDisplay = (quantity: number, product: Pick<DomainStockItem, "stockUnit"> | undefined): string => {
   const sign = quantity >= 0 ? "+" : "-";
   const absQuantity = Math.abs(quantity);
   const unit = product?.stockUnit ?? "EA";
@@ -115,13 +115,13 @@ const TransactionItem = memo(function TransactionItem({
         )}
         {!compact && transaction.type_kr !== "이동" && (
           <div className="mt-1 text-sm text-gray-500">
-            총 재고: {formatStock(transaction.total_stock, product?.stockUnit ?? "EA")}
+            총 재고: {formatStock(transaction.total_stock, product?.stockUnit ?? (transaction.product_type === "material" ? "GRAM" : "EA"))}
           </div>
         )}
       </div>
       <div className="flex flex-col items-end">
         <div className={`text-right ${getQuantityColor(transaction.quantity ?? 0)}`}>
-          {formatQuantityDisplay(transaction.quantity ?? 0, product)}
+          {formatQuantityDisplay(transaction.quantity ?? 0, product ?? { stockUnit: transaction.product_type === "material" ? "GRAM" : "EA" })}
         </div>
         {!compact && (
           <div className="text-sm text-gray-500">{transaction.user_name ? transaction.user_name : "이름없음"}</div>
@@ -237,13 +237,13 @@ const TransactionGroup = memo(function TransactionGroup({
             )}
             {firstTransaction.type_kr !== "이동" && (
               <div className="mt-1 text-sm text-gray-500">
-                총 재고: {formatStock(firstTransaction.total_stock, firstProduct?.stockUnit ?? "EA")}
+                총 재고: {formatStock(firstTransaction.total_stock, firstProduct?.stockUnit ?? (firstTransaction.product_type === "material" ? "GRAM" : "EA"))}
               </div>
             )}
           </div>
           <div className="flex flex-col gap-2 items-end">
             <div className={`text-right ${getQuantityColor(firstTransaction.quantity ?? 0)}`}>
-              {formatQuantityDisplay(firstTransaction.quantity ?? 0, firstProduct)}
+              {formatQuantityDisplay(firstTransaction.quantity ?? 0, firstProduct ?? { stockUnit: firstTransaction.product_type === "material" ? "GRAM" : "EA" })}
             </div>
             <div className="text-sm text-gray-500">
               {firstTransaction.user_name ? firstTransaction.user_name : "이름없음"}
@@ -263,6 +263,13 @@ const TransactionGroup = memo(function TransactionGroup({
           </div>
         </div>
       </div>
+
+      {firstTransaction.memo?.trim() && (
+        <div className="px-4 pb-4 text-sm text-gray-700">
+          <span className="text-xs font-medium text-gray-500">메모</span>
+          <p className="mt-1 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{firstTransaction.memo}</p>
+        </div>
+      )}
 
       {/* 펼쳐진 추가 항목들 */}
       {isExpanded && hasMultiple && (

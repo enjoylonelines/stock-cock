@@ -19,6 +19,7 @@ const fetcher = async () => {
           )
         )
       `)
+      .is("cancelled_at", null)
       .gte("created_at", `${today}T00:00:00`)
       .lte("created_at", `${today}T23:59:59`),
     supabase.from("inventory").select(`

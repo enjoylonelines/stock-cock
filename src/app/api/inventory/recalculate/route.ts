@@ -17,6 +17,7 @@ export async function POST(request: Request) {
     const { data: allTransactions, error: txError } = await supabase
       .from("transactions")
       .select("id, type, from_warehouse_id, to_warehouse_id, created_at")
+      .is("cancelled_at", null)
       .order("created_at", { ascending: true });
 
     if (txError) {

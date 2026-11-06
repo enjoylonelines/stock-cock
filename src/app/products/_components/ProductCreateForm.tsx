@@ -208,6 +208,7 @@ export default function ProductCreateForm({
         }
         resetProductForm();
         closeMainDrawer();
+        await Promise.all([mutate("products"), mutate("inventories")]);
         router.push("/products");
       }
     } catch (error: unknown) {
