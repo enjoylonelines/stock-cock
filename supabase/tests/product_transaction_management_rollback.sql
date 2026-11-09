@@ -1,3 +1,5 @@
+-- Historical acceptance test for schema 20261106 before append-only corrections.
+-- Current schema: run append_only_transaction_corrections.sql instead.
 BEGIN;
 SET LOCAL lock_timeout='3s';
 SET LOCAL statement_timeout='20s';

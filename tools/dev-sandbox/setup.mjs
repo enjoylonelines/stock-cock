@@ -11,7 +11,11 @@ try {
 if (psql("select to_regclass('public.products')").trim()) {
   if (!psql("select to_regclass('public.management_audit')").trim())
     throw new Error("Sandbox contains an older schema. Inspect it before applying additional migrations.");
-  console.log("Management sandbox is already initialized.");
+  if (!psql("select to_regclass('public.transaction_resolutions')").trim()) {
+    psql("BEGIN;\n"+readFileSync("supabase/migrations/20261109063911_append_only_transaction_corrections.sql","utf8")+"\nCOMMIT;");
+    psql("NOTIFY pgrst, 'reload schema';");
+  }
+  console.log("Append-only management sandbox is initialized.");
 } else {
   for (const file of readdirSync("supabase/migrations").filter(name=>name.endsWith(".sql")).sort()) {
     psql("BEGIN;\n"+readFileSync("supabase/migrations/"+file,"utf8")+"\nCOMMIT;");

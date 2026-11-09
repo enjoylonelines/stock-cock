@@ -4,6 +4,7 @@ import type { TransactionHistoryItem } from "@/hooks/useTransactionHistory";
 
 jest.mock("next/navigation", () => ({ useRouter: () => ({ push: jest.fn() }) }));
 jest.mock("next/image", () => () => null);
+jest.mock("next/link", () => ({ __esModule: true, default: ({ children }: { children: React.ReactNode }) => children }));
 jest.mock("@/hooks/useProducts", () => ({ useProducts: () => ({ products: [] }) }));
 
 const item = (overrides: Partial<TransactionHistoryItem> = {}): TransactionHistoryItem =>
@@ -12,6 +13,8 @@ const item = (overrides: Partial<TransactionHistoryItem> = {}): TransactionHisto
     product_option_id: "option-1",
     product_name: "검증 제품",
     type: "in",
+    transaction_status: "posted",
+    entry_kind: "original",
     type_kr: "입고",
     created_at: "2026-11-06T10:00:00",
     quantity: 2,
@@ -53,4 +56,16 @@ test("삭제된 원재료도 이력 자체의 제품 유형으로 g 단위를 �
     />
   );
   expect(screen.getByText("+2.5kg")).toBeInTheDocument();
+});
+
+test("정정된 원본과 역거래는 남아 있지만 다시 처리할 수 없다", () => {
+  render(<TransactionList grouped={[{ date: "2026년 11월 9일", transactions: [
+    item({ transaction_status: "corrected", resolved_by_transaction_id: "replacement" }),
+    item({ transaction_id: "reversal", entry_kind: "reversal", type: "out", type_kr: "출고" }),
+  ] }]} />);
+  expect(screen.getByText("정정됨")).toBeInTheDocument();
+  expect(screen.getByText("역거래")).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "정정" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "취소" })).not.toBeInTheDocument();
+  expect(screen.getAllByText("현재 재고:", { exact: false })).toHaveLength(2);
 });
