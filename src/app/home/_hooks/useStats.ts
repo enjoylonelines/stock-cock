@@ -7,7 +7,7 @@ const fetcher = async () => {
 
   const [transactionsResult, inventoryResult] = await Promise.all([
     supabase
-      .from("transactions")
+      .from("effective_transactions")
       .select(`
         id, 
         type, 

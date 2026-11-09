@@ -10,51 +10,27 @@ export async function GET(_request: Request, { params }: Context) {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
   const { id } = await params;
-  const { data, error } = await supabase
-    .from("transactions")
-    .select("*, transaction_items(*)")
-    .eq("id", id)
-    .is("cancelled_at", null)
-    .single();
+  const { data, error } = await supabase.from("transactions").select("*, transaction_items(*)").eq("id", id).single();
   if (error) return NextResponse.json({ error: "입출고 이력을 찾을 수 없습니다." }, { status: 404 });
-  return NextResponse.json({ data });
+  const [metadata, notes] = await Promise.all([
+    supabase
+      .from("transaction_history_view")
+      .select(
+        "transaction_status, entry_kind, source_transaction_id, resolved_by_transaction_id, resolution_reason, latest_memo"
+      )
+      .eq("transaction_id", id)
+      .limit(1)
+      .single(),
+    supabase.from("transaction_memo_notes").select("id, memo, reason, created_at").eq("transaction_id", id).order("id"),
+  ]);
+  if (metadata.error || notes.error)
+    return NextResponse.json({ error: "이력 상태를 불러오지 못했습니다." }, { status: 500 });
+  return NextResponse.json({ data: { ...data, ...metadata.data, memo_notes: notes.data } });
 }
 
-async function manage(request: Request, context: Context, deleting: boolean) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
-  try {
-    const { id } = await context.params;
-    const body = await request.json();
-    if (!Number.isInteger(body.revision)) {
-      return NextResponse.json({ error: "이력을 새로고침 후 다시 시도해주세요." }, { status: 400 });
-    }
-    const { data, error } = await supabase.rpc("manage_transaction", {
-      p_id: id,
-      p_revision: body.revision,
-      p_changes: body,
-      p_delete: deleting,
-    });
-    if (error)
-      return NextResponse.json(
-        { error: error.message },
-        {
-          status: error.code === "40001" ? 409 : error.code === "42501" ? 403 : 400,
-        }
-      );
-    return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ error: "요청 내용을 확인해주세요." }, { status: 400 });
-  }
+export async function PATCH() {
+  return NextResponse.json({ error: "원본 수정은 중단됐습니다. 정정 기록을 추가해주세요." }, { status: 405 });
 }
-
-export async function PATCH(request: Request, context: Context) {
-  return manage(request, context, false);
-}
-
-export async function DELETE(request: Request, context: Context) {
-  return manage(request, context, true);
+export async function DELETE() {
+  return NextResponse.json({ error: "원본 삭제는 중단됐습니다. 취소 기록을 추가해주세요." }, { status: 405 });
 }

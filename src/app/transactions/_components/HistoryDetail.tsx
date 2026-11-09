@@ -69,6 +69,7 @@ export default function HistoryDetail({ transactionId }: HistoryDetailProps) {
   return (
     <div className="p-4 mx-auto w-full max-w-3xl bg-white">
       <TransactionActions transactionId={transactionId} />
+      {data[0].resolution_reason && <p className="mb-4 text-sm text-gray-600">정정·취소 사유: {data[0].resolution_reason}</p>}
       {/* 헤더: 뒤로가기 + 제목 + 타입 뱃지 */}
       <div className="flex justify-start items-center mb-4">
         <span

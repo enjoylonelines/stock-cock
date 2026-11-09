@@ -2,7 +2,8 @@
 import type { GroupedTransactions, TransactionHistoryItem } from "@/hooks/useTransactionHistory";
 import { useProducts } from "@/hooks/useProducts";
 import { formatSpecWeight, formatStock } from "@/lib/domain/format";
-import { isMaterialItem } from "@/lib/domain/stock";
+import { canResolveHistory, historyStatusLabel } from "@/lib/domain/transaction-history";
+import Link from "next/link";
 import type { DomainStockItem } from "@/types/domain";
 import {
   ArrowDownToLine,
@@ -16,6 +17,7 @@ import {
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { memo, useCallback, useMemo, useState } from "react";
+import TransactionListActions from "./TransactionListActions";
 
 /**
  * 트랜잭션 ID별로 그룹화
@@ -115,7 +117,7 @@ const TransactionItem = memo(function TransactionItem({
         )}
         {!compact && transaction.type_kr !== "이동" && (
           <div className="mt-1 text-sm text-gray-500">
-            총 재고: {formatStock(transaction.total_stock, product?.stockUnit ?? (transaction.product_type === "material" ? "GRAM" : "EA"))}
+            현재 재고: {formatStock(transaction.total_stock, product?.stockUnit ?? (transaction.product_type === "material" ? "GRAM" : "EA"))}
           </div>
         )}
       </div>
@@ -237,7 +239,7 @@ const TransactionGroup = memo(function TransactionGroup({
             )}
             {firstTransaction.type_kr !== "이동" && (
               <div className="mt-1 text-sm text-gray-500">
-                총 재고: {formatStock(firstTransaction.total_stock, firstProduct?.stockUnit ?? (firstTransaction.product_type === "material" ? "GRAM" : "EA"))}
+                현재 재고: {formatStock(firstTransaction.total_stock, firstProduct?.stockUnit ?? (firstTransaction.product_type === "material" ? "GRAM" : "EA"))}
               </div>
             )}
           </div>
@@ -264,11 +266,28 @@ const TransactionGroup = memo(function TransactionGroup({
         </div>
       </div>
 
+      <div className="flex flex-wrap gap-3 px-4 pb-3 text-xs text-gray-600">
+        <span className="rounded bg-gray-100 px-2 py-1">{historyStatusLabel(firstTransaction)}</span>
+        {firstTransaction.source_transaction_id && <Link className="underline" href={`/transactions/${firstTransaction.source_transaction_id}`}>원본 보기</Link>}
+        {firstTransaction.resolved_by_transaction_id && <Link className="underline" href={`/transactions/${firstTransaction.resolved_by_transaction_id}`}>정정·취소 기록 보기</Link>}
+        {firstTransaction.resolution_reason && <span>사유: {firstTransaction.resolution_reason}</span>}
+      </div>
+      {firstTransaction.latest_memo != null && (
+        <div className="px-4 pb-3 text-sm"><span className="text-gray-500">정정 메모</span>
+          <p className="whitespace-pre-wrap break-words">{firstTransaction.latest_memo || "메모 없음"}</p>
+          <p className="text-xs text-gray-500">사유: {firstTransaction.memo_reason}</p>
+        </div>
+      )}
+
       {firstTransaction.memo?.trim() && (
         <div className="px-4 pb-4 text-sm text-gray-700">
           <span className="text-xs font-medium text-gray-500">메모</span>
           <p className="mt-1 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{firstTransaction.memo}</p>
         </div>
+      )}
+
+      {canResolveHistory(firstTransaction) && firstTransaction.transaction_id && (
+        <TransactionListActions transactionId={firstTransaction.transaction_id} />
       )}
 
       {/* 펼쳐진 추가 항목들 */}
