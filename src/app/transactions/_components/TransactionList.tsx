@@ -331,6 +331,7 @@ const TransactionGroup = memo(function TransactionGroup({
 const TransactionList = memo(function TransactionList({ grouped }: { grouped: GroupedTransactions[] }) {
   const router = useRouter();
   const { products } = useProducts();
+  const [includeChanges, setIncludeChanges] = useState(false);
   const getTypeIcon = useCallback((type: string) => {
     switch (type) {
       case "입고":
@@ -359,14 +360,27 @@ const TransactionList = memo(function TransactionList({ grouped }: { grouped: Gr
 
   // 날짜별 그룹 내에서 transaction_id별로 그룹화
   const groupedByDate = useMemo(() => {
-    return grouped.map(dateGroup => ({
-      date: dateGroup.date,
-      transactionGroups: groupByTransactionId(dateGroup.transactions),
-    }));
-  }, [grouped]);
+    return grouped
+      .map(dateGroup => ({
+        date: dateGroup.date,
+        transactionGroups: groupByTransactionId(dateGroup.transactions.filter(tx =>
+          includeChanges || (tx.transaction_status === "posted" && tx.entry_kind !== "reversal")
+        )),
+      }))
+      .filter(group => group.transactionGroups.length > 0)
+      .sort((a, b) => new Date(b.transactionGroups[0][0].created_at ?? 0).getTime() - new Date(a.transactionGroups[0][0].created_at ?? 0).getTime());
+  }, [grouped, includeChanges]);
 
   return (
     <div className="overflow-auto space-y-6 custom-scrollbar">
+      <div className="space-y-1 text-sm text-gray-600">
+        <label className="flex items-center gap-2">
+          <input type="checkbox" checked={includeChanges} onChange={e => setIncludeChanges(e.target.checked)} />
+          변경 이력 포함
+        </label>
+        <p className="text-xs">정정된 최신 거래를 거래일 순으로 표시합니다. 이전 원본과 취소·역거래는 변경 이력에서 확인할 수 있습니다.</p>
+      </div>
+      {groupedByDate.length === 0 && <p className="text-sm text-gray-500">표시할 거래가 없습니다.</p>}
       {groupedByDate.map(dateGroup => (
         <div key={dateGroup.date} className="space-y-2">
           <h2 className="text-sm font-medium text-gray-500">{dateGroup.date}</h2>
